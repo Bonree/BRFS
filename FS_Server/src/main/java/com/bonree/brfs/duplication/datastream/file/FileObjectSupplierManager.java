@@ -91,8 +91,10 @@ public class FileObjectSupplierManager {
 
                 if (supplier == null) {
                     log.error("A file object supplier should have been bind to sr[{}], bit none", srName);
-                    return factory.create(region);
+                    supplier = factory.create(region);
                 }
+
+                supplier.updateStorageRegion(region);
 
                 return supplier;
             });

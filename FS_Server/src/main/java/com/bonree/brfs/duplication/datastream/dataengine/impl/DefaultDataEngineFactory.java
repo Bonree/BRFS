@@ -7,6 +7,7 @@ import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierManager;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import javax.inject.Inject;
 
 public class DefaultDataEngineFactory implements DataEngineFactory {
@@ -14,15 +15,18 @@ public class DefaultDataEngineFactory implements DataEngineFactory {
     private final DataPoolFactory dataPoolFactory;
     private final FileObjectSupplierManager fileObjectSupplierManager;
     private final DiskWriter diskWriter;
+    private final StorageRegionManager storageRegionManager;
 
     @Inject
     public DefaultDataEngineFactory(DataPoolFactory dataPoolFactory,
                                     FileObjectSupplierManager fileObjectSupplierManager,
                                     FileObjectSupplierFactory fileSupplierFactory,
-                                    DiskWriter diskWriter) {
+                                    DiskWriter diskWriter,
+                                    StorageRegionManager storageRegionManager) {
         this.dataPoolFactory = dataPoolFactory;
         this.fileObjectSupplierManager = fileObjectSupplierManager;
         this.diskWriter = diskWriter;
+        this.storageRegionManager = storageRegionManager;
     }
 
     @Override
@@ -38,7 +42,8 @@ public class DefaultDataEngineFactory implements DataEngineFactory {
                 String.format("can not create file Object supplier for sr[%s]", storageRegion));
         }
 
-        return new DefaultDataEngine(storageRegion,
+        return new DefaultDataEngine(storageRegion.getName(),
+                                     storageRegionManager,
                                      dataPoolFactory.createDataPool(),
                                      supplier,
                                      diskWriter);

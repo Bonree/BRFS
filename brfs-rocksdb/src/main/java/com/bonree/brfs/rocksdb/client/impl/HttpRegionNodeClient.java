@@ -78,7 +78,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
             .build();
 
         try {
-            LOG.info("read rocksdb data from {}, cf: {}, key:{}", host, columnFamily, key);
+            LOG.debug("read rocksdb data from {}, cf: {}, key:{}", host, columnFamily, key);
             HttpResponse response = client.executeGet(uri);
             if (response.isReponseOK()) {
                 return response.getResponseBody();

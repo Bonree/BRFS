@@ -101,22 +101,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
     private TimeWatcher watcher = new TimeWatcher();
-    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(100);
+    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
 
-    private ExecutorService produceExec = Executors
-        .newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2, new PooledThreadFactory("rocksdb_data_producer"));
     private ScheduledExecutorService queueChecker =
         Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
-    
-    private ExecutorService synchronizeExec = new ThreadPoolExecutor(
-        Runtime.getRuntime().availableProcessors(),
-        Runtime.getRuntime().availableProcessors(),
-        0L,
-        TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<>(500),
-        new PooledThreadFactory("rocksdb_data_synchronizer"),
-        new ThreadPoolExecutor.AbortPolicy()
-    );
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -332,7 +320,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        produceExec.execute(new RocksDBDatProducer(columnFamily, key, value));
+        boolean offer = queue.offer(new RocksDBDataUnit(columnFamily, key, value));
+        if (!offer) {
+            LOG.warn("offer data ro queue failed, size:{}", queue.size());
+        }
         return writeStatus;
     }
 
@@ -359,30 +350,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         return WriteStatus.SUCCESS;
     }
 
-    /**
-     * @description: 负责向阻塞队列put需要同步的数据
-     */
-    private class RocksDBDatProducer implements Runnable {
-        private String columnFamily;
-        private byte[] key;
-        private byte[] value;
-
-        public RocksDBDatProducer(String columnFamily, byte[] key, byte[] value) {
-            this.columnFamily = columnFamily;
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public void run() {
-            RocksDBDataUnit data = new RocksDBDataUnit(columnFamily, key, value);
-            boolean offer = queue.offer(data);
-            if (!offer) {
-                LOG.warn("offer data ro queue failed");
-            }
-        }
-    }
-
     private class QueueChecker implements Runnable {
 
         @Override
@@ -391,43 +358,36 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 LOG.debug("service cache is empty!");
                 return;
             }
+            if (queue.isEmpty()) {
+                LOG.debug("sync queue is empty!");
+                return;
+            }
 
             if (queue.size() >= dataSynchronizeCountOnce) {
-                synchronizeExec.execute(new RocksDBDataSynchronizer(dataSynchronizeCountOnce));
-            } else {
-                if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && queue.size() != 0) {
-                    synchronizeExec.execute(new RocksDBDataSynchronizer(queue.size()));
-                    watcher.getElapsedTimeAndRefresh();
-                }
+                dataSynchronizer(dataSynchronizeCountOnce);
+            } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH) {
+                dataSynchronizer(queue.size());
+                watcher.getElapsedTimeAndRefresh();
             }
         }
 
-        private class RocksDBDataSynchronizer implements Runnable {
-            private int size;
-
-            public RocksDBDataSynchronizer(int size) {
-                this.size = size;
-            }
-
-            @Override
-            public void run() {
-                List<RocksDBDataUnit> datas = new ArrayList<>(size);
-                queue.drainTo(datas, size);
-                LOG.info("current sync data count:{}, queue size:{}", size, queue.size());
-                RegionNodeConnection connection;
-                for (Service service : serviceCache) {
-                    connection =
-                        DefaultRocksDBManager.this.regionNodeConnectionPool
-                            .getConnection(regionGroupName, service.getServiceId());
-                    if (connection == null || connection.getClient() == null) {
-                        LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
-                        continue;
-                    }
-                    try {
-                        connection.getClient().writeBatchData(datas);
-                    } catch (Exception e) {
-                        LOG.error("rocksdb data writer occur error", e);
-                    }
+        public void dataSynchronizer(int size) {
+            List<RocksDBDataUnit> datas = new ArrayList<>(size);
+            queue.drainTo(datas, size);
+            LOG.info("current sync data count:{}, queue size:{}", size, queue.size());
+            RegionNodeConnection connection;
+            for (Service service : serviceCache) {
+                connection =
+                    DefaultRocksDBManager.this.regionNodeConnectionPool
+                        .getConnection(regionGroupName, service.getServiceId());
+                if (connection == null || connection.getClient() == null) {
+                    LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
+                    continue;
+                }
+                try {
+                    connection.getClient().writeBatchData(datas);
+                } catch (Exception e) {
+                    LOG.error("rocksdb data writer occur error", e);
                 }
             }
         }
@@ -622,9 +582,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
-        this.produceExec.shutdown();
         this.queueChecker.shutdown();
-        this.synchronizeExec.shutdown();
         LOG.info("rocksdb manager stop");
     }
 }

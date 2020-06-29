@@ -128,3 +128,5 @@ rocksdb.target.file.size.base = 256
 rocksdb.max.bytes.level.base = 2048
 # 写数据时的blocksize，最好与dn的文件块大小一致
 regionnode.block.size = 65536
+# regionnode节点之间同步rocksdb数据时，一次同步的数据条数，默认50
+rocksdb.data.synchronize.count.once = 50
