@@ -677,8 +677,22 @@ public class TaskDispatcher implements Closeable {
                 cs.getChangeID(), serverId, secondIds, aliveSecondIDs);
             return false;
         }
+        // 判断当前存活的二级serverid是否在统一个节点
+        Map<String, String> ship = idManager.getSecondFirstShip(storageIndex);
+        return !isSameFirst(ship, aliveSecondIDs);
+    }
 
-        return true;
+    private boolean isSameFirst(Map<String, String> secondFirstMap, List<String> seconds) {
+        Map<String, Integer> countMap = new HashMap<>();
+        seconds.stream().forEach(second -> {
+            String first = secondFirstMap.get(second);
+            if (countMap.get(first) == null) {
+                countMap.put(first, 1);
+            } else {
+                countMap.put(first, countMap.get(first) + 1);
+            }
+        });
+        return countMap.size() <= 1;
     }
 
     /**

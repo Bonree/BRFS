@@ -10,7 +10,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -309,6 +311,51 @@ public class RouteParserTest {
     private List<String> analysisroute(RouteParser parser, String fileblockname1) {
         String[] fields = parser.searchVaildIds(fileblockname1);
         return Arrays.asList(fields);
+    }
+
+    @Test
+    public void analysisV2Route10() throws Exception {
+        String content = "[{\"changeID\":\"15934266725f4cd6c5-682c-4261-a4bd-1498f91b3df5\","
+            + "\"storageIndex\":0,\"secondID\":\"21\","
+            + "\"newSecondIDs\":{\"22\":17979332,\"20\":8120992},"
+            + "\"secondFirstShip\":{\"22\":\"10\",\"20\":\"10\",\"21\":\"11\"},"
+            + "\"version\":\"V2\"}]";
+
+        String fileblockname1 = "d0003118fe124d948700149a2a1ee295_21_22";
+
+        NormalRouteInterface[] routes = JsonUtils.toObject(content, SuperNormalRoute[].class);
+
+        RouteParser parser = new RouteParser(0, null, false);
+
+        Arrays.asList(routes).forEach(
+            route -> {
+                parser.putNormalRoute(route);
+            }
+        );
+        System.out.println(fileblockname1 + " search " + analysisroute(parser, fileblockname1));
+    }
+
+    @Test
+    public void testSameOne() throws Exception {
+        Map<String, String> map = new HashMap<>();
+        map.put("20", "10");
+        map.put("21", "10");
+        map.put("22", "11");
+        List<String> seconds = Arrays.asList("20", "21", "211");
+        System.out.println(isSameFirst(map, seconds));
+    }
+
+    private boolean isSameFirst(Map<String, String> secondFirstMap, List<String> seconds) {
+        Map<String, Integer> countMap = new HashMap<>();
+        seconds.stream().forEach(second -> {
+            String first = secondFirstMap.get(second);
+            if (countMap.get(first) == null) {
+                countMap.put(first, 1);
+            } else {
+                countMap.put(first, countMap.get(first) + 1);
+            }
+        });
+        return countMap.size() <= 1;
     }
 
 }
