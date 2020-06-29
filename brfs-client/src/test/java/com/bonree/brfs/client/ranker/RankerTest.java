@@ -15,15 +15,28 @@
 package com.bonree.brfs.client.ranker;
 
 import com.google.common.collect.ImmutableList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RankerTest {
 
     public static void main(String[] args) {
-        List<Integer> l = new ShiftRanker<Integer>().rank(ImmutableList.<Integer>of(1, 2, 3, 4, 5));
-
-        System.out.println(l);
-        System.out.println(l);
+        ShiftRanker<Integer> ranker = new ShiftRanker<>();
+        List<Integer> nums = ImmutableList.<Integer>of(1, 2);
+        Map<Integer, Integer> countMap = new HashMap<>();
+        int count = 100;
+        for (int i = 0; i < count; i++) {
+            int first = ranker.rank(nums).get(0);
+            if (countMap.get(first) == null) {
+                countMap.put(first, 1);
+            } else {
+                countMap.put(first, countMap.get(first) + 1);
+            }
+        }
+        countMap.entrySet().stream().forEach(x -> {
+            System.out.println(x.getKey() + "  = " + x.getValue());
+        });
     }
 
 }

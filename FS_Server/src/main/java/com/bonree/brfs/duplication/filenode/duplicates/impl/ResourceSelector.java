@@ -7,6 +7,7 @@ import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,6 +52,8 @@ public class ResourceSelector extends ResourceWriteSelector {
             node.setSecondId(secondId);
             duplicateNodes.add(node);
         }
+        // 升序排列，如果存在降序，则在发生多次副本迁移后，影响副本的读取
+        Collections.sort(duplicateNodes);
         return duplicateNodes.isEmpty() ? new DuplicateNode[0] : duplicateNodes.toArray(new DuplicateNode[duplicateNodes.size()]);
     }
 }
