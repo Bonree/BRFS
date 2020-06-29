@@ -103,7 +103,15 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
     @Override
     public void updateStorageRegion(StorageRegion storageRegion) {
-        storageRegionRef.set(storageRegion);
+        synchronized (storageRegionRef) {
+            StorageRegion oldStorageRegion = storageRegionRef.get();
+            storageRegionRef.set(storageRegion);
+
+            expiredTime = timeEventEmitter.getStartTime(Duration.parse(storageRegion.getFilePartitionDuration()));
+            timeEventEmitter.addListener(Duration.parse(storageRegion.getFilePartitionDuration()), this);
+
+            timeEventEmitter.removeListener(Duration.parse(oldStorageRegion.getFilePartitionDuration()), this);
+        }
     }
 
     @Override
