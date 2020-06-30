@@ -22,10 +22,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Deprecated
 @Path("/data")
 public class LegacyDataResource {
+    private static final Logger log = LoggerFactory.getLogger(LegacyDataResource.class);
 
     private final DataResource dataResource;
     private final StorageRegionManager storageRegionManager;
@@ -46,13 +49,16 @@ public class LegacyDataResource {
     public void write(
         InputStream input,
         @Suspended AsyncResponse response) {
+        log.info("write data with legacy interface");
         WriteDataMessage writeDatas = ProtoStuffUtils.readFrom(input, WriteDataMessage.class);
         StorageRegion storageRegion = storageRegionManager.findStorageRegionById(writeDatas.getStorageNameId());
         if (storageRegion == null) {
+            log.error("no storage region id[{}] is found", writeDatas.getStorageNameId());
             response.resume(new StorageRegionNonexistentException("id=" + writeDatas.getStorageNameId()));
             return;
         }
 
+        log.info("write data to storage region[{}] with legacy interface", storageRegion.getName());
         storageRegionWriter.write(
             storageRegion.getName(),
             writeDatas.getItems(),
@@ -60,17 +66,29 @@ public class LegacyDataResource {
 
                 @Override
                 public void complete(String[] fids) {
+                    if (fids == null) {
+                        log.error("No fids is return in legacy");
+                    }
+
+                    for (String fid : fids) {
+                        if (fid == null) {
+                            log.error("some fid is null in result of legacy");
+                        }
+                    }
+
                     response.resume(fids);
                 }
 
                 @Override
                 public void complete(String fid) {
+                    log.error("Batch writting should not return a single fid");
                     response.resume(Response.serverError().build());
                     throw new RuntimeException("Batch writting should not return a single fid");
                 }
 
                 @Override
                 public void error(Throwable cause) {
+                    log.error("write data error", cause);
                     response.resume(cause);
                 }
             });
