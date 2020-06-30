@@ -57,7 +57,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     public static final String DEFAULT_PATH_STORAGE_REGION_ROOT = "storageName";
     private static final String DEFAULT_PATH_STORAGE_REGION_NODES = "nodes";
 
-    private static final int DEFAULT_MAX_CACHE_SIZE = 1024;
+    private static final int DEFAULT_MAX_CACHE_SIZE = 128;
     private final LoadingCache<String, StorageRegion> storageRegionCache;
     private final ConcurrentHashMap<Integer, StorageRegion> regionIds = new ConcurrentHashMap<>();
 
@@ -208,6 +208,12 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
     @Override
     public StorageRegion findStorageRegionById(int id) {
+        StorageRegion sr = regionIds.get(id);
+        if (sr == null) {
+            log.info("try to get all sr for id[{}]", id);
+            getStorageRegionList();
+        }
+
         return regionIds.get(id);
     }
 
@@ -232,6 +238,8 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         public void onRemoval(RemovalNotification<String, StorageRegion> notification) {
             StorageRegion region = notification.getValue();
             regionIds.remove(region.getId());
+
+            log.info("uncache storage region[{}, {}]", region.getName(), region.getId());
         }
 
     }
