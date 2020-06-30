@@ -68,6 +68,7 @@ public class LegacyDataResource {
 
                 @Override
                 public void complete(String fid) {
+                    log.error("Batch writting should not return a single fid");
                     response.resume(Response.serverError().build());
                     throw new RuntimeException("Batch writting should not return a single fid");
                 }
