@@ -2,7 +2,7 @@ package com.bonree.brfs.duplication.filenode.duplicates;
 
 import com.google.common.base.Strings;
 
-public class DuplicateNode {
+public class DuplicateNode implements Comparable<DuplicateNode> {
     private String group;
     private String id;
     /**
@@ -70,5 +70,10 @@ public class DuplicateNode {
         builder.append("{").append(group).append(", ").append(id).append(secondId).append("}");
 
         return builder.toString();
+    }
+
+    @Override
+    public int compareTo(DuplicateNode value) {
+        return this.getSecondId().compareTo(value.getSecondId());
     }
 }

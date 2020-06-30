@@ -23,14 +23,17 @@ public class ConfigurationResource {
     private final ServiceManager serviceManager;
     private final Service self;
     private final ObjectMapper jsonMapper;
+    private final LocalStore localStore;
 
     @Inject
     public ConfigurationResource(ServiceManager serviceManager,
                                  Service self,
-                                 @Json ObjectMapper jsonMapper) {
+                                 @Json ObjectMapper jsonMapper,
+                                 LocalStore localStore) {
         this.serviceManager = serviceManager;
         this.self = self;
         this.jsonMapper = jsonMapper;
+        this.localStore = localStore;
     }
 
     @POST
@@ -46,6 +49,7 @@ public class ConfigurationResource {
         if (!Objects.equals(service.getPayload(), payload)) {
             try {
                 serviceManager.updateService(service.getServiceGroup(), service.getServiceId(), payload);
+                localStore.store(payload);
             } catch (Exception e) {
                 log.error("udpate service error", e);
                 return Response.serverError().build();

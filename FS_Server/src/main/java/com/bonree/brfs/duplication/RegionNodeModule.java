@@ -40,6 +40,8 @@ import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.catalog.DefaultBrfsCatalog;
 import com.bonree.brfs.duplication.catalog.NonRocksDBManager;
 import com.bonree.brfs.duplication.configuration.ConfigurationResource;
+import com.bonree.brfs.duplication.configuration.LocalStore;
+import com.bonree.brfs.duplication.configuration.LocalStoreConfig;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
@@ -133,6 +135,9 @@ public class RegionNodeModule implements Module {
         binder.bind(DuplicateNodeChecker.class).in(ManageLifecycle.class);
 
         jaxrs(binder).resource(ConfigurationResource.class);
+        binder.bind(LocalStore.class).in(Scopes.SINGLETON);
+        JsonConfigProvider.bind(binder, "local.data", LocalStoreConfig.class);
+
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
         jaxrs(binder).resource(StatResource.class);
@@ -167,6 +172,7 @@ public class RegionNodeModule implements Module {
         ClusterConfig clusterConfig,
         HttpServerConfig serverConfig,
         ServiceManager serviceManager,
+        LocalStore localStore,
         Lifecycle lifecycle) {
         String host = serverConfig.getHost();
         if (host == null) {
@@ -183,6 +189,11 @@ public class RegionNodeModule implements Module {
             clusterConfig.getRegionNodeGroup(),
             host,
             serverConfig.getPort());
+
+        String payload = localStore.load();
+        if (payload != null) {
+            service.setPayload(payload);
+        }
 
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
 

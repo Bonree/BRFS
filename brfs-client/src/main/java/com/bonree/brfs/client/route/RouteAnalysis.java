@@ -2,6 +2,7 @@ package com.bonree.brfs.client.route;
 
 import static java.util.stream.Collectors.toList;
 
+import com.bonree.brfs.common.data.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -85,7 +86,7 @@ public final class RouteAnalysis {
 
         // 2.判断集合是否为空，为空，则解析失败。
         if (selectors.isEmpty()) {
-            throw new IllegalArgumentException("none second server is used");
+            throw new IllegalArgumentException("route is invalid " + JsonUtils.toJsonStringQuietly(node));
         }
 
         // 3.对select 服务进行排序。

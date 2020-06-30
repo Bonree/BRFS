@@ -1,6 +1,7 @@
 package com.bonree.brfs.rebalance.route.impl;
 
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
@@ -9,7 +10,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -261,6 +264,98 @@ public class RouteParserTest {
         RouteParser parser = new RouteParser(2, loader);
         String[] array = parser.searchVaildIds(fileName);
         System.out.println(Arrays.asList(array));
+    }
+
+    @Test
+    public void analysisV2Route09() throws Exception {
+        String content = "[\n"
+            + "{\"changeID\":\"1593396649f41439ea-d566-422e-bb39-ad339f545d1e\","
+            + "\"storageIndex\":0,\"secondID\":\"20\","
+            + "\"newSecondIDs\":{\"22\":18123228,\"23\":516821060,\"21\":8120992},"
+            + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"20\":\"11\",\"21\":\"10\"},"
+            + "\"version\":\"V2\"},\n"
+            + "{\"changeID\":\"15933969071f7b5c9b-a58d-4fa2-8f84-a293ccbb1560\","
+            + "\"storageIndex\":0,\"secondID\":\"22\","
+            + "\"newSecondIDs\":{\"23\":516755864,\"24\":521775692},"
+            + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"24\":\"11\",\"21\":\"10\"},"
+            + "\"version\":\"V2\"},\n"
+            + "{\"changeID\":\"1593396912478030a4-e593-4b6f-960c-7f4f444df999\","
+            + "\"storageIndex\":0,\"secondID\":\"21\","
+            + "\"newSecondIDs\":{\"23\":516755864,\"24\":521775696},"
+            + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"24\":\"11\",\"21\":\"10\"},"
+            + "\"version\":\"V2\"}\n"
+            + "]";
+        // content = "[\n"
+        //     + "{\"changeID\":\"1593396649f41439ea-d566-422e-bb39-ad339f545d1e\","
+        //     + "\"storageIndex\":0,\"secondID\":\"20\","
+        //     + "\"newSecondIDs\":{\"22\":18123228,\"23\":516821060,\"21\":8120992},"
+        //     + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"20\":\"11\",\"21\":\"10\"},"
+        //     + "\"version\":\"V2\"}]";
+
+        String fileblockname1 = "64ba3c5d33cf4fe2a11cddefaba55d8b_22_20";
+        String fileblockname2 = "6901c385f0d047579684984c06ca51bd_20_22";
+
+        NormalRouteInterface[] routes = JsonUtils.toObject(content, SuperNormalRoute[].class);
+
+        RouteParser parser = new RouteParser(0, null, false);
+
+        Arrays.asList(routes).forEach(
+            route -> {
+                parser.putNormalRoute(route);
+            }
+        );
+        System.out.println(fileblockname1 + " search " + analysisroute(parser, fileblockname1));
+        System.out.println(fileblockname2 + " search " + analysisroute(parser, fileblockname2));
+    }
+
+    private List<String> analysisroute(RouteParser parser, String fileblockname1) {
+        String[] fields = parser.searchVaildIds(fileblockname1);
+        return Arrays.asList(fields);
+    }
+
+    @Test
+    public void analysisV2Route10() throws Exception {
+        String content = "[{\"changeID\":\"15934266725f4cd6c5-682c-4261-a4bd-1498f91b3df5\","
+            + "\"storageIndex\":0,\"secondID\":\"21\","
+            + "\"newSecondIDs\":{\"22\":17979332,\"20\":8120992},"
+            + "\"secondFirstShip\":{\"22\":\"10\",\"20\":\"10\",\"21\":\"11\"},"
+            + "\"version\":\"V2\"}]";
+
+        String fileblockname1 = "d0003118fe124d948700149a2a1ee295_21_22";
+
+        NormalRouteInterface[] routes = JsonUtils.toObject(content, SuperNormalRoute[].class);
+
+        RouteParser parser = new RouteParser(0, null, false);
+
+        Arrays.asList(routes).forEach(
+            route -> {
+                parser.putNormalRoute(route);
+            }
+        );
+        System.out.println(fileblockname1 + " search " + analysisroute(parser, fileblockname1));
+    }
+
+    @Test
+    public void testSameOne() throws Exception {
+        Map<String, String> map = new HashMap<>();
+        map.put("20", "10");
+        map.put("21", "10");
+        map.put("22", "11");
+        List<String> seconds = Arrays.asList("20", "21", "211");
+        System.out.println(isSameFirst(map, seconds));
+    }
+
+    private boolean isSameFirst(Map<String, String> secondFirstMap, List<String> seconds) {
+        Map<String, Integer> countMap = new HashMap<>();
+        seconds.stream().forEach(second -> {
+            String first = secondFirstMap.get(second);
+            if (countMap.get(first) == null) {
+                countMap.put(first, 1);
+            } else {
+                countMap.put(first, countMap.get(first) + 1);
+            }
+        });
+        return countMap.size() <= 1;
     }
 
 }
