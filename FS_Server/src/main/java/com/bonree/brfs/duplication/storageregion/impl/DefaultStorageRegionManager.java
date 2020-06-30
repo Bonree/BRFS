@@ -57,7 +57,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     public static final String DEFAULT_PATH_STORAGE_REGION_ROOT = "storageName";
     private static final String DEFAULT_PATH_STORAGE_REGION_NODES = "nodes";
 
-    private static final int DEFAULT_MAX_CACHE_SIZE = 128;
+    private static final int DEFAULT_MAX_CACHE_SIZE = 1024;
     private final LoadingCache<String, StorageRegion> storageRegionCache;
     private final ConcurrentHashMap<Integer, StorageRegion> regionIds = new ConcurrentHashMap<>();
 
@@ -79,7 +79,6 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         this.idBuilder = idBuilder;
         this.storageRegionCache = CacheBuilder.newBuilder()
                                               .maximumSize(DEFAULT_MAX_CACHE_SIZE)
-                                              .expireAfterWrite(10, TimeUnit.SECONDS)
                                               .refreshAfterWrite(10, TimeUnit.SECONDS)
                                               .removalListener(new StorageRegionRemoveListener())
                                               .build(new StorageRegionLoader());
