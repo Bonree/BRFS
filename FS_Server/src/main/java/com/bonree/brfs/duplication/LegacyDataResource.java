@@ -22,10 +22,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Deprecated
 @Path("/data")
 public class LegacyDataResource {
+    private static final Logger log = LoggerFactory.getLogger(LegacyDataResource.class);
 
     private final DataResource dataResource;
     private final StorageRegionManager storageRegionManager;
@@ -71,6 +74,7 @@ public class LegacyDataResource {
 
                 @Override
                 public void error(Throwable cause) {
+                    log.error("write data error", cause);
                     response.resume(cause);
                 }
             });
