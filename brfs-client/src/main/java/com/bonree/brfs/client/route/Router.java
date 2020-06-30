@@ -122,7 +122,15 @@ public class Router {
         if (Strings.isNullOrEmpty(secondId)) {
             return serverId;
         }
-
+        // 路由解析时，需要将发生迁移的虚拟serverid转换为等效的二级serverid
+        int length = secondServerIdList.size();
+        for (int i = 0; i < length; i++) {
+            String tmp = secondServerIdList.get(i);
+            if (virtualMapper.get(tmp) != null) {
+                tmp = virtualMapper.get(tmp).getNewSecondId();
+                secondServerIdList.set(i, tmp);
+            }
+        }
         NormalRouterNode normalUpdate;
         while ((normalUpdate = normalMapper.get(secondId)) != null) {
             secondId = RouteAnalysis.analysisNormal(code, secondId, secondServerIdList, normalUpdate);

@@ -58,6 +58,15 @@ public class RouteParser implements BlockAnalyzer {
         if (secondIds == null || secondIds.isEmpty() || StringUtils.isEmpty(uuid) || StringUtils.isBlank(uuid)) {
             throw new IllegalStateException("fileBocker is invaild !! content:" + fileBocker);
         }
+        // 路由解析时，需要将发生迁移的虚拟serverid转换为等效的二级serverid
+        int length = secondIds.size();
+        for (int i = 0; i < length; i++) {
+            String tmp = secondIds.get(i);
+            if (virtualRouteRelationship.get(tmp) != null) {
+                tmp = virtualRouteRelationship.get(tmp).getNewSecondID();
+                secondIds.set(i, tmp);
+            }
+        }
         int fileCode = BlockAnalyzer.sumName(uuid);
         String source = null;
         String dent = null;

@@ -336,6 +336,37 @@ public class RouteParserTest {
     }
 
     @Test
+    public void analysisV2Route11() throws Exception {
+        String content = "[{\"changeID\":\"15934855354698a663-3958-4b84-ac1a-6c790c0a6e33\",\n"
+            + "\"storageIndex\":0,\"secondID\":\"20\",\n"
+            + "\"newSecondIDs\":{\"26\":521767572,\"29\":516085492},\n"
+            + "\"secondFirstShip\":{\"26\":\"11\",\"29\":\"12\",\"20\":\"10\",\"21\":\"10\"},\n"
+            + "\"version\":\"V2\"},\n"
+            + "{\"changeID\":\"15934855295245e75b-35df-46eb-953c-06e9a9774537\",\n"
+            + "\"storageIndex\":0,\"secondID\":\"21\",\n"
+            + "\"newSecondIDs\":{\"26\":521767596,\"29\":516085448},\n"
+            + "\"secondFirstShip\":{\"26\":\"11\",\"29\":\"12\",\"20\":\"10\",\"21\":\"10\"},\n"
+            + "\"version\":\"V2\"}]";
+        String virtualContent = "{\"changeID\":\"159348483493d7a937-b6c8-4b16-93b2-f2b7acf74305\",\n"
+            + "\"storageIndex\":0,\"virtualID\":\"30\",\"newSecondID\":\"26\",\"version\":\"V1\"}";
+
+        String fileblockname1 = "e9e6863070c44fca9d697616666297be_21_30";
+
+        NormalRouteInterface[] routes = JsonUtils.toObject(content, SuperNormalRoute[].class);
+        VirtualRoute virtual = JsonUtils.toObject(virtualContent, VirtualRoute.class);
+
+        RouteParser parser = new RouteParser(0, null, false);
+
+        Arrays.asList(routes).forEach(
+            route -> {
+                parser.putNormalRoute(route);
+            }
+        );
+        parser.putVirtualRoute(virtual);
+        System.out.println(fileblockname1 + " search " + analysisroute(parser, fileblockname1));
+    }
+
+    @Test
     public void testSameOne() throws Exception {
         Map<String, String> map = new HashMap<>();
         map.put("20", "10");

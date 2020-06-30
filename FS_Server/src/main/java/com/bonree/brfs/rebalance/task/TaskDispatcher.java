@@ -735,32 +735,31 @@ public class TaskDispatcher implements Closeable {
                         List<String> participators = client.getChildren().forPath(vidPath);
                         // 如果当前存活的firstID包括该 virtualID的参与者，那么
                         List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
-
                         if (selectIds != null && !selectIds.isEmpty()) {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
                             // 构建任务需要使用2级serverid
                             String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
 
-                            Collection<String> secondParticipators = null;
-                            List<String> aliveServices = getAliveServices();
-
-                            // 选择一个活着的可用的参与者
-                            for (String participator : participators) {
-                                if (aliveServices.contains(participator)) {
-                                    secondParticipators = idManager.getSecondIds(participator, storageIndex);
-                                    break;
+                            Collection<String> outDataServerSecondIds = new ArrayList<>();
+                            // 收集存活提供副本数据的二级serverid
+                            for (String virtualIDFirst : participators) {
+                                if (currentFirstIDs.contains(virtualIDFirst)) {
+                                    Collection<String> tmp = idManager.getSecondIds(virtualIDFirst, storageIndex);
+                                    if (!tmp.isEmpty()) {
+                                        outDataServerSecondIds.addAll(tmp);
+                                    }
                                 }
                             }
 
-                            if (secondParticipators == null || secondParticipators.isEmpty()) {
-                                LOG.error("select participator for virtual recover error!!");
+                            if (outDataServerSecondIds == null || outDataServerSecondIds.isEmpty()) {
+                                LOG.error("data out server for virtual recover is null!");
                                 return false;
                             }
 
                             // 构造任务
                             BalanceTaskSummary taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID,
-                                                Lists.newArrayList(selectSecondID), (List<String>) secondParticipators,
+                                                Lists.newArrayList(selectSecondID), (List<String>) outDataServerSecondIds,
                                                 partitionInfoManager.getDiskPartitionInfoFreeSize(), virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
@@ -803,6 +802,7 @@ public class TaskDispatcher implements Closeable {
         }
         return addFlag;
     }
+
 
     private void checkTask(int snIndex, List<DiskPartitionChangeSummary> changeSummaries) throws Exception {
         // 获取当前任务信息
