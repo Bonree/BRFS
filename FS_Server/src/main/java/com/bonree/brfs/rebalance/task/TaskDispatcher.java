@@ -212,9 +212,6 @@ public class TaskDispatcher implements Closeable {
                                     syncAuditTask(entry.getKey(), entry.getValue());
                                 } else {
                                     LOG.warn("storageregion id :{} not found !! will delete changes", entry.getKey());
-                                    entry.getValue().stream().forEach(change -> {
-                                        delChangeSummaryNode(change);
-                                    });
                                     deleteSrs.add(entry.getKey());
                                 }
                             }
