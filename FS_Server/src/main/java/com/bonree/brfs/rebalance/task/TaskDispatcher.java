@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -203,12 +204,24 @@ public class TaskDispatcher implements Closeable {
                     if (leaderLath.hasLeadership()) {
                         if (isLoad.get()) {
                             LOG.debug("auditTask timer changeSummaryCache: {}", changeSummaryCache);
+                            Collection<Integer> deleteSrs = new HashSet<>();
                             for (Entry<Integer, List<DiskPartitionChangeSummary>> entry : changeSummaryCache.entrySet()) {
                                 StorageRegion sn = snManager.findStorageRegionById(entry.getKey());
                                 // 因为sn可能会被删除
                                 if (sn != null) {
                                     syncAuditTask(entry.getKey(), entry.getValue());
+                                } else {
+                                    LOG.warn("storageregion id :{} not found !! will delete changes", entry.getKey());
+                                    entry.getValue().stream().forEach(change -> {
+                                        delChangeSummaryNode(change);
+                                    });
+                                    deleteSrs.add(entry.getKey());
                                 }
+                            }
+                            if (!deleteSrs.isEmpty()) {
+                                deleteSrs.stream().forEach(id -> {
+                                    changeSummaryCache.remove(id);
+                                });
                             }
                         } else {
                             LOG.info("load once change summary cache!");
@@ -803,7 +816,6 @@ public class TaskDispatcher implements Closeable {
         return addFlag;
     }
 
-
     private void checkTask(int snIndex, List<DiskPartitionChangeSummary> changeSummaries) throws Exception {
         // 获取当前任务信息
         BalanceTaskSummary currentTask = runTask.get(snIndex);
@@ -1183,13 +1195,16 @@ public class TaskDispatcher implements Closeable {
         String changeHistoryPath =
             ZKPaths.makePath(changesHistoryPath, String.valueOf(bts.getStorageIndex()), bts.getChangeID());
         try {
-            byte[] data = client.getData().forPath(changePath);
+            byte[] data = null;
             if (client.checkExists().forPath(changePath) != null) {
+                data = client.getData().forPath(changePath);
                 client.delete().forPath(changePath);
             }
-            client.create().creatingParentsIfNeeded().forPath(changeHistoryPath, data);
+            if (data != null && data.length != 0) {
+                client.create().creatingParentsIfNeeded().forPath(changeHistoryPath, data);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("remove change {} happen error ", bts.getChangeID(), e);
         }
     }
 
