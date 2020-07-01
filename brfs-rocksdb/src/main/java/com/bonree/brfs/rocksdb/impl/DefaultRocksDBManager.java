@@ -35,11 +35,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
@@ -55,6 +52,7 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.FlushOptions;
 import org.rocksdb.LRUCache;
 import org.rocksdb.Options;
+import org.rocksdb.RateLimiter;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
@@ -174,6 +172,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
         });
 
         this.dbOptions.setCreateIfMissing(true)
+                      .setRateLimiter(
+                          new RateLimiter(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_RATE_BYTES_PER_SECOND)))
+                      .setCompactionReadaheadSize(
+                          Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_COMPACTION_READHEAD_SIZE))
                       .setCreateMissingColumnFamilies(true)
                       .setMaxBackgroundFlushes(this.config.getMaxBackgroundFlush())
                       .setMaxBackgroundCompactions(this.config.getMaxBackgroundCompaction())
