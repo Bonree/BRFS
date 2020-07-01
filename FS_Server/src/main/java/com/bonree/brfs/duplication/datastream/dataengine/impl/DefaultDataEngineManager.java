@@ -11,6 +11,7 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionStateException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -46,7 +47,8 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
         this.storageRegionFactory = factory;
         this.dataEngineContainer = CacheBuilder.newBuilder()
                                                .expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
-                                               .removalListener(new StorageRegionRemovalListener()).build(new DataEngineLoader());
+                                               .removalListener(new StorageRegionRemovalListener())
+                                               .build(new DataEngineLoader());
 
         this.storageRegionManager.addStorageRegionStateListener(new StorageRegionStateHandler());
     }
@@ -69,6 +71,10 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
             StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
             if (storageRegion == null) {
                 throw new StorageRegionNonexistentException("sr[" + srName + "]");
+            }
+
+            if (!storageRegion.isEnable()) {
+                throw new StorageRegionStateException(srName, "enabled", "disabled");
             }
 
             return storageRegionFactory.createDataEngine(storageRegion);
@@ -100,13 +106,13 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
         public void storageRegionUpdated(StorageRegion node) {
             // Storage Region属性的变化也许要重新加载Data Engine
             LOG.info("Storage region[{},{}] is updated!", node.getName(), node.getId());
-            dataEngineContainer.invalidate(node.getId());
+            dataEngineContainer.invalidate(node.getName());
         }
 
         @Override
         public void storageRegionRemoved(StorageRegion node) {
             LOG.info("Storage region[{},{}] is removed!", node.getName(), node.getId());
-            dataEngineContainer.invalidate(node.getId());
+            dataEngineContainer.invalidate(node.getName());
         }
 
     }
