@@ -73,6 +73,7 @@ public class Router {
                 Iterables.transform(
                     ranker.rank(secondServerIdList),
                     serverId -> {
+                        int index = secondServerIdList.indexOf(serverId);
                         String finalId = finalServerId(code, serverId, secondServerIdList, normalMapper, virtualMapper);
                         if (finalId == null) {
                             return null;
@@ -80,8 +81,7 @@ public class Router {
 
                         SecondServerID secondId = secondServers.get(finalId);
                         if (secondId == null) {
-                            int index = secondServerIdList.indexOf(serverId);
-                            if (index >= 0 && index < secondServerIdList.size()) {
+                            if (index >= 0) {
                                 secondServerIdList.set(index, finalId);
                             }
                             return null;
@@ -89,12 +89,7 @@ public class Router {
 
                         try {
                             URI uri = new URI("http", null, secondId.getHost(), secondId.getReadPort(), null, null, null);
-                            if (secondServerIdList.contains(serverId)) {
-                                uriIndex.put(uri, secondServerIdList.indexOf(serverId) + 1);
-                            } else {
-                                uriIndex.put(uri, secondServerIdList.indexOf(finalId) + 1);
-                            }
-
+                            uriIndex.put(uri, index + 1);
                             return uri;
                         } catch (URISyntaxException e) {
                             throw new RuntimeException(e);
