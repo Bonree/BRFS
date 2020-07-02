@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +49,18 @@ public class LocalDirMaintainer implements PartitionInterface {
     public String getDataDir(String secondId, int storageRegionId) {
         String partitionId = secondIds.getPartitionId(secondId, storageRegionId);
         if (StringUtils.isEmpty(partitionId)) {
-            LOG.debug("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
+            LOG.info("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
             return null;
         }
-        return localPartitionInterface.getDataPaths(partitionId);
+        String dataPaths = localPartitionInterface.getDataPaths(partitionId);
+        LOG.info("storage {} second {} partitionid:{} path {}", storageRegionId, secondId, partitionId, dataPaths);
+        return dataPaths;
     }
 
     @Override
-    public String getDataDirByFileName(String fileName, int storageRegionId) {
+    public String getDataDirByFileName(String fileRelativePath, int storageRegionId) {
+        File file = new File(fileRelativePath);
+        String fileName = file.getName();
         Pair<String, List<String>> blockInfo = BlockAnalyzer.analyzingFileName(fileName);
         List<String> seconds = blockInfo.getSecond();
         if (seconds == null || seconds.isEmpty()) {
@@ -64,7 +69,7 @@ public class LocalDirMaintainer implements PartitionInterface {
         }
         for (String second : seconds) {
             String path = getDataDir(second, storageRegionId);
-            if (path != null) {
+            if (isValidPath(path, fileRelativePath)) {
                 return path;
             }
         }
@@ -80,7 +85,7 @@ public class LocalDirMaintainer implements PartitionInterface {
         }
         for (String arrayEle : secondArray) {
             String path = getDataDir(arrayEle, storageRegionId);
-            if (path != null) {
+            if (isValidPath(path, fileRelativePath)) {
                 return path;
             }
         }
@@ -88,14 +93,18 @@ public class LocalDirMaintainer implements PartitionInterface {
         return null;
     }
 
+    private boolean isValidPath(String path, String fileName) {
+        String filePath = path + File.separator + fileName;
+        return new File(filePath).exists();
+    }
+
     @Override
     public String getDataDirByPath(String filePath) {
-        File file = new File(filePath);
         String[] paths = FilePathBuilder.parsePath(filePath);
         StorageRegion sr = storageRegionManager.findStorageRegionByName(paths[0]);
         if (sr == null) {
             throw new IllegalStateException(String.format("no storage region[%s] is found.", paths[0]));
         }
-        return getDataDirByFileName(file.getName(), sr.getId());
+        return getDataDirByFileName(filePath, sr.getId());
     }
 }

@@ -255,37 +255,37 @@ public class RouteParserTest {
 
     @Test
     public void analysisV2Route02() throws Exception {
-        String fileName = "e8b5e89297e04d6eae56e89c8fcf0297_22_20";
+        String fileName = "5a618b7aaf794f0c809b2195dd4ba499_21_30";
         CuratorFramework client = CuratorFrameworkFactory
-            .newClient("192.168.150.105:2181", new RetryNTimes(50, 1000));
+            .newClient("192.168.150.237:2181", new RetryNTimes(50, 1000));
         client.start();
         client.blockUntilConnected();
-        RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/brfs_lqtest/routeSet");
-        RouteParser parser = new RouteParser(2, loader);
+        RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/idea/routeSet");
+        RouteParser parser = new RouteParser(0, loader);
         String[] array = parser.searchVaildIds(fileName);
         System.out.println(Arrays.asList(array));
     }
 
     @Test
     public void analysisV2Route09() throws Exception {
-        String content = "[\n"
+        String content = "["
             + "{\"changeID\":\"1593396649f41439ea-d566-422e-bb39-ad339f545d1e\","
             + "\"storageIndex\":0,\"secondID\":\"20\","
             + "\"newSecondIDs\":{\"22\":18123228,\"23\":516821060,\"21\":8120992},"
             + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"20\":\"11\",\"21\":\"10\"},"
-            + "\"version\":\"V2\"},\n"
+            + "\"version\":\"V2\"},"
             + "{\"changeID\":\"15933969071f7b5c9b-a58d-4fa2-8f84-a293ccbb1560\","
             + "\"storageIndex\":0,\"secondID\":\"22\","
             + "\"newSecondIDs\":{\"23\":516755864,\"24\":521775692},"
             + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"24\":\"11\",\"21\":\"10\"},"
-            + "\"version\":\"V2\"},\n"
+            + "\"version\":\"V2\"},"
             + "{\"changeID\":\"1593396912478030a4-e593-4b6f-960c-7f4f444df999\","
             + "\"storageIndex\":0,\"secondID\":\"21\","
             + "\"newSecondIDs\":{\"23\":516755864,\"24\":521775696},"
             + "\"secondFirstShip\":{\"22\":\"10\",\"23\":\"12\",\"24\":\"11\",\"21\":\"10\"},"
-            + "\"version\":\"V2\"}\n"
+            + "\"version\":\"V2\"}"
             + "]";
-        // content = "[\n"
+        // content = "["
         //     + "{\"changeID\":\"1593396649f41439ea-d566-422e-bb39-ad339f545d1e\","
         //     + "\"storageIndex\":0,\"secondID\":\"20\","
         //     + "\"newSecondIDs\":{\"22\":18123228,\"23\":516821060,\"21\":8120992},"
@@ -337,20 +337,59 @@ public class RouteParserTest {
 
     @Test
     public void analysisV2Route11() throws Exception {
-        String content = "[{\"changeID\":\"15934855354698a663-3958-4b84-ac1a-6c790c0a6e33\",\n"
-            + "\"storageIndex\":0,\"secondID\":\"20\",\n"
-            + "\"newSecondIDs\":{\"26\":521767572,\"29\":516085492},\n"
-            + "\"secondFirstShip\":{\"26\":\"11\",\"29\":\"12\",\"20\":\"10\",\"21\":\"10\"},\n"
-            + "\"version\":\"V2\"},\n"
-            + "{\"changeID\":\"15934855295245e75b-35df-46eb-953c-06e9a9774537\",\n"
-            + "\"storageIndex\":0,\"secondID\":\"21\",\n"
-            + "\"newSecondIDs\":{\"26\":521767596,\"29\":516085448},\n"
-            + "\"secondFirstShip\":{\"26\":\"11\",\"29\":\"12\",\"20\":\"10\",\"21\":\"10\"},\n"
+        String content = "[{\"changeID\":\"15934855354698a663-3958-4b84-ac1a-6c790c0a6e33\","
+            + "\"storageIndex\":0,\"secondID\":\"20\","
+            + "\"newSecondIDs\":{\"26\":521767572,\"29\":516085492},"
+            + "\"secondFirstShip\":{\"26\":\"11\",\"29\":\"12\",\"20\":\"10\",\"21\":\"10\"},"
+            + "\"version\":\"V2\"},"
+            + "{\"changeID\":\"15934855295245e75b-35df-46eb-953c-06e9a9774537\","
+            + "\"storageIndex\":0,\"secondID\":\"21\","
+            + "\"newSecondIDs\":{\"26\":521767596,\"29\":516085448},"
+            + "\"secondFirstShip\":{\"26\":\"11\",\"29\":\"12\",\"20\":\"10\",\"21\":\"10\"},"
             + "\"version\":\"V2\"}]";
-        String virtualContent = "{\"changeID\":\"159348483493d7a937-b6c8-4b16-93b2-f2b7acf74305\",\n"
+        String virtualContent = "{\"changeID\":\"159348483493d7a937-b6c8-4b16-93b2-f2b7acf74305\","
             + "\"storageIndex\":0,\"virtualID\":\"30\",\"newSecondID\":\"26\",\"version\":\"V1\"}";
 
         String fileblockname1 = "e9e6863070c44fca9d697616666297be_21_30";
+
+        NormalRouteInterface[] routes = JsonUtils.toObject(content, SuperNormalRoute[].class);
+        VirtualRoute virtual = JsonUtils.toObject(virtualContent, VirtualRoute.class);
+
+        RouteParser parser = new RouteParser(0, null, false);
+
+        Arrays.asList(routes).forEach(
+            route -> {
+                parser.putNormalRoute(route);
+            }
+        );
+        parser.putVirtualRoute(virtual);
+        System.out.println(fileblockname1 + " search " + analysisroute(parser, fileblockname1));
+    }
+
+    @Test
+    public void analysisV2Route12() throws Exception {
+        String content = "[{\"changeID\":\"1593680792cbdf497a-ccbd-43e6-ae8a-e10d4b99f782\","
+            + "\"storageIndex\":0,\"secondID\":\"20\","
+            + "\"newSecondIDs\":{\"22\":521791112,\"23\":518510160},"
+            + "\"secondFirstShip\":{\"22\":\"11\",\"23\":\"12\",\"20\":\"10\",\"21\":\"10\"},"
+            + "\"version\":\"V2\"},"
+            + "{\"changeID\":\"15936807970daed896-70fe-4f70-88ad-9d7f1fd11fbc\","
+            + "\"storageIndex\":0,\"secondID\":\"21\","
+            + "\"newSecondIDs\":{\"22\":521791092,\"23\":518510200},"
+            + "\"secondFirstShip\":{\"22\":\"11\",\"23\":\"12\",\"20\":\"10\",\"21\":\"10\"},"
+            + "\"version\":\"V2\"},"
+            + "{\"changeID\":\"15936810068462339d-bcdd-4e2a-b1aa-ed2c71bdfa32\","
+            + "\"storageIndex\":0,\"secondID\":\"22\","
+            + "\"newSecondIDs\":{\"23\":518491736,\"24\":8120992,\"25\":18169476},"
+            + "\"secondFirstShip\":{\"22\":\"11\",\"23\":\"12\",\"24\":\"10\",\"25\":\"10\"},"
+            + "\"version\":\"V2\"}]";
+        String virtualContent = "{\"changeID\":\"159368049617ec3baf-7c19-47b5-b604-b7aa880eb192\","
+            + "\"storageIndex\":0,"
+            + "\"virtualID\":\"30\","
+            + "\"newSecondID\":\"22\","
+            + "\"version\":\"V1\"}";
+
+        String fileblockname1 = "6ac8c3bc81d34c90bd23d0049c940a81_21_30";
 
         NormalRouteInterface[] routes = JsonUtils.toObject(content, SuperNormalRoute[].class);
         VirtualRoute virtual = JsonUtils.toObject(virtualContent, VirtualRoute.class);
