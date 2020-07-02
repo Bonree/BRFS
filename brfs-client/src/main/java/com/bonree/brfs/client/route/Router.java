@@ -89,7 +89,11 @@ public class Router {
 
                         try {
                             URI uri = new URI("http", null, secondId.getHost(), secondId.getReadPort(), null, null, null);
-                            uriIndex.put(uri, secondServerIdList.indexOf(serverId) + 1);
+                            if (secondServerIdList.contains(serverId)) {
+                                uriIndex.put(uri, secondServerIdList.indexOf(serverId) + 1);
+                            } else {
+                                uriIndex.put(uri, secondServerIdList.indexOf(finalId) + 1);
+                            }
 
                             return uri;
                         } catch (URISyntaxException e) {
