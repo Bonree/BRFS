@@ -130,6 +130,10 @@ rocksdb.max.bytes.level.base = 2048
 regionnode.block.size = 65536
 # regionnode节点之间同步rocksdb数据时，一次同步的数据条数，默认50
 rocksdb.data.synchronize.count.once = 50
+# 控制 compaction 和 flush 每秒总的写入量
+rocksdb.rate.bytes.per.second = 10240
+# 使用2M的预读
+rocksdb.compaction.readhead.size = 2048
 
 # 保存节点的本地数据的目录
 local.data.path = data
