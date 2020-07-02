@@ -172,10 +172,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
         });
 
         this.dbOptions.setCreateIfMissing(true)
-                      .setRateLimiter(
-                          new RateLimiter(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_RATE_BYTES_PER_SECOND)))
-                      .setCompactionReadaheadSize(
-                          Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_COMPACTION_READHEAD_SIZE))
+                      //.setRateLimiter(
+                      //    new RateLimiter(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_RATE_BYTES_PER_SECOND)))
+                      //.setCompactionReadaheadSize(
+                      //    Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_COMPACTION_READHEAD_SIZE))
                       .setCreateMissingColumnFamilies(true)
                       .setMaxBackgroundFlushes(this.config.getMaxBackgroundFlush())
                       .setMaxBackgroundCompactions(this.config.getMaxBackgroundCompaction())
