@@ -17,8 +17,6 @@ import com.bonree.brfs.duplication.storageregion.exception.StorageRegionStateExc
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Properties;
@@ -79,9 +77,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         this.idBuilder = idBuilder;
         this.storageRegionCache = CacheBuilder.newBuilder()
                                               .maximumSize(DEFAULT_MAX_CACHE_SIZE)
-                                              .expireAfterWrite(10, TimeUnit.SECONDS)
                                               .refreshAfterWrite(10, TimeUnit.SECONDS)
-                                              .removalListener(new StorageRegionRemoveListener())
                                               .build(new StorageRegionLoader());
         this.childrenCache = new PathChildrenCache(zkClient,
                                                    ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT,
@@ -227,16 +223,6 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
     }
 
-    private class StorageRegionRemoveListener implements RemovalListener<String, StorageRegion> {
-
-        @Override
-        public void onRemoval(RemovalNotification<String, StorageRegion> notification) {
-            StorageRegion region = notification.getValue();
-            regionIds.remove(region.getId());
-        }
-
-    }
-
     private class StorageRegionNodeStateListener implements PathChildrenCacheListener {
 
         @Override
@@ -295,6 +281,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             case CHILD_REMOVED: {
                 storageRegionCache.invalidate(regionName);
                 StorageRegion storageRegion = JsonUtils.toObject(data.getData(), StorageRegion.class);
+                regionIds.remove(storageRegion.getId());
 
                 executor.submit(() -> {
                     if (!listeners.isEmpty()) {

@@ -81,4 +81,10 @@ public class RocksDBConfigs {
     public static final ConfigUnit<Integer> ROCKSDB_DATA_SYNCHRONIZE_COUNT_ONCE =
         ConfigUnit.ofInt("rocksdb.data.synchronize.count.once", 50);
 
+    public static final ConfigUnit<Long> ROCKSDB_RATE_BYTES_PER_SECOND =
+        ConfigUnit.ofLong("rocksdb.rate.bytes.per.second", 10240L);
+
+    public static final ConfigUnit<Long> ROCKSDB_COMPACTION_READHEAD_SIZE =
+        ConfigUnit.ofLong("rocksdb.compaction.readhead.size", 2048L);
+
 }

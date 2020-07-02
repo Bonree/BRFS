@@ -34,7 +34,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
     private static final String VIRTUAL_ID_INDEX_NODE = "virtualIdIndex";
     public static final int VIRTUAL_ID_PREFIX = 3;
 
-    private static final String VIRTUAL_ID_CONTAINER = "virtualIdContainer";
+    public static final String VIRTUAL_ID_CONTAINER = "virtualIdContainer";
 
     private CuratorFramework client;
     private final String virtualIdContainer;

@@ -54,6 +54,7 @@ import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionBackgroundWorker;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
@@ -87,8 +88,12 @@ public class DataNodeModule implements Module {
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
         JsonConfigProvider.bind(binder, "datanode", StorageConfig.class);
+        JsonConfigProvider.bind(binder, "compatible", CompatibilityModelConfig.class);
+
+        binder.bind(StorageRegionStateListener.class).to(StorageRegionBackgroundWorker.class).in(Scopes.SINGLETON);
 
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);
+
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
 
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
@@ -122,31 +127,11 @@ public class DataNodeModule implements Module {
     public StorageRegionManager getStorageRegionManager(
         CuratorFramework client,
         ZookeeperPaths paths,
-        SecondMaintainerInterface idManager,
-        Service service,
+        StorageRegionBackgroundWorker listener,
         Lifecycle lifecycle) {
         StorageRegionManager snManager = new DefaultStorageRegionManager(client, paths, null);
         log.info("register storage region listener for server id");
-        snManager.addStorageRegionStateListener(new StorageRegionStateListener() {
-            private final Logger log = LoggerFactory.getLogger(StorageRegionManager.class);
-
-            @Override
-            public void storageRegionAdded(StorageRegion node) {
-                log.info("-----------StorageNameAdded--[{}]", node);
-                idManager.registerSecondIds(service.getServiceId(), node.getId());
-            }
-
-            @Override
-            public void storageRegionUpdated(StorageRegion node) {
-            }
-
-            @Override
-            public void storageRegionRemoved(StorageRegion node) {
-                log.info("-----------StorageNameRemove--[{}]", node);
-                idManager.unregisterSecondIds(service.getServiceId(), node.getId());
-            }
-        });
-
+        snManager.addStorageRegionStateListener(listener);
         // because DefaultStorageRegionManager is constructed by hand,
         // it's necessary to put it in lifecycle by hand too.
         lifecycle.addAnnotatedInstance(snManager);
