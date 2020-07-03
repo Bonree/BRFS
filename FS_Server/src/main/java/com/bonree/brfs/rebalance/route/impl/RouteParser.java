@@ -49,8 +49,7 @@ public class RouteParser implements BlockAnalyzer {
      *
      * @return serverids
      */
-    @Override
-    public String[] searchVaildIds(String fileBocker) {
+    public String[] searchVaildIdsbak(String fileBocker) {
         // 1.分解文件块的名称
         Pair<String, List<String>> pair = BlockAnalyzer.analyzingFileName(fileBocker);
         List<String> secondIds = pair.getSecond();
@@ -82,7 +81,8 @@ public class RouteParser implements BlockAnalyzer {
         return secondIds.toArray(new String[0]);
     }
 
-    public String[] searchVaildIds02(String fileBocker) {
+    @Override
+    public String[] searchVaildIds(String fileBocker) {
         // 1.分解文件块的名称
         Pair<String, List<String>> pair = BlockAnalyzer.analyzingFileName(fileBocker);
         List<String> secondIds = pair.getSecond();
