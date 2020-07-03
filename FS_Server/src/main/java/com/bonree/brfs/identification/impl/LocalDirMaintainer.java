@@ -67,12 +67,6 @@ public class LocalDirMaintainer implements PartitionInterface {
             LOG.warn("block[{}] analysis no secondIDs", fileName);
             return null;
         }
-        for (String second : seconds) {
-            String path = getDataDir(second, storageRegionId);
-            if (isValidPath(path, fileRelativePath)) {
-                return path;
-            }
-        }
         BlockAnalyzer analyzer = cache.getBlockAnalyzer(storageRegionId);
         if (analyzer == null) {
             LOG.warn("StorageRegion [{}] fileblock [{}] is invalid ! and route is empty ", storageRegionId, fileName);
@@ -94,8 +88,7 @@ public class LocalDirMaintainer implements PartitionInterface {
     }
 
     private boolean isValidPath(String path, String fileName) {
-        String filePath = path + File.separator + fileName;
-        return new File(filePath).exists();
+        return path != null;
     }
 
     @Override
