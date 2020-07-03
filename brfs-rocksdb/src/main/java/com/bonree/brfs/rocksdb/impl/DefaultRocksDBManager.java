@@ -100,7 +100,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private TimeWatcher watcher = new TimeWatcher();
     private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(1000);
 
-    private ScheduledExecutorService queueChecker = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() / 2,
+    private ScheduledExecutorService queueChecker =
+            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() / 2,
             new PooledThreadFactory("queue_checker"));
 
     @Inject
