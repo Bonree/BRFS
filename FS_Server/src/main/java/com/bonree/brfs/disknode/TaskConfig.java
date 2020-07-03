@@ -45,7 +45,10 @@ public class TaskConfig {
     private String fileBlockScanTime = "02:00";
 
     @JsonProperty("file.block.scan.interval.minute")
-    private int fileBlockScanIntervalSecond = 1440;
+    private int fileBlockScanIntervalMinute = 1440;
+
+    @JsonProperty("file.block.start.delay.minute")
+    private int startdelayMinute = 10;
 
     @JsonProperty("second.register.interval.millisecond")
     private int secondIdRegisterIntervalMill = 1000;
@@ -63,8 +66,9 @@ public class TaskConfig {
         logger.info("config item: task.{}, value: {}", "cycle.check.copy.count.time.range", cycleCopyRangeDay);
         logger.info("config item: task.{}, value: {}", "ttl.second", ttlSecond);
         logger.info("config item: task.{}, value: {}", "file.block.scan.time", fileBlockScanTime);
-        logger.info("config item: task.{}, value: {}", "file.block.scan.interval.minute", fileBlockScanIntervalSecond);
+        logger.info("config item: task.{}, value: {}", "file.block.scan.interval.minute", fileBlockScanIntervalMinute);
         logger.info("config item: task.{}, value: {}", "second.register.interval.millisecond", secondIdRegisterIntervalMill);
+        logger.info("config item: task.{}, value: {}", "file.block.start.delay.minute", startdelayMinute);
     }
 
     public List<String> getTaskSwitch() {
@@ -170,12 +174,12 @@ public class TaskConfig {
         this.fileBlockScanTime = fileBlockScanTime;
     }
 
-    public int getFileBlockScanIntervalSecond() {
-        return fileBlockScanIntervalSecond;
+    public int getFileBlockScanIntervalMinute() {
+        return fileBlockScanIntervalMinute;
     }
 
-    public void setFileBlockScanIntervalSecond(int fileBlockScanIntervalSecond) {
-        this.fileBlockScanIntervalSecond = fileBlockScanIntervalSecond;
+    public void setFileBlockScanIntervalMinute(int fileBlockScanIntervalMinute) {
+        this.fileBlockScanIntervalMinute = fileBlockScanIntervalMinute;
     }
 
     public int getCommonExecuteIntervalSecond() {
@@ -184,6 +188,14 @@ public class TaskConfig {
 
     public void setCommonExecuteIntervalSecond(int commonExecuteIntervalSecond) {
         this.commonExecuteIntervalSecond = commonExecuteIntervalSecond;
+    }
+
+    public int getStartdelayMinute() {
+        return startdelayMinute;
+    }
+
+    public void setStartdelayMinute(int startdelayMinute) {
+        this.startdelayMinute = startdelayMinute;
     }
 
     /**

@@ -130,8 +130,12 @@ datanode.service.host = 192.168.150.103
 # 清理脏数据线程执行频率，默认60分钟
 # task.file.block.scan.interval.minute=1440
 
+# datanode 启动时清理线程延迟多久执行一次，默认10分钟
+# task.file.block.start.delay.minute = 10
+
 # 二级serverid 重新注册线程的频率，默认为1000ms
 task.second.register.interval.millisecond = 1000
+
 
 ###############################################
 ############二期兼容配置################

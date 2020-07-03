@@ -19,6 +19,7 @@ import static java.util.function.Function.identity;
 import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.client.ranker.Ranker;
 import com.bonree.brfs.client.ranker.ShiftRanker;
+import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -26,6 +27,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -100,11 +102,24 @@ public class Router {
         String uuid) {
         int code = RouteAnalysis.indexCode(uuid);
         toValidSecondIds(secondServerIdList, virtualMapper);
-        for (int i = 0; i < secondServerIdList.size(); i++) {
-            String source = secondServerIdList.get(i);
-            String dent = finalServerId(code, source, secondServerIdList, normalMapper, virtualMapper);
-            secondServerIdList.set(i, dent);
+        while (isContinue(secondServerIdList, normalMapper)) {
+            for (int i = 0; i < secondServerIdList.size(); i++) {
+                String source = secondServerIdList.get(i);
+                NormalRouterNode node = normalMapper.get(source);
+                if (node != null) {
+                    String dent = RouteAnalysis.analysisNormal(code, source, secondServerIdList, node);
+                    if (!source.equals(dent)) {
+                        secondServerIdList.set(i, dent);
+                    }
+                }
+            }
         }
+    }
+
+    private boolean isContinue(List<String> seconds, Map<String, NormalRouterNode> normalMapper) {
+        return seconds.stream().filter(id -> {
+            return normalMapper.get(id) != null;
+        }).collect(Collectors.toList()).size() > 0;
     }
 
     private void toValidSecondIds(List<String> secondServerIdList, Map<String, VirtualRouterNode> virtualMapper) {

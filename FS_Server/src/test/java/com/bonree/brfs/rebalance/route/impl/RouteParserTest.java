@@ -264,6 +264,8 @@ public class RouteParserTest {
         RouteParser parser = new RouteParser(0, loader);
         String[] array = parser.searchVaildIds(fileName);
         System.out.println(Arrays.asList(array));
+        array = parser.searchVaildIds02(fileName);
+        System.out.println(Arrays.asList(array));
     }
 
     @Test

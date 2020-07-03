@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +80,28 @@ public class RouteParser implements BlockAnalyzer {
             }
         }
         return secondIds.toArray(new String[0]);
+    }
+
+    public String[] searchVaildIds02(String fileBocker) {
+        // 1.分解文件块的名称
+        Pair<String, List<String>> pair = BlockAnalyzer.analyzingFileName(fileBocker);
+        List<String> secondIds = pair.getSecond();
+        String uuid = pair.getFirst();
+        // 2.判断文件块是否合法
+        if (secondIds == null || secondIds.isEmpty() || StringUtils.isEmpty(uuid) || StringUtils.isBlank(uuid)) {
+            throw new IllegalStateException("fileBocker is invaild !! content:" + fileBocker);
+        }
+        // 路由解析时，需要将发生迁移的虚拟serverid转换为等效的二级serverid
+        int length = secondIds.size();
+        for (int i = 0; i < length; i++) {
+            String tmp = secondIds.get(i);
+            if (virtualRouteRelationship.get(tmp) != null) {
+                tmp = virtualRouteRelationship.get(tmp).getNewSecondID();
+                secondIds.set(i, tmp);
+            }
+        }
+        int fileCode = BlockAnalyzer.sumName(uuid);
+        return searchNomalRouteTree(fileCode, secondIds).toArray(new String[length]);
     }
 
     @Override
@@ -172,5 +195,27 @@ public class RouteParser implements BlockAnalyzer {
             String tmpSI = this.normalRouteTree.get(secondId).locateNormalServer(fileCode, excludes);
             return searchNormalRouteTree(fileCode, tmpSI, excludes);
         }
+    }
+
+    private List<String> searchNomalRouteTree(int fileCode, List<String> secondIds) {
+        while (isContain(secondIds)) {
+            for (int i = 0; i < secondIds.size(); i++) {
+                String source = secondIds.get(i);
+                NormalRouteInterface route = this.normalRouteTree.get(source);
+                if (route != null) {
+                    String dent = route.locateNormalServer(fileCode, secondIds);
+                    if (!source.equals(dent)) {
+                        secondIds.set(i, dent);
+                    }
+                }
+            }
+        }
+        return secondIds;
+    }
+
+    private boolean isContain(List<String> secondIds) {
+        return secondIds.stream().filter(id -> {
+            return this.normalRouteTree.get(id) != null;
+        }).collect(Collectors.toList()).size() > 0;
     }
 }

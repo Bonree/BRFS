@@ -53,6 +53,7 @@ public class FileBlockMaintainer implements LifeCycle {
     private RouteCache routeCache;
     private String scanTime;
     private long intervalTime;
+    private int startDelay;
 
     @Inject
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
@@ -64,7 +65,8 @@ public class FileBlockMaintainer implements LifeCycle {
              secondIds,
              cache,
              taskConfig.getFileBlockScanTime(),
-             taskConfig.getFileBlockScanIntervalSecond());
+             taskConfig.getFileBlockScanIntervalMinute(),
+             taskConfig.getStartdelayMinute());
     }
 
     protected FileBlockMaintainer() {
@@ -72,7 +74,7 @@ public class FileBlockMaintainer implements LifeCycle {
 
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
                                StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache,
-                               String scanTime, long intervalTime) {
+                               String scanTime, long intervalTime, int startDelay) {
         this.localPartitionInterface = localPartitionInterface;
         this.monitor = monitor;
         this.manager = manager;
@@ -80,6 +82,7 @@ public class FileBlockMaintainer implements LifeCycle {
         this.routeCache = cache;
         this.scanTime = scanTime;
         this.intervalTime = intervalTime;
+        this.startDelay = startDelay;
     }
 
     @LifecycleStart
@@ -91,7 +94,7 @@ public class FileBlockMaintainer implements LifeCycle {
         FileBlockWorker worker = new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG);
         // 延迟1分钟启动确保路由规则加载完成
         pool.scheduleAtFixedRate(worker, delayTime, intervalTime, TimeUnit.MINUTES);
-        pool.submit(worker);
+        pool.schedule(worker, this.startDelay, TimeUnit.MINUTES);
         LOG.info("block server start {} interval :{} minute", this.scanTime, this.intervalTime);
     }
 
