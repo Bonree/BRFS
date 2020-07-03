@@ -37,7 +37,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
             return;
         }
 
-        LOG.info("handle base message[{}, {}]", token, baseMessage.getType());
+        LOG.debug("handle base message[{}, {}]", token, baseMessage.getType());
 
         executor.execute(() -> {
             try {

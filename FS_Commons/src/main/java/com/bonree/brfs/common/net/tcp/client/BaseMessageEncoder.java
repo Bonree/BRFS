@@ -1,7 +1,6 @@
 package com.bonree.brfs.common.net.tcp.client;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
-import com.bonree.brfs.common.net.tcp.MessageProtocolDecoder;
 import com.bonree.brfs.common.net.tcp.TokenMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
