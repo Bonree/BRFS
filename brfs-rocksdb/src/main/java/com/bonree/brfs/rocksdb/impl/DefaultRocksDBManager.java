@@ -23,24 +23,8 @@ import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;
@@ -109,7 +93,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             new ThreadPoolExecutor.AbortPolicy()
     );
 
-    private List<RocksDBDataUnit> rocksdbData = new ArrayList<>();
+    private BlockingQueue<RocksDBDataUnit> rocksdbQueue = new ArrayBlockingQueue<>(1000);
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -323,11 +307,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return WriteStatus.FAILED;
         }
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        if (rocksdbData.size() < dataSynchronizeCountOnce) {
-            rocksdbData.add(new RocksDBDataUnit(columnFamily, key, value));
-        } else {
-            dataSynchronizer(new ArrayList<>(rocksdbData));
-            rocksdbData = new ArrayList<>();
+        if (!rocksdbQueue.isEmpty() && rocksdbQueue.size() >= dataSynchronizeCountOnce) {
+            List<RocksDBDataUnit> datas = new ArrayList<>(dataSynchronizeCountOnce);
+            rocksdbQueue.drainTo(datas, dataSynchronizeCountOnce);
+            dataSynchronizer(datas);
+        }
+        boolean offer = rocksdbQueue.offer(new RocksDBDataUnit(columnFamily, key, value));
+        if (!offer) {
+            LOG.warn("offer data ro queue failed, size:{}", rocksdbQueue.size());
         }
         return writeStatus;
     }
