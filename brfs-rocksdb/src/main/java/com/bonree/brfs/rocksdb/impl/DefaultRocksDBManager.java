@@ -31,13 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;
@@ -101,8 +95,17 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(1000);
 
     private ScheduledExecutorService queueChecker =
-            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() / 2,
-            new PooledThreadFactory("queue_checker"));
+            Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
+
+    private ExecutorService produceExec = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors(),
+            Runtime.getRuntime().availableProcessors(),
+            0L,
+            TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(500),
+            new PooledThreadFactory("rocksdb_data_producer"),
+            new ThreadPoolExecutor.AbortPolicy()
+    );
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -360,13 +363,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 LOG.debug("sync queue is empty!");
                 return;
             }
-
-            if (queue.size() >= dataSynchronizeCountOnce) {
-                dataSynchronizer(dataSynchronizeCountOnce);
-            } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH) {
-                dataSynchronizer(queue.size());
-                watcher.getElapsedTimeAndRefresh();
-            }
+            produceExec.submit(() -> {
+                if (queue.size() >= dataSynchronizeCountOnce) {
+                    dataSynchronizer(dataSynchronizeCountOnce);
+                } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH) {
+                    dataSynchronizer(queue.size());
+                    watcher.getElapsedTimeAndRefresh();
+                }
+            });
         }
 
         public void dataSynchronizer(int size) {
@@ -581,6 +585,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             db.close();
         }
         this.queueChecker.shutdown();
+        this.produceExec.shutdown();
         LOG.info("rocksdb manager stop");
     }
 }
