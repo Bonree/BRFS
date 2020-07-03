@@ -335,7 +335,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     public void dataSynchronizer(List<RocksDBDataUnit> datas) {
         produceExec.submit(() -> {
-            LOG.info("current sync data size:{}", datas.size());
+            LOG.debug("current sync data size:{}", datas.size());
             RegionNodeConnection connection;
             for (Service service : serviceCache) {
                 connection =
