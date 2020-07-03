@@ -52,7 +52,6 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.FlushOptions;
 import org.rocksdb.LRUCache;
 import org.rocksdb.Options;
-import org.rocksdb.RateLimiter;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
@@ -99,10 +98,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
     private TimeWatcher watcher = new TimeWatcher();
-    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
+    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(1000);
 
     private ScheduledExecutorService queueChecker =
-        Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
+        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() / 2, new PooledThreadFactory("queue_checker"));
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -172,10 +171,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         });
 
         this.dbOptions.setCreateIfMissing(true)
-                      //.setRateLimiter(
-                      //    new RateLimiter(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_RATE_BYTES_PER_SECOND)))
-                      //.setCompactionReadaheadSize(
-                      //    Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_COMPACTION_READHEAD_SIZE))
                       .setCreateMissingColumnFamilies(true)
                       .setMaxBackgroundFlushes(this.config.getMaxBackgroundFlush())
                       .setMaxBackgroundCompactions(this.config.getMaxBackgroundCompaction())

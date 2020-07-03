@@ -67,7 +67,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 
     @Override
     public void close(FileObject file, boolean syncIfFailed) {
-        log.info("commit file[{}] to close", file.node().getName());
+        log.debug("commit file[{}] to close", file.node().getName());
         closeThreads.submit(new CloseProcessor(file, syncIfFailed));
     }
 
@@ -85,7 +85,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
             FileNode fileNode = file.node();
 
             long closeCode = -1;
-            log.info("start to close file[{}]", fileNode.getName());
+            log.debug("start to close file[{}]", fileNode.getName());
             for (DuplicateNode node : fileNode.getDuplicateNodes()) {
                 DiskNodeConnection connection = connectionPool.getConnection(node.getGroup(), node.getId());
                 if (connection == null || connection.getClient() == null) {
@@ -97,9 +97,9 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
                 DiskNodeClient client = connection.getClient();
                 String filePath = pathMaker.buildPath(fileNode, node);
 
-                log.info("closing file[{}] at node[{}]", filePath, node);
+                log.debug("closing file[{}] at node[{}]", filePath, node);
                 long code = client.closeFile(filePath);
-                log.info("close file[{}] at node[{}] result[{}]", filePath, node, code);
+                log.debug("close file[{}] at node[{}] result[{}]", filePath, node, code);
                 if (code < 0) {
                     closeAll = false;
                     continue;

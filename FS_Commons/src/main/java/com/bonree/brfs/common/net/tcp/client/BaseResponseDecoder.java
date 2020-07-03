@@ -22,7 +22,7 @@ public class BaseResponseDecoder extends ByteToMessageDecoder {
             }
 
             final int token = in.readInt();
-            LOG.info("decoding message with token [{}]", token);
+            LOG.debug("decoding message with token [{}]", token);
             final int code = in.readInt();
             final int length = in.readInt();
 
