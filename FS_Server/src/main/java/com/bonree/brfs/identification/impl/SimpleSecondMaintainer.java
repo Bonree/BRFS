@@ -60,7 +60,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         this.secondBasePath = secondBasePath;
         this.routeBasePath = routeBasePath;
         this.secondIdWorker = new SecondServerIDGenImpl(this.client, secondIdSeqPath);
-        this.secondIds = new RetryNTimesSecondIDShip(client, secondBasePath, 3, 100);
+        this.secondIds = new RetryNTimesSecondIDShip(client, secondBasePath, 5, 20);
         this.config = config;
     }
 

@@ -75,6 +75,7 @@ public class RouteParser implements BlockAnalyzer {
             dent = search(fileCode, source, secondIds);
             if (!dent.equals(source)) {
                 secondIds.set(index, dent);
+                LOG.info("source {} dent {}", source, dent);
             }
         }
         return secondIds.toArray(new String[0]);
