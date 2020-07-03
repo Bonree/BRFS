@@ -75,8 +75,6 @@ import org.slf4j.LoggerFactory;
 public class DefaultRocksDBManager implements RocksDBManager {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRocksDBManager.class);
 
-    private static final int DEFAULT_QUEUE_FLUSH = 5000;
-
     private DBOptions dbOptions;
     private ReadOptions readOptions;
     private WriteOptions writeOptionsSync;
@@ -100,21 +98,18 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
-    private TimeWatcher watcher = new TimeWatcher();
-    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(1000);
-
-    private ScheduledExecutorService queueChecker =
-            Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(),
             Runtime.getRuntime().availableProcessors(),
             0L,
             TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(500),
+            new LinkedBlockingQueue<>(1000),
             new PooledThreadFactory("rocksdb_data_producer"),
             new ThreadPoolExecutor.AbortPolicy()
     );
+
+    private List<RocksDBDataUnit> rocksdbData = new ArrayList<>();
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -212,7 +207,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
                            .setTargetFileSizeBase(this.config.getTargetFileSizeBase() * SizeUnit.MB)
                            .setMaxBytesForLevelBase(this.config.getMaxBytesLevelBase() * SizeUnit.MB)
                            .setOptimizeFiltersForHits(true);
-        queueChecker.scheduleAtFixedRate(new QueueChecker(), 0L, 1L, TimeUnit.MILLISECONDS);
 
         try {
             columnFamilyInfo = loadColumnFamilyInfo();
@@ -328,13 +322,35 @@ public class DefaultRocksDBManager implements RocksDBManager {
             LOG.warn("write column family is empty or key/value is null!");
             return WriteStatus.FAILED;
         }
-
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        boolean offer = queue.offer(new RocksDBDataUnit(columnFamily, key, value));
-        if (!offer) {
-            LOG.warn("offer data ro queue failed, size:{}", queue.size());
+        if (rocksdbData.size() < dataSynchronizeCountOnce) {
+            rocksdbData.add(new RocksDBDataUnit(columnFamily, key, value));
+        } else {
+            dataSynchronizer(new ArrayList<>(rocksdbData));
+            rocksdbData = new ArrayList<>();
         }
         return writeStatus;
+    }
+
+    public void dataSynchronizer(List<RocksDBDataUnit> datas) {
+        produceExec.submit(() -> {
+            LOG.info("current sync data size:{}", datas.size());
+            RegionNodeConnection connection;
+            for (Service service : serviceCache) {
+                connection =
+                        DefaultRocksDBManager.this.regionNodeConnectionPool
+                                .getConnection(regionGroupName, service.getServiceId());
+                if (connection == null || connection.getClient() == null) {
+                    LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
+                    continue;
+                }
+                try {
+                    connection.getClient().writeBatchData(datas);
+                } catch (Exception e) {
+                    LOG.error("rocksdb data writer occur error", e);
+                }
+            }
+        });
     }
 
     @Override
@@ -358,50 +374,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return WriteStatus.FAILED;
         }
         return WriteStatus.SUCCESS;
-    }
-
-    private class QueueChecker implements Runnable {
-
-        @Override
-        public void run() {
-            if (serviceCache.isEmpty()) {
-                LOG.debug("service cache is empty!");
-                return;
-            }
-            if (queue.isEmpty()) {
-                LOG.debug("sync queue is empty!");
-                return;
-            }
-            produceExec.submit(() -> {
-                if (queue.size() >= dataSynchronizeCountOnce) {
-                    dataSynchronizer(dataSynchronizeCountOnce);
-                } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH) {
-                    dataSynchronizer(queue.size());
-                    watcher.getElapsedTimeAndRefresh();
-                }
-            });
-        }
-
-        public void dataSynchronizer(int size) {
-            List<RocksDBDataUnit> datas = new ArrayList<>(size);
-            queue.drainTo(datas, size);
-            LOG.info("current sync data count:{}, queue size:{}", size, queue.size());
-            RegionNodeConnection connection;
-            for (Service service : serviceCache) {
-                connection =
-                    DefaultRocksDBManager.this.regionNodeConnectionPool
-                        .getConnection(regionGroupName, service.getServiceId());
-                if (connection == null || connection.getClient() == null) {
-                    LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
-                    continue;
-                }
-                try {
-                    connection.getClient().writeBatchData(datas);
-                } catch (Exception e) {
-                    LOG.error("rocksdb data writer occur error", e);
-                }
-            }
-        }
     }
 
     private RocksIterator newIterator(ColumnFamilyHandle cfh) {
@@ -593,7 +565,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
-        this.queueChecker.shutdown();
         this.produceExec.shutdown();
         LOG.info("rocksdb manager stop");
     }
