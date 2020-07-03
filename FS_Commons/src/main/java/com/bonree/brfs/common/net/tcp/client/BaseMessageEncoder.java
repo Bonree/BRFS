@@ -17,7 +17,7 @@ public class BaseMessageEncoder extends MessageToByteEncoder<TokenMessage<BaseMe
         throws Exception {
         out.writeByte((byte) 0xBF);
         out.writeInt(msg.messageToken());
-        LOG.info("encoding message with token [{}]", msg.messageToken());
+        LOG.debug("encoding message with token [{}]", msg.messageToken());
         BaseMessage baseMessage = msg.message();
         out.writeByte(baseMessage.getType());
 
