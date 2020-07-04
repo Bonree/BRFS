@@ -98,13 +98,13 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors(),
-            Runtime.getRuntime().availableProcessors(),
-            0L,
-            TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(1000),
-            new PooledThreadFactory("rocksdb_data_producer"),
-            new ThreadPoolExecutor.AbortPolicy()
+        Runtime.getRuntime().availableProcessors(),
+        Runtime.getRuntime().availableProcessors(),
+        0L,
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(1000),
+        new PooledThreadFactory("rocksdb_data_producer"),
+        new ThreadPoolExecutor.AbortPolicy()
     );
 
     private BlockingQueue<RocksDBDataUnit> rocksdbQueue = new ArrayBlockingQueue<>(1000);
@@ -339,8 +339,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             RegionNodeConnection connection;
             for (Service service : serviceCache) {
                 connection =
-                        DefaultRocksDBManager.this.regionNodeConnectionPool
-                                .getConnection(regionGroupName, service.getServiceId());
+                    DefaultRocksDBManager.this.regionNodeConnectionPool
+                        .getConnection(regionGroupName, service.getServiceId());
                 if (connection == null || connection.getClient() == null) {
                     LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
                     continue;
@@ -394,15 +394,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 return;
             }
 
+            int dataTtl = ttl == -1 ? Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DATA_TTL) : ttl;
             ColumnFamilyHandle handle =
                 this.db
-                    .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
+                    .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), dataTtl);
             this.cfHandles.put(columnFamily, handle);
-            LOG.info("create column family complete, name:{}, ttl:{}, id:{}", columnFamily, ttl, handle.getID());
+            LOG.info("create column family complete, name:{}, ttl:{}, id:{}", columnFamily, dataTtl, handle.getID());
             // 更新ZK信息
-            this.columnFamilyInfoManager.initOrAddColumnFamilyInfo(columnFamily, ttl);
+            this.columnFamilyInfoManager.initOrAddColumnFamilyInfo(columnFamily, dataTtl);
         } catch (Exception e) {
-            LOG.error("create column family error, cf:{}, ttl:{}", columnFamily, ttl, e);
+            LOG.error("create column family error, cf:{}", columnFamily, e);
             throw e;
         }
     }

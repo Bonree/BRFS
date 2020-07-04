@@ -39,6 +39,12 @@ public class RocksDBConfigs {
     public static final ConfigUnit<String> ROCKSDB_RESTORE_TEMPORARY_PATH =
         ConfigUnit.ofString("rocksdb.restore.temporary.path", "/tmp/temporary");
 
+    /**
+     * @description: RocksDB数据过期时间配置，默认100天
+     */
+    public static final ConfigUnit<Integer> ROCKSDB_DATA_TTL =
+        ConfigUnit.ofInt("rocksdb.data.ttl", 60 * 24 * 60 * 100);
+
     public static final ConfigUnit<Integer> ROCKSDB_BACKUP_FILE_TRANSFER_PORT =
         ConfigUnit.ofInt("rocksdb.backup.file.transfer.port", 9696);
 
