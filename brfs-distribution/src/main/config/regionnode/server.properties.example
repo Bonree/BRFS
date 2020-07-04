@@ -100,6 +100,8 @@ rocksdb.backup.path = /tmp/rocksdb_backup
 rocksdb.restore.path = /tmp/rocksdb_restore
 # rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
 rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
+# rocksdb数据过期时间，默认100天
+rocksdb.data.ttl = 8640000
 # 备份文件socket传输时使用的端口
 rocksdb.backup.file.transfer.port = 9696
 # 备份周期，单位毫秒
