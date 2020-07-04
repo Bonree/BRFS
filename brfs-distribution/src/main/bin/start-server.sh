@@ -21,6 +21,7 @@ if [ x$BRFS_HOME = "x" ]; then
 fi
 
 LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
+GUI_DIR="${DRUID_GUI_DIR:=${BRFS_HOME}/gui}"
 
 case $1 in
   region)
@@ -29,9 +30,19 @@ case $1 in
   data)
     NODE_TYPE=datanode
   ;;
+  gui)
+    java -Dbrfs.home=${BRFS_HOME} \
+    -Dconfiguration.file=${BRFS_HOME}/config/gui/config.properties \
+    -cp $GUI_DIR/*:${BRFS_HOME}/config/gui "com.bonree.brfs.gui.server.Server" \
+    > $BRFS_HOME/logs/gui.out 2>&1 &
+    echo "start gui"
+    exit
+  ;;
   restore)
     java -Dbrfs.home=${BRFS_HOME} \
             -Dconfiguration.file=${BRFS_HOME}/config/regionnode/server.properties \
+            -Dlog.dir=$BRFS_HOME/logs \
+			      -Dlog.file.name=gui \
             -cp $LIB_DIR/*:${BRFS_HOME}/config/regionnode "com.bonree.brfs.server.Main" tools restore
     echo "restore metadata completed!"
     exit

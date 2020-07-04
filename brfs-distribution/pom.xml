@@ -27,6 +27,15 @@
             <artifactId>FS_Server</artifactId>
         </dependency>
 
+        <!-- gui -->
+        <dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>brfs-gui-server</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- plugins -->
         <dependency>
             <groupId>com.bonree.fs</groupId>
