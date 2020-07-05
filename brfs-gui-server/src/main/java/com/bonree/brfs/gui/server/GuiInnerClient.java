@@ -122,4 +122,11 @@ public class GuiInnerClient implements Discovery {
         // Nothing to close
     }
 
+    public List<URI> getSeedUris() {
+        return seedUris;
+    }
+
+    public URI[] geturis() {
+        return this.seedUris.toArray(new URI[this.seedUris.size()]);
+    }
 }

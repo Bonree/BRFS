@@ -125,30 +125,7 @@ public class DashboardMock {
         return bs;
     }
 
-    public BusinessStats getBusinessStats(String business, int minutes) {
-        if (!stats.containsKey(business)) {
-            return new BusinessStats(business, ImmutableList.of());
-        }
 
-        List<TimedData<DataStatistic>> datas = stats.get(business);
-        int index = Math.max(0, datas.size() - minutes);
-        ArrayList<TimedData<DataStatistic>> result = new ArrayList<>();
-        for (int i = index; i < datas.size(); i++) {
-            result.add(datas.get(i));
-        }
-
-        return new BusinessStats(business, result);
-    }
-
-    public BusinessStats getAllBusinessStats(int minutes) {
-        int index = Math.max(0, allStats.size() - minutes);
-        ArrayList<TimedData<DataStatistic>> result = new ArrayList<>();
-        for (int i = index; i < allStats.size(); i++) {
-            result.add(allStats.get(i));
-        }
-
-        return new BusinessStats("", result);
-    }
 
     private static NodeSummaryInfo buildNodeSummaryInfo(String node) {
         double cpuUsage = nextDouble();

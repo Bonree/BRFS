@@ -17,6 +17,7 @@ package com.bonree.brfs.gui.server;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import com.bonree.brfs.gui.server.mock.DashboardMock;
+import com.bonree.brfs.gui.server.mock.DashboardWorker;
 import com.bonree.brfs.gui.server.node.NodeSummaryInfo;
 import com.bonree.brfs.gui.server.stats.BusinessStats;
 import com.bonree.brfs.gui.server.stats.StatReportor;
@@ -31,12 +32,12 @@ import javax.ws.rs.QueryParam;
 @Path("/dashboard")
 public class DashBoardResource {
 
-    private final DashboardMock mock;
+    private DashboardWorker mock;
     private StatReportor statReportor;
 
     @Inject
-    public DashBoardResource(StatReportor statReportor) {
-        this.mock = new DashboardMock();
+    public DashBoardResource(StatReportor statReportor, DashboardWorker mock) {
+        this.mock = mock;
         this.statReportor = statReportor;
     }
 
