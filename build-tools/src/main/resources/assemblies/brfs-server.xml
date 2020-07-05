@@ -59,6 +59,19 @@
             </includes>
             <outputDirectory>config/datanode</outputDirectory>
         </fileSet>
+		<fileSet>
+			<directory>${basedir}/src/main/config/gui</directory>
+			<includes>
+				<include>config.properties</include>
+			</includes>
+			<outputDirectory>config/gui</outputDirectory>
+		</fileSet>
+
+		<fileSet>
+			<directory>${project.build.directory}/dependency/brfs-gui-server-${project.version}</directory>
+			<outputDirectory>gui/</outputDirectory>
+		</fileSet>
+
 		<!-- plugins -->
 		<fileSet>
 			<directory>${project.build.directory}/dependency/brfs-http-netty-${project.version}</directory>

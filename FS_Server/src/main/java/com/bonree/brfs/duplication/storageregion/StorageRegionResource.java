@@ -96,8 +96,7 @@ public class StorageRegionResource {
             StorageRegion storageRegion = storageRegionManager.createStorageRegion(
                 name,
                 StorageRegionProperties.withDefault().override(attributes));
-            rocksDBManager.createColumnFamilyWithTtl(name, (int) Duration
-                .parse(StorageRegionProperties.withDefault().override(attributes).getDataTtl()).getSeconds());
+            rocksDBManager.createColumnFamilyWithTtl(name, -1);
             return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not create storage region[%s]", name), e);
