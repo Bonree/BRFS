@@ -122,7 +122,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         readMetric.setDataCount(1);
         TimeWatcher timeWatcher = new TimeWatcher();
         String srName = getStorageName(readObject.getFilePath());
-        readCountCollector.submit(srName);
 
         String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0
             ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
@@ -151,6 +150,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             }
 
             readMetric.setDataSize(readableLength);
+            readCountCollector.submit(srName);
 
             ByteBuffer contentBuffer = fileBuffer.slice();
             contentBuffer.position((int) readOffset);
