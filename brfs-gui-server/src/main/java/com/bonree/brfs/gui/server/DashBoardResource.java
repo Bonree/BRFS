@@ -68,7 +68,7 @@ public class DashBoardResource {
     public BusinessStats getBusinessStats(
         @PathParam("business") String business,
         @QueryParam("minutes") int minutes) {
-        return statReportor.getCount(business, minutes);
+        return statReportor.getCountByPrefix(business, minutes);
     }
 
     @GET
@@ -76,6 +76,6 @@ public class DashBoardResource {
     @Produces(APPLICATION_JSON)
     public BusinessStats getBusinessStats(
         @QueryParam("minutes") int minutes) {
-        return statReportor.getCount("", minutes);
+        return statReportor.getCount("", minutes, false);
     }
 }

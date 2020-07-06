@@ -40,41 +40,55 @@ public class StatReportor {
         result.set(new ConcurrentHashMap<>());
     }
 
-    public BusinessStats getCount(String srName, int minutes) {
+    public BusinessStats getCount(String srName, int minutes, boolean usePrefix) {
         Instant startMoment = Instant.now().truncatedTo(ChronoUnit.MINUTES).minus(minutes, ChronoUnit.MINUTES);
         importantMoment.set(startMoment);
-        getWriteCount(srName, true);
-        getWriteCount(srName, false);
+        getCount(srName, true, usePrefix);
+        getCount(srName, false, usePrefix);
         return popAll(srName);
     }
 
-    public void getWriteCount(String srName, boolean isWrite) {
+    public BusinessStats getCountByPrefix(String prefix, int minutes) {
+        return getCount(prefix, minutes, true);
+    }
+
+    public void getCount(String srName, boolean isWrite, boolean usePrefix) {
+        for (File file : getFileList(isWrite)) {
+            captureFromFile(file, srName, isWrite, usePrefix);
+        }
+    }
+
+    /**
+     * 获得所有在查询时间内的file
+     * @param isWrite 写统计
+     * @return 时间内的file列表
+     */
+    private List<File> getFileList(boolean isWrite) {
         Instant now = importantMoment.get();
         File directory = new File(isWrite ? WRITE_RD : READ_RD);
         if (!directory.exists() && !directory.mkdirs()) {
             LOG.error("create stat dir error!");
             throw new InternalServerErrorException();
         }
-        File[] fileList = directory.listFiles();
-        if (fileList == null) {
+        File[] allFiles = directory.listFiles();
+        if (allFiles == null) {
             LOG.info("no data has been collected.");
             throw new NotFoundException("no data has been collected");
         }
-        File tmp;
         Instant fileInstant;
-        for (File file : fileList) {
+        List<File> fileList = new ArrayList<>();
+        for (File file : allFiles) {
             writeFiles.add(file.getAbsolutePath());
-
-            System.out.println(file.getAbsolutePath());
-            tmp = file;
-            fileInstant = parseFromDay(getDayFromFileName(tmp.getName()));
+            fileInstant = parseFromDay(getDayFromFileName(file.getName()));
             if (fileInstant.compareTo(now.truncatedTo(ChronoUnit.DAYS)) >= 0) {
-                captureFromFile(tmp, srName, isWrite);
+                fileList.add(file);
+                //captureFromFile(file, srName, isWrite);
             }
         }
+        return fileList;
     }
 
-    private void captureFromFile(File tmp, String srName, boolean isWrite) {
+    private void captureFromFile(File tmp, String srName, boolean isWrite, boolean usePrefix) {
         try {
             RandomAccessFile rf = new RandomAccessFile(tmp, "r");
             long start; // 返回此文件中的当前偏移量
@@ -91,27 +105,24 @@ public class StatReportor {
                 c = rf.read();
                 if (c == '\n' || c == '\r') {
                     line = rf.readLine();
-                    System.out.println(line);
                     if (line != null) {
-                        extractLine(line, srName, isWrite);
-                        System.out.println(line);
-                    } else {
-                        System.out.println(line);
+                        extractLine(line, srName, isWrite, usePrefix);
                     }
                     readIndex--;
                 }
                 readIndex--;
                 rf.seek(readIndex);
                 if (readIndex == 0) { // 当文件指针退至文件开始处，输出第一行
-                    extractLine(rf.readLine(), srName, isWrite);
+                    extractLine(rf.readLine(), srName, isWrite, usePrefix);
                 }
             }
         } catch (IOException e) {
+            LOG.error("error when collect stat from data center!");
             e.printStackTrace();
         }
     }
 
-    private void extractLine(String line, String srName, boolean isWrite) {
+    private void extractLine(String line, String srName, boolean isWrite, boolean usePrefix) {
         if (line == null || line.equals("")) {
             return;
         }
@@ -120,7 +131,8 @@ public class StatReportor {
         String sr = s[1];
         String count = s[2];
         Instant instant = parseFromMinute(moment);
-        if (instant.compareTo(importantMoment.get()) >= 0 && (srName.equals("") || sr.equals(srName))) {
+        if (instant.compareTo(importantMoment.get()) >= 0 && (srName.equals("")
+            || (usePrefix ? sr.startsWith(srName) : sr.equals(srName)))) {
             Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
             if (srMap == null) {
                 srMap = new ConcurrentHashMap<>();
