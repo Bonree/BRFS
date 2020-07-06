@@ -6,6 +6,8 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.gui.server.TimedData;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+
+import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -15,8 +17,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.ws.rs.NotFoundException;
 
 public class StatReportor {
     private StatConfigs configs;
@@ -121,7 +123,7 @@ public class StatReportor {
             }
             Map<Long, Pair<ReadCountModel, WriteCountModel>> tsMap = srMap.get(srName);
             if (tsMap == null) {
-                tsMap = new ConcurrentHashMap<Long, Pair<ReadCountModel, WriteCountModel>>();
+                tsMap = new TreeMap<Long, Pair<ReadCountModel, WriteCountModel>>();
                 srMap.put(srName, tsMap);
             }
 
