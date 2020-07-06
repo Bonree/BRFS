@@ -6,8 +6,6 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.gui.server.TimedData;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
-
-import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -19,14 +17,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.ws.rs.NotFoundException;
 
 public class StatReportor {
     private StatConfigs configs;
     private static String READ_RD;
     private static String WRITE_RD;
-    private ThreadLocal<Instant> importantMoment = new ThreadLocal<>();
+    private final ThreadLocal<Instant> importantMoment = new ThreadLocal<>();
     // sr=>[ts=>count]
-    private ThreadLocal<Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>>> result = new ThreadLocal();
+    private final ThreadLocal<Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>>> result = new ThreadLocal();
     private List<String> writeFiles = new ArrayList<>();
 
     @Inject
@@ -57,10 +56,10 @@ public class StatReportor {
         }
         File tmp;
         Instant fileInstant;
-        for (int i = 0; i < filelist.length; i++) {
-            writeFiles.add(filelist[i].getAbsolutePath());
-            System.out.println(filelist[i].getAbsolutePath());
-            tmp = filelist[i];
+        for (File file : filelist) {
+            writeFiles.add(file.getAbsolutePath());
+            System.out.println(file.getAbsolutePath());
+            tmp = file;
             fileInstant = parseFromDay(getDayFromFileName(tmp.getName()));
             if (fileInstant.compareTo(now.truncatedTo(ChronoUnit.DAYS)) >= 0) {
                 captureFromFile(tmp, srName, isWrite);
