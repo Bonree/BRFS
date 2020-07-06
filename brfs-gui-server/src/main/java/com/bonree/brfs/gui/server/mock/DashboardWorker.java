@@ -41,6 +41,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -107,11 +108,25 @@ public class DashboardWorker {
     public List<String> getBusinesses() {
         try {
             BRFS client = new BRFSClientBuilder().build(innerClient.geturis());
-            return client.listStorageRegions();
+            List<String> storageRegions = client.listStorageRegions();
+            Set<String> set = new HashSet<>();
+            for (String storageRegion : storageRegions) {
+                String key = getBusinessByRlue(storageRegion);
+                set.add(key);
+            }
+            return ImmutableList.copyOf(set);
         } catch (Exception e) {
             LOG.error("get storage happen error", e);
         }
         return ImmutableList.of();
+    }
+
+    private String getBusinessByRlue(String region) {
+        String[] array = StringUtils.split(region, "_");
+        if (array == null || array.length < 2) {
+            return region;
+        }
+        return array[0] + "_" + array[1];
     }
 
     public TotalDiskUsage getTotalDiskUsage() {
