@@ -1,6 +1,7 @@
 package com.bonree.brfs.configuration.units;
 
 import com.bonree.brfs.configuration.ConfigUnit;
+import com.bonree.brfs.configuration.SystemProperties;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -19,25 +20,26 @@ public class RocksDBConfigs {
      * @description: RocksDB数据存储目录
      */
     public static final ConfigUnit<String> ROCKSDB_STORAGE_PATH =
-        ConfigUnit.ofString("rocksdb.storage.path", "/tmp/rocksdb");
+        ConfigUnit.ofString("rocksdb.storage.path", System.getProperty(SystemProperties.PROP_BRFS_HOME) + "/rocksdb");
 
     /**
      * @description: RocksDB数据备份目录
      */
     public static final ConfigUnit<String> ROCKSDB_BACKUP_PATH =
-        ConfigUnit.ofString("rocksdb.backup.path", "/tmp/backup");
+        ConfigUnit.ofString("rocksdb.backup.path", System.getProperty(SystemProperties.PROP_BRFS_HOME) + "/rocksdb_backup");
 
     /**
      * @description: RocksDB用于接收其他节点的备份文件的恢复目录
      */
     public static final ConfigUnit<String> ROCKSDB_RESTORE_PATH =
-        ConfigUnit.ofString("rocksdb.restore.path", "/tmp/restore");
+        ConfigUnit.ofString("rocksdb.restore.path", System.getProperty(SystemProperties.PROP_BRFS_HOME) + "/rocksdb_restore");
 
     /**
      * @description: RocksDB用于临时数据恢复的目录，恢复完成后，将数据迁移到原RocksDB数据存储目录
      */
     public static final ConfigUnit<String> ROCKSDB_RESTORE_TEMPORARY_PATH =
-        ConfigUnit.ofString("rocksdb.restore.temporary.path", "/tmp/temporary");
+        ConfigUnit.ofString("rocksdb.restore.temporary.path",
+                            System.getProperty(SystemProperties.PROP_BRFS_HOME) + "/rocksdb_temporary");
 
     /**
      * @description: RocksDB数据过期时间配置，默认100天

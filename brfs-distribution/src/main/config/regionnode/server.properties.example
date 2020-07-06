@@ -92,14 +92,14 @@ regionnode.file.closer.thead_num=8
 ###############################################
 ##############RocksDB Config###################
 ###############################################
-# rocksdb存储自定义文件名和FID的磁盘路径
-rocksdb.storage.path = /tmp/rocksdb
+# 指定rocksdb存储自定义文件名和FID的磁盘路径，默认是${brfs.home}/rocksdb，如下三个path雷同
+rocksdb.storage.path = /data/rocksdb
 # rocksdb的数据备份磁盘路径
-rocksdb.backup.path = /tmp/rocksdb_backup
+rocksdb.backup.path = /data/rocksdb_backup
 # rocksdb用于接收其他节点的备份文件的恢复目录
-rocksdb.restore.path = /tmp/rocksdb_restore
+rocksdb.restore.path = /data/rocksdb_restore
 # rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
-rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
+rocksdb.restore.temporary.path = /data/rocksdb_temporary
 # rocksdb数据过期时间，默认100天
 rocksdb.data.ttl = 8640000
 # 备份文件socket传输时使用的端口
