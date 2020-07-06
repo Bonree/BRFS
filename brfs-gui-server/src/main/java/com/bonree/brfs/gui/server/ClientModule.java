@@ -28,6 +28,7 @@ public class ClientModule implements Module {
         // http请求配置信息
         JsonConfigProvider.bind(binder, "http", HttpConfig.class);
         JsonConfigProvider.bind(binder, "stat", StatConfigs.class);
+        JsonConfigProvider.bind(binder, "alert", AlertConfig.class);
 
     }
 

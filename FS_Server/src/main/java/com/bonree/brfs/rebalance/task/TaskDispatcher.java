@@ -748,8 +748,12 @@ public class TaskDispatcher implements Closeable {
                         if (selectIds != null && !selectIds.isEmpty()) {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
                             // 构建任务需要使用2级serverid
-                            String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
-
+                            String partitionId = changeSummary.getChangePartitionId();
+                            String selectSecondID = idManager.getSecondId(partitionId, storageIndex);
+                            if (!selectIds.contains(selectSecondID)) {
+                                selectSecondID = selectIds.stream().findAny().get();
+                                partitionId = idManager.getPartitionId(selectSecondID, storageIndex);
+                            }
                             Collection<String> outDataServerSecondIds = new ArrayList<>();
                             // 收集存活提供副本数据的二级serverid
                             for (String virtualIDFirst : participators) {
@@ -768,7 +772,7 @@ public class TaskDispatcher implements Closeable {
 
                             // 构造任务
                             BalanceTaskSummary taskSummary = taskGenerator
-                                .genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID,
+                                .genVirtualTask(changeID, storageIndex, partitionId, virtualID,
                                                 Lists.newArrayList(selectSecondID), (List<String>) outDataServerSecondIds,
                                                 partitionInfoManager.getDiskPartitionInfoFreeSize(), virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
