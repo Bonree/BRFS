@@ -16,7 +16,6 @@ package com.bonree.brfs.gui.server;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-import com.bonree.brfs.gui.server.mock.DashboardMock;
 import com.bonree.brfs.gui.server.mock.DashboardWorker;
 import com.bonree.brfs.gui.server.node.NodeSummaryInfo;
 import com.bonree.brfs.gui.server.stats.BusinessStats;

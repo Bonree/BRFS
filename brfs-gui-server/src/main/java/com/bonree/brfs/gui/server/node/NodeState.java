@@ -16,6 +16,5 @@ package com.bonree.brfs.gui.server.node;
 
 public enum NodeState {
     ONLINE,
-    OFFLINE,
-    ALERT
+    OFFLINE
 }

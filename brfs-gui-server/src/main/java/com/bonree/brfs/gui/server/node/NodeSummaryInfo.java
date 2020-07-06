@@ -20,7 +20,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NodeSummaryInfo {
-    private final NodeState state;
+
+    private final ServerState state;
+    private final NodeState regionNodeState;
+    private final NodeState dataNodeState;
     private final String hostName;
     private final String ip;
     private final double cpuUsage;
@@ -30,7 +33,9 @@ public class NodeSummaryInfo {
 
     @JsonCreator
     public NodeSummaryInfo(
-        @JsonProperty("state") NodeState state,
+        @JsonProperty("state") ServerState state,
+        @JsonProperty("regionNodeState") NodeState regionNodeState,
+        @JsonProperty("dataNodeState") NodeState dataNodeState,
         @JsonProperty("hostName") String hostName,
         @JsonProperty("ip") String ip,
         @JsonProperty("cpuUsage") double cpuUsage,
@@ -38,6 +43,8 @@ public class NodeSummaryInfo {
         @JsonProperty("brfsDiskUsage") double brfsDiskUsage,
         @JsonProperty("systemDiskUsage") double systemDiskUsage) {
         this.state = state;
+        this.regionNodeState = regionNodeState;
+        this.dataNodeState = dataNodeState;
         this.hostName = hostName;
         this.ip = ip;
         this.cpuUsage = cpuUsage;
@@ -47,8 +54,18 @@ public class NodeSummaryInfo {
     }
 
     @JsonProperty("state")
-    public NodeState getNodeState() {
+    public ServerState getState() {
         return state;
+    }
+
+    @JsonProperty("regionNodeState")
+    public NodeState getRegionNodeState() {
+        return regionNodeState;
+    }
+
+    @JsonProperty("dataNodeState")
+    public NodeState getDataNodeState() {
+        return dataNodeState;
     }
 
     @JsonProperty("hostName")
@@ -83,8 +100,9 @@ public class NodeSummaryInfo {
 
     @Override
     public String toString() {
-        return toStringHelper(getClass())
-            .add("state", state)
+        return toStringHelper(this)
+            .add("regionNodeState", regionNodeState)
+            .add("dataNodeState", dataNodeState)
             .add("hostName", hostName)
             .add("ip", ip)
             .add("cpuUsage", cpuUsage)

@@ -1,27 +1,26 @@
 package com.bonree.brfs.gui.server.mock;
 
-import static com.bonree.brfs.client.utils.Strings.format;
-
 import com.bonree.brfs.client.BRFS;
-import com.bonree.brfs.client.BRFSClient;
 import com.bonree.brfs.client.BRFSClientBuilder;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.ServerNode;
-import com.bonree.brfs.client.utils.HttpStatus;
-import com.bonree.brfs.client.utils.URIRetryable;
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.resource.vo.NodeSnapshotInfo;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.gui.server.AlertConfig;
 import com.bonree.brfs.gui.server.BrfsConfig;
 import com.bonree.brfs.gui.server.GuiInnerClient;
 import com.bonree.brfs.gui.server.TotalDiskUsage;
 import com.bonree.brfs.gui.server.node.NodeState;
 import com.bonree.brfs.gui.server.node.NodeSummaryInfo;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.bonree.brfs.gui.server.node.ServerState;
+import com.bonree.brfs.gui.server.zookeeper.ZookeeperConfig;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,32 +33,75 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.imps.DefaultACLProvider;
+import org.apache.curator.retry.BoundedExponentialBackoffRetry;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.net.util.IPAddressUtil;
 
 public class DashboardWorker {
+    private static final int BASE_SLEEP_TIME_MS = 1000;
+
+    private static final int MAX_SLEEP_TIME_MS = 45000;
+
+    private static final int MAX_RETRIES = 30;
     private static final Logger LOG = LoggerFactory.getLogger(DashboardWorker.class);
     private static final ThreadFactory FACTORY = new ThreadFactoryBuilder()
         .setDaemon(true)
         .setNameFormat("DashboardWorker")
         .build();
     private BrfsConfig config;
+    private AlertConfig alertLine;
     private GuiInnerClient innerClient;
     private OkHttpClient client;
     private ExecutorService pool = Executors.newFixedThreadPool(3, FACTORY);
+    private ZookeeperConfig zkConfig;
+    private CuratorFramework zkClient;
+
+    private ZookeeperPaths zkPaths;
 
     @Inject
-    public DashboardWorker(BrfsConfig config, GuiInnerClient innerClient, OkHttpClient client) {
+    public DashboardWorker(BrfsConfig config, AlertConfig alertLine, ZookeeperConfig zkConfig, GuiInnerClient innerClient,
+                           OkHttpClient client) {
         this.config = config;
+        this.alertLine = alertLine;
+        this.zkConfig = zkConfig;
         this.innerClient = innerClient;
         this.client = client;
+        this.zkClient = CuratorFrameworkFactory.builder()
+                                               .ensembleProvider(new FixedEnsembleProvider(zkConfig.getAddresses()))
+                                               .sessionTimeoutMs(10000)
+                                               .retryPolicy(new BoundedExponentialBackoffRetry(BASE_SLEEP_TIME_MS,
+                                                                                               MAX_SLEEP_TIME_MS,
+                                                                                               MAX_RETRIES))
+                                               .aclProvider(new DefaultACLProvider())
+                                               .build();
+        ;
+    }
+
+    @PostConstruct
+    public void start() throws Exception {
+        this.zkClient.start();
+        this.zkClient.blockUntilConnected();
+        zkPaths = ZookeeperPaths.getBasePath(config.getClusterName(), this.zkClient);
+        LOG.info("DashboardWorker start");
+    }
+
+    @PreDestroy
+    public void stop() throws Exception {
+        LOG.info("DashboardWorker stop");
+        this.zkClient.close();
     }
 
     public List<String> getBusinesses() {
@@ -105,6 +147,7 @@ public class DashboardWorker {
             List<ServerNode> regions = innerClient.getServiceList(Discovery.ServiceType.REGION);
             Map<String, ServerNode> regionMap = new HashMap<>();
             Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
+            Map<String, DataNodeMetaModel> metaMap = collectDataMetaNodes();
             for (NodeSnapshotInfo node : snapshotInfos) {
                 String host = node.getHost();
                 if (host.contains(":")) {
@@ -118,9 +161,10 @@ public class DashboardWorker {
             Set<String> keys = new HashSet<String>();
             keys.addAll(regionMap.keySet());
             keys.addAll(snapshotMap.keySet());
+            keys.addAll(metaMap.keySet());
             List<NodeSummaryInfo> summaryInfos = new ArrayList<>();
             for (String key : keys) {
-                NodeSummaryInfo summary = packageSummaryInfo(regionMap.get(key), snapshotMap.get(key));
+                NodeSummaryInfo summary = packageSummaryInfo(regionMap.get(key), snapshotMap.get(key), metaMap.get(key));
                 summaryInfos.add(summary);
             }
             return summaryInfos;
@@ -130,40 +174,105 @@ public class DashboardWorker {
         return ImmutableList.of();
     }
 
-    public NodeSummaryInfo packageSummaryInfo(ServerNode region, NodeSnapshotInfo data) {
+    public NodeSummaryInfo packageSummaryInfo(ServerNode region, NodeSnapshotInfo data, DataNodeMetaModel model) {
         if (region == null && data == null) {
-            return null;
+            if (model == null) {
+                return null;
+            }
+            return new NodeSummaryInfo(
+                ServerState.DEAD,
+                NodeState.OFFLINE,
+                NodeState.OFFLINE,
+                model.getIp(),
+                model.getIp(),
+                0.0,
+                0.0,
+                0.0,
+                0.0);
         } else if (data == null) {
-            return new NodeSummaryInfo(NodeState.ONLINE,
-                                       region.getHost(),
-                                       region.getHost(),
-                                       0.0,
-                                       0.0,
-                                       0.0,
-                                       0.0);
+            return new NodeSummaryInfo(
+                ServerState.HEALTH,
+                NodeState.ONLINE,
+                NodeState.OFFLINE,
+                region.getHost(),
+                region.getHost(),
+                0.0,
+                0.0,
+                0.0,
+                0.0);
         } else if (region == null) {
             Collection<DiskPartitionStat> stats = data.getDiskPartitionStats();
             long total = stats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
             long usage = stats.stream().mapToLong(DiskPartitionStat::getUsed).sum();
-            return new NodeSummaryInfo(NodeState.ONLINE,
+            double cpuRate = data.getCpustat().getTotal() * 100;
+            double memRate = data.getMemStat().getUsedPercent();
+            double diskRate = ((double) usage) / total * 100;
+            ServerState state = getServerState(cpuRate, memRate, diskRate);
+            return new NodeSummaryInfo(state,
+                                       NodeState.OFFLINE,
+                                       NodeState.ONLINE,
                                        data.getHost(),
                                        data.getHost(),
-                                       data.getCpustat().getTotal() * 100,
-                                       data.getMemStat().getUsedPercent(),
-                                       ((double) usage) / total,
+                                       cpuRate * 100,
+                                       memRate,
+                                       diskRate,
                                        0.0);
         } else {
             Collection<DiskPartitionStat> stats = data.getDiskPartitionStats();
             long total = stats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
             long usage = stats.stream().mapToLong(DiskPartitionStat::getUsed).sum();
-            return new NodeSummaryInfo(NodeState.ONLINE,
+            double cpuRate = data.getCpustat().getTotal();
+            double memRate = data.getMemStat().getUsedPercent();
+            double diskRate = ((double) usage) / total;
+            ServerState state = getServerState(cpuRate, memRate, diskRate);
+            return new NodeSummaryInfo(state,
+                                       NodeState.ONLINE,
+                                       NodeState.ONLINE,
                                        data.getHost(),
                                        data.getHost(),
-                                       data.getCpustat().getTotal() * 100,
-                                       data.getMemStat().getUsedPercent(),
-                                       ((double) usage) / total,
+                                       cpuRate * 100,
+                                       memRate,
+                                       diskRate,
                                        0.0);
         }
+    }
+
+    private ServerState getServerState(double cpuRate, double memRate, double dataDiskRate) {
+        if (cpuRate > alertLine.getAlertLineCpuPercent()
+            || memRate > alertLine.getAlertLineMemPercent()
+            || dataDiskRate > alertLine.getAlertLineDataDiskPercent()) {
+            return ServerState.ALERT;
+        }
+        return ServerState.HEALTH;
+    }
+
+    public Map<String, DataNodeMetaModel> collectDataMetaNodes() {
+        try {
+            String basePath = zkPaths.getBaseDataNodeMetaPath();
+            if (zkClient.checkExists().forPath(basePath) == null) {
+                return ImmutableMap.of();
+            }
+            List<String> childs = zkClient.getChildren().forPath(basePath);
+            if (childs == null || childs.isEmpty()) {
+                return ImmutableMap.of();
+            }
+            Map<String, DataNodeMetaModel> map = new HashMap<>();
+            for (String child : childs) {
+                String childPath = ZKPaths.makePath(basePath, child);
+                byte[] data = zkClient.getData().forPath(childPath);
+                if (data == null || data.length == 0) {
+                    continue;
+                }
+                DataNodeMetaModel model = JsonUtils.toObjectQuietly(data, DataNodeMetaModel.class);
+                if (model != null) {
+                    map.put(model.getIp(), model);
+                }
+            }
+            return map;
+        } catch (Exception e) {
+            LOG.error("load dataMetaNodes happen error ", e);
+        }
+        return ImmutableMap.of();
     }
 
     public List<NodeSnapshotInfo> collectResource() throws Exception {
