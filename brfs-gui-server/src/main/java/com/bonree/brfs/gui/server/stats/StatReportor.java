@@ -180,7 +180,7 @@ public class StatReportor {
     public BusinessStats popAll(String srName) {
         Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
         if (srMap == null) {
-            new BusinessStats(srName, ImmutableList.of());
+            return new BusinessStats(srName, ImmutableList.of());
         }
 
         Map<Long, Pair<ReadCountModel, WriteCountModel>> tsMap = srMap.get(srName);
