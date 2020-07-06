@@ -91,6 +91,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
             stat.setPartitionId(local.getPartitionId());
             stats.add(stat);
         }
+        snapshot.setAllPartitionStats(gather.collectPartitionStats());
         snapshot.setDiskPartitionStats(stats);
         snapshot.setTime(System.currentTimeMillis());
         LOG.info("gather time {}", TimeUtils.formatTimeStamp(snapshot.getTime(), "yyyy-MM-dd HH:mm:ss"));

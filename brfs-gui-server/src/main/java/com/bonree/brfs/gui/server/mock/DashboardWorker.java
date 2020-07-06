@@ -222,6 +222,9 @@ public class DashboardWorker {
             double cpuRate = data.getCpustat().getTotal() * 100;
             double memRate = data.getMemStat().getUsedPercent();
             double diskRate = ((double) usage) / total * 100;
+            long sysTotal = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getTotal).sum();
+            long sysUsage = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getUsed).sum();
+            double sysDiskRate = ((double) sysUsage) / sysTotal;
             ServerState state = getServerState(cpuRate, memRate, diskRate);
             return new NodeSummaryInfo(state,
                                        NodeState.OFFLINE,
@@ -231,24 +234,27 @@ public class DashboardWorker {
                                        cpuRate * 100,
                                        memRate,
                                        diskRate,
-                                       0.0);
+                                       sysDiskRate);
         } else {
             Collection<DiskPartitionStat> stats = data.getDiskPartitionStats();
             long total = stats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
             long usage = stats.stream().mapToLong(DiskPartitionStat::getUsed).sum();
-            double cpuRate = data.getCpustat().getTotal();
+            double cpuRate = data.getCpustat().getTotal() * 100;
             double memRate = data.getMemStat().getUsedPercent();
             double diskRate = ((double) usage) / total;
+            long sysTotal = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getTotal).sum();
+            long sysUsage = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getUsed).sum();
+            double sysDiskRate = ((double) sysUsage) / sysTotal;
             ServerState state = getServerState(cpuRate, memRate, diskRate);
             return new NodeSummaryInfo(state,
                                        NodeState.ONLINE,
                                        NodeState.ONLINE,
                                        data.getHost(),
                                        data.getHost(),
-                                       cpuRate * 100,
+                                       cpuRate,
                                        memRate,
                                        diskRate,
-                                       0.0);
+                                       sysDiskRate);
         }
     }
 
