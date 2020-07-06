@@ -93,47 +93,47 @@ regionnode.file.closer.thead_num=8
 ##############RocksDB Config###################
 ###############################################
 # 指定rocksdb存储自定义文件名和FID的磁盘路径，默认是${brfs.home}/rocksdb，如下三个path雷同
-rocksdb.storage.path = /data/rocksdb
+# rocksdb.storage.path = /data/rocksdb
 # rocksdb的数据备份磁盘路径
-rocksdb.backup.path = /data/rocksdb_backup
+# rocksdb.backup.path = /data/rocksdb_backup
 # rocksdb用于接收其他节点的备份文件的恢复目录
-rocksdb.restore.path = /data/rocksdb_restore
+# rocksdb.restore.path = /data/rocksdb_restore
 # rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
-rocksdb.restore.temporary.path = /data/rocksdb_temporary
+# rocksdb.restore.temporary.path = /data/rocksdb_temporary
 # rocksdb数据过期时间，默认100天
-rocksdb.data.ttl = 8640000
+# rocksdb.data.ttl = 8640000
 # 备份文件socket传输时使用的端口
-rocksdb.backup.file.transfer.port = 9696
+# rocksdb.backup.file.transfer.port = 9696
 # 备份周期，单位毫秒
-rocksdb.backup.cycle = 600000
+# rocksdb.backup.cycle = 600000
 # rocksdb将数据从memtable flush到level 0的并发线程数目，默认为1
-rocksdb.max.background.flush = 4
+# rocksdb.max.background.flush = 4
 # rocksdb由低级level向更高级的level进行数据归并操作的并发线程数目，默认为1
-rocksdb.max.background.compaction = 4
+# rocksdb.max.background.compaction = 4
 # 最大打开文件句柄数，默认为-1
-rocksdb.max.open.files = -1
+# rocksdb.max.open.files = -1
 # 支持compaction的并行度，为1时表示不支持，默认为1
-rocksdb.max.subcompaction = 4
+# rocksdb.max.subcompaction = 4
 # 配置LRU cache的大小，用来缓存未经过压缩的block，单位MB
-rocksdb.block.cache = 1024
+# rocksdb.block.cache = 1024
 # 单个memtable的大小，单位MB。默认是64MB
-rocksdb.write.buffer.size = 128
+# rocksdb.write.buffer.size = 128
 # 指定一个RocksDB中一个列族下memtable和immutable memtable的最大数目
-rocksdb.max.write.buffer.number = 4
+# rocksdb.max.write.buffer.number = 4
 # 至少有2个immutable memtable后才进行flush操作
-rocksdb.min.write.buffer.num.to.merge = 2
+# rocksdb.min.write.buffer.num.to.merge = 2
 # L0达到指定个数的sstable后，触发compaction L0->L1，默认是4
-rocksdb.level0.file.num.compaction.trigger = 8
+# rocksdb.level0.file.num.compaction.trigger = 8
 # L1单个文件大小，单位MB
-rocksdb.target.file.size.base = 256
+# rocksdb.target.file.size.base = 256
 # L1的总大小，L1的大小建议设置成和L0大小一致，提升L0->L1的compaction效率，单位MB
-rocksdb.max.bytes.level.base = 2048
+# rocksdb.max.bytes.level.base = 2048
 # regionnode节点之间同步rocksdb数据时，一次同步的数据条数，默认50
-rocksdb.data.synchronize.count.once = 50
+# rocksdb.data.synchronize.count.once = 50
 # 控制 compaction 和 flush 每秒总的写入量
-rocksdb.rate.bytes.per.second = 10240
+# rocksdb.rate.bytes.per.second = 10240
 # 使用2M的预读
-rocksdb.compaction.readhead.size = 2048
+# rocksdb.compaction.readhead.size = 2048
 
 # 保存节点的本地数据的目录
 local.data.path = data
