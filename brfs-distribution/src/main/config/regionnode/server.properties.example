@@ -6,7 +6,7 @@
 # cluster.name = brfs
 
 # Zookeeper地址
-zookeeper.addresses = localhost:2181
+zookeeper.addresses = host1:2181,host2:2181,host3:2181
 
 # datanode服务所在的服务组
 # datanode.service.group = data_group
@@ -14,18 +14,19 @@ zookeeper.addresses = localhost:2181
 # regionnode服务群组名
 # regionnode.service.group = region_group
 
-# 插件配置
+# 插件配置("brfs-http-netty"插件必须配置，如果需要存储fid和文件路径，还需配置"brfs-rocksdb"插件,用
+# 逗号分割)
 brfs.plugins.loadList = ["brfs-http-netty"]
 
 ###############################################
 ##############Region Node Config###################
 ###############################################
 
-# regionnode服务地址
-# regionnode.httpserver.host = localhost
+# regionnode服务地址(配置本机ip)
+regionnode.httpserver.host = localhost
 
 # regionnode服务端口
-regionnode.httpserver.port = 8100
+#regionnode.httpserver.port = 8100
 
 # regionnode服务的IO线程数
 # regionnode.httpserver.requestHandleWorkerNum = 6
@@ -57,16 +58,16 @@ regionnode.httpserver.port = 8100
 
 
 # 写数据时regionnode缓存的blocksize,需要小于物理文件块
-regionnode.block.size = 16777216
+#regionnode.block.size = 16777216
 
 # blockpool的最大值
-regionnode.block.pool.capacity = 3
+#regionnode.block.pool.capacity = 3
 
 # blockpool的初始值
-regionnode.block.pool.init.count = 1
+#regionnode.block.pool.init.count = 1
 
 # 向datanode发送命令关闭文件的线程数
-regionnode.file.closer.thead_num=8
+#regionnode.file.closer.thead_num=8
 
 
 
@@ -135,5 +136,5 @@ regionnode.file.closer.thead_num=8
 # 使用2M的预读
 # rocksdb.compaction.readhead.size = 2048
 
-# 保存节点的本地数据的目录
-local.data.path = data
+# 保存节点的本地数据的目录(默认是项目根目录下的data目录)
+#local.data.path = data
