@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +133,7 @@ public class StatReportor {
         String count = s[2];
         Instant instant = parseFromMinute(moment);
         if (instant.compareTo(importantMoment.get()) >= 0 && (srName.equals("")
-            || (usePrefix ? sr.startsWith(srName) : sr.equals(srName)))) {
+            || (usePrefix ? isSameBussiness(sr, srName) : sr.equals(srName)))) {
             Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
             if (srMap == null) {
                 srMap = new ConcurrentHashMap<>();
@@ -159,6 +160,21 @@ public class StatReportor {
                 }
             }
         }
+    }
+
+    private boolean isSameBussiness(String base, String req) {
+        if (base.equals(req)) {
+            return true;
+        }
+        return getBusinessByRlue(base).equals(req);
+    }
+
+    private String getBusinessByRlue(String region) {
+        String[] array = StringUtils.split(region, "_");
+        if (array == null || array.length < 2) {
+            return region;
+        }
+        return array[0] + "_" + array[1];
     }
 
     private Instant parseFromMinute(String moment) {
