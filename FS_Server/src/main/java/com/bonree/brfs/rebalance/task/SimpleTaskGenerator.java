@@ -18,7 +18,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
     @Override
     public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
                                              List<String> selectIDs, List<String> participators,
-                                             Map<String, Integer> newSecondIds, long delayTime) {
+                                             Map<String, Integer> newSecondIds, String virtualTarget, long delayTime) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // changeID
@@ -41,6 +41,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
         taskSummary.setPartitionId(partitionId);
         taskSummary.setNewSecondIds(newSecondIds);
+        taskSummary.setVirtualTarget(virtualTarget);
 
         return taskSummary;
     }

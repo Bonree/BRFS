@@ -45,7 +45,7 @@ public class RebalanceManager implements Closeable {
                                       Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
                                       partitionInfoManager, clusterConfig);
 
-        opt = new TaskOperation(client, zkPaths.getBaseRebalancePath(), idManager, snManager, serviceManager,
+        opt = new TaskOperation(client, zkPaths.getBaseRebalancePath(), clusterConfig, idManager, snManager, serviceManager,
                                 partitionInterface, routeCache);
 
         int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);

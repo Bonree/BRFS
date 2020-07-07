@@ -10,8 +10,7 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -67,13 +66,15 @@ public class VirtualRecover implements DataRecover {
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
     private TaskNodeCache cache;
     private String baseBalancePath;
+    private ClusterConfig config;
 
     private final BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public VirtualRecover(CuratorFramework curatorFramework, BalanceTaskSummary balanceSummary,
+    public VirtualRecover(ClusterConfig config, CuratorFramework curatorFramework, BalanceTaskSummary balanceSummary,
                           String taskNode, String storageName,
                           IDSManager idManager, ServiceManager serviceManager,
                           LocalPartitionInterface localPartitionInterface, String baseBalancePath) {
+        this.config = config;
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.curatorFramework = curatorFramework;
@@ -94,8 +95,7 @@ public class VirtualRecover implements DataRecover {
     @Override
     public void recover() throws Exception {
         LOG.info("begin virtual recover");
-        // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
+
         // 无注册的话，则注册，否则不用注册
         while (true) {
             detail = registerNodeDetail(selfNode);
@@ -110,6 +110,8 @@ public class VirtualRecover implements DataRecover {
                 e.printStackTrace();
             }
         }
+        // 注册节点
+        LOG.info("create:" + selfNode + "-------------" + detail);
         // 主任务结束，则直接退出
         if (balanceSummary.getTaskStatus().equals(TaskStatus.FINISH)) {
             finishTask();
@@ -169,10 +171,9 @@ public class VirtualRecover implements DataRecover {
                 updateDetail(selfNode, detail);
 
                 String remoteSecondId = balanceSummary.getInputServers().get(0);
-                String remoteFirstId = idManager.getFirstId(remoteSecondId, balanceSummary.getStorageIndex());
+                String remoteFirstId = balanceSummary.getVirtualTarget();
                 String virtualId = balanceSummary.getServerId();
-
-                LOG.info("balance virtual serverId: {}", virtualId);
+                LOG.info("virtualID {}, remoteSecond {}, remoteFirstId {}", virtualId, remoteSecondId, remoteFirstId);
                 List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
 
                 for (BRFSPath brfsPath : allPaths) {
@@ -245,10 +246,6 @@ public class VirtualRecover implements DataRecover {
         }
     }
 
-    public boolean isExistFile(String remoteServerId, String fileName) {
-        return false;
-    }
-
     private Runnable consumerQueue() {
         return new Runnable() {
 
@@ -277,12 +274,10 @@ public class VirtualRecover implements DataRecover {
                             int retryTimes = 0;
                             int transferRetryTimes = 0;
                             while (true) {
-                                Service service = serviceManager.getServiceById(
-                                    Configs.getConfiguration().getConfig(
-                                        CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstId);
+                                Service service = serviceManager.getServiceById(config.getDataNodeGroup(), firstId);
 
                                 if (service == null) {
-                                    LOG.warn("first id is {}, maybe down!", firstId);
+                                    LOG.warn("first id is {} : {}, maybe down!", config.getDataNodeGroup(), firstId);
                                     Thread.sleep(3000);
                                     // 当执行虚拟serverId迁移任务时发生目标节点挂掉的情况，则等待5分钟若目标节点还未连接上，则取消任务
                                     if (retryTimes++ >= 100) {

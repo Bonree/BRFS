@@ -1,6 +1,7 @@
 package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.rebalance.DataRecover;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.List;
@@ -95,6 +96,9 @@ public class BalanceTaskSummary {
      */
     @JsonProperty("interval")
     private int interval = -1;
+
+    @JsonProperty("virtualTarget")
+    private String virtualTarget;
 
     public String getId() {
         return id;
@@ -206,6 +210,14 @@ public class BalanceTaskSummary {
 
     public void setInterval(int interval) {
         this.interval = interval;
+    }
+
+    public String getVirtualTarget() {
+        return virtualTarget;
+    }
+
+    public void setVirtualTarget(String virtualTarget) {
+        this.virtualTarget = virtualTarget;
     }
 
     @Override

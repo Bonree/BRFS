@@ -35,6 +35,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +92,12 @@ public class SystemMonitorResource {
             CpuMetric cpu = new CpuMetric(x.getTime(), x.getTotal(), x.getSystem(), x.getUser(), x.getSteal(), x.getIowait());
             cpuMetrics.add(cpu);
         });
+        cpuMetrics.sort(new Comparator<CpuMetric>() {
+            @Override
+            public int compare(CpuMetric o1, CpuMetric o2) {
+                return (int) (o1.getTime() - o2.getTime());
+            }
+        });
         return cpuMetrics;
     }
 
@@ -108,6 +116,12 @@ public class SystemMonitorResource {
         guis.stream().forEach(x -> {
             MemMetric metric = new MemMetric(x.getTime(), x.getTotalUsed(), x.getSwapUsed());
             metrics.add(metric);
+        });
+        metrics.sort(new Comparator<MemMetric>() {
+            @Override
+            public int compare(MemMetric o1, MemMetric o2) {
+                return (int) (o1.getTime() - o2.getTime());
+            }
         });
         return metrics;
     }
@@ -145,6 +159,16 @@ public class SystemMonitorResource {
             }
 
         });
+        for (Map.Entry<String, List<DiskUsageMetric>> entry : metrics.entrySet()) {
+            if (entry.getValue() != null) {
+                entry.getValue().sort(new Comparator<DiskUsageMetric>() {
+                    @Override
+                    public int compare(DiskUsageMetric o1, DiskUsageMetric o2) {
+                        return (int) (o1.getTime() - o2.getTime());
+                    }
+                });
+            }
+        }
         return metrics;
     }
 
@@ -181,6 +205,16 @@ public class SystemMonitorResource {
             }
 
         });
+        for (Map.Entry<String, List<DiskUsageMetric>> entry : metrics.entrySet()) {
+            if (entry.getValue() != null) {
+                entry.getValue().sort(new Comparator<DiskUsageMetric>() {
+                    @Override
+                    public int compare(DiskUsageMetric o1, DiskUsageMetric o2) {
+                        return (int) (o1.getTime() - o2.getTime());
+                    }
+                });
+            }
+        }
         return metrics;
     }
 
@@ -217,6 +251,16 @@ public class SystemMonitorResource {
             }
 
         });
+        for (Map.Entry<String, List<NetMetric>> entry : metrics.entrySet()) {
+            if (entry.getValue() != null) {
+                entry.getValue().sort(new Comparator<NetMetric>() {
+                    @Override
+                    public int compare(NetMetric o1, NetMetric o2) {
+                        return (int) (o1.getTime() - o2.getTime());
+                    }
+                });
+            }
+        }
         return metrics;
     }
 
@@ -235,6 +279,12 @@ public class SystemMonitorResource {
         guis.stream().forEach(x -> {
             LoadAvgMetric metric = new LoadAvgMetric(x.getTime(), x.getLoad());
             metrics.add(metric);
+        });
+        metrics.sort(new Comparator<LoadAvgMetric>() {
+            @Override
+            public int compare(LoadAvgMetric o1, LoadAvgMetric o2) {
+                return (int) (o1.getTime() - o2.getTime());
+            }
         });
         return metrics;
     }
