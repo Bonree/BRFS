@@ -35,6 +35,7 @@ case $1 in
     -Dconfiguration.file=${BRFS_HOME}/config/gui/config.properties \
     -Dlog.dir=$BRFS_HOME/logs \
     -Dlog.file.name=gui \
+    -Dlogback.configurationFile=${BRFS_HOME}/config/gui/logback.xml \
     -cp $GUI_DIR/*:${BRFS_HOME}/config/gui "com.bonree.brfs.gui.server.Server" \
     > $BRFS_HOME/logs/gui.out 2>&1 &
     echo "start gui"
