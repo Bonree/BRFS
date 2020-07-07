@@ -34,7 +34,8 @@ case $1 in
     java -Dbrfs.home=${BRFS_HOME} \
     -Dconfiguration.file=${BRFS_HOME}/config/gui/config.properties \
     -Dlog.dir=$BRFS_HOME/logs \
-    -Dlog.file.name=gui \
+    -Dlog.file.name=BRFS_GUI \
+    -Dlogback.configurationFile=${BRFS_HOME}/config/gui/logback.xml \
     -cp $GUI_DIR/*:${BRFS_HOME}/config/gui "com.bonree.brfs.gui.server.Server" \
     > $BRFS_HOME/logs/gui.out 2>&1 &
     echo "start gui"
