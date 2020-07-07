@@ -16,6 +16,7 @@ public class NodeSnapshotInfo {
     private Load load;
     private Collection<NetStat> netStats;
     private Collection<DiskPartitionStat> diskPartitionStats;
+    private Collection<DiskPartitionStat> allPartitionStats;
 
     public String getHost() {
         return host;
@@ -119,5 +120,13 @@ public class NodeSnapshotInfo {
 
     public void setDiskPartitionStats(Collection<DiskPartitionStat> diskPartitionStats) {
         this.diskPartitionStats = diskPartitionStats;
+    }
+
+    public Collection<DiskPartitionStat> getAllPartitionStats() {
+        return allPartitionStats;
+    }
+
+    public void setAllPartitionStats(Collection<DiskPartitionStat> allPartitionStats) {
+        this.allPartitionStats = allPartitionStats;
     }
 }
