@@ -8,6 +8,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -48,12 +49,14 @@ public class TaskOperation implements Closeable {
     private LocalPartitionInterface partitionInterface;
     private RouteCache routeCache;
     private String baseBalancePath;
+    private ClusterConfig config;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
     public TaskOperation(CuratorFramework curatorFramework, final String baseBalancePath,
-                         IDSManager idManager,
+                         ClusterConfig config, IDSManager idManager,
                          StorageRegionManager snManager, ServiceManager serviceManager,
                          LocalPartitionInterface partitionInterface, RouteCache routeCache) {
+        this.config = config;
         this.curatorFramework = curatorFramework;
         this.idManager = idManager;
         this.baseBalancePath = baseBalancePath;
@@ -87,7 +90,7 @@ public class TaskOperation implements Closeable {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                recover = new MultiRecover(partitionInterface, routeCache, taskSummary,
+                recover = new MultiRecover(config, partitionInterface, routeCache, taskSummary,
                                            idManager, serviceManager, taskPath,
                                            curatorFramework, node, baseBalancePath);
 
@@ -98,8 +101,9 @@ public class TaskOperation implements Closeable {
                     return;
                 }
                 String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
-                recover = new VirtualRecover(curatorFramework, taskSummary, taskPath, storageName, idManager, serviceManager,
-                                             partitionInterface, baseBalancePath);
+                recover =
+                    new VirtualRecover(config, curatorFramework, taskSummary, taskPath, storageName, idManager, serviceManager,
+                                       partitionInterface, baseBalancePath);
             }
 
             updateTaskStatus(taskSummary, TaskStatus.RUNNING);

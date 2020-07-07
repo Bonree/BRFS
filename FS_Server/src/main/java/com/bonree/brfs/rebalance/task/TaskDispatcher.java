@@ -744,15 +744,17 @@ public class TaskDispatcher implements Closeable {
                         String vidPath = ZKPaths.makePath(virtualServersPath, String.valueOf(storageIndex), virtualID);
                         List<String> participators = client.getChildren().forPath(vidPath);
                         // 如果当前存活的firstID包括该 virtualID的参与者，那么
-                        List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
-                        if (selectIds != null && !selectIds.isEmpty()) {
+                        List<String> chosenFirstIds = selectAvailableIDs(currentFirstIDs, participators);
+                        if (chosenFirstIds != null && !chosenFirstIds.isEmpty()) {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
                             // 构建任务需要使用2级serverid
                             String partitionId = changeSummary.getChangePartitionId();
                             String selectSecondID = idManager.getSecondId(partitionId, storageIndex);
-                            if (!selectIds.contains(selectSecondID)) {
-                                selectSecondID = selectIds.stream().findAny().get();
-                                partitionId = idManager.getPartitionId(selectSecondID, storageIndex);
+                            String selectFirstID = idManager.getFirstId(selectSecondID, storageIndex);
+                            if (!chosenFirstIds.contains(selectFirstID)) {
+                                selectFirstID = chosenFirstIds.stream().findAny().get();
+                                partitionId = idManager.getSecondIds(selectFirstID, storageIndex).stream().findFirst().get();
+                                selectSecondID = idManager.getSecondId(partitionId, storageIndex);
                             }
                             Collection<String> outDataServerSecondIds = new ArrayList<>();
                             // 收集存活提供副本数据的二级serverid
