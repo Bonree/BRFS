@@ -759,11 +759,17 @@ public class TaskDispatcher implements Closeable {
                                     selectFirstID = firstId;
                                     partitionId = idManager.getSecondIds(selectFirstID, storageIndex).stream().findFirst().get();
                                     selectSecondID = idManager.getSecondId(partitionId, storageIndex);
+                                    if (selectSecondID == null) {
+                                        continue;
+                                    }
                                     break;
                                 }
                                 if (selectFirstID == null) {
                                     LOG.error("no first id to used ids: {}", chosenFirstIds);
                                     return false;
+                                }
+                                if (selectSecondID == null) {
+                                    LOG.error("no second id to used ids: {}", chosenFirstIds);
                                 }
                             }
                             Collection<String> outDataServerSecondIds = new ArrayList<>();
