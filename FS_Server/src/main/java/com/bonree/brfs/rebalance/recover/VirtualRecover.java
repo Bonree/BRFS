@@ -95,8 +95,7 @@ public class VirtualRecover implements DataRecover {
     @Override
     public void recover() throws Exception {
         LOG.info("begin virtual recover");
-        // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
+
         // 无注册的话，则注册，否则不用注册
         while (true) {
             detail = registerNodeDetail(selfNode);
@@ -111,6 +110,8 @@ public class VirtualRecover implements DataRecover {
                 e.printStackTrace();
             }
         }
+        // 注册节点
+        LOG.info("create:" + selfNode + "-------------" + detail);
         // 主任务结束，则直接退出
         if (balanceSummary.getTaskStatus().equals(TaskStatus.FINISH)) {
             finishTask();
@@ -170,11 +171,9 @@ public class VirtualRecover implements DataRecover {
                 updateDetail(selfNode, detail);
 
                 String remoteSecondId = balanceSummary.getInputServers().get(0);
-                String remoteFirstId = idManager.getFirstId(remoteSecondId, balanceSummary.getStorageIndex());
-
+                String remoteFirstId = balanceSummary.getVirtualTarget();
                 String virtualId = balanceSummary.getServerId();
-
-                LOG.info("balance virtual serverId: {}", virtualId);
+                LOG.info("virtualID {}, remoteSecond {}, remoteFirstId {}", virtualId, remoteSecondId, remoteFirstId);
                 List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
 
                 for (BRFSPath brfsPath : allPaths) {
