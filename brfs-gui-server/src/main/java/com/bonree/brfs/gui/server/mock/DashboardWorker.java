@@ -19,6 +19,7 @@ import com.bonree.brfs.gui.server.node.ServerState;
 import com.bonree.brfs.gui.server.zookeeper.ZookeeperConfig;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -158,20 +159,20 @@ public class DashboardWorker {
 
     public List<NodeSummaryInfo> getNodeSummaries() {
         try {
-            List<NodeSnapshotInfo> snapshotInfos = collectResource();
-            List<ServerNode> regions = innerClient.getServiceList(Discovery.ServiceType.REGION);
-            Map<String, ServerNode> regionMap = new HashMap<>();
-            Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
             Map<String, DataNodeMetaModel> metaMap = collectDataMetaNodes();
-            for (NodeSnapshotInfo node : snapshotInfos) {
-                String host = node.getHost();
-                if (host.contains(":")) {
-                    host = host.substring(0, host.indexOf(":"));
-                }
-                snapshotMap.put(host, node);
+            Map<String, ServerNode> regionMap = collectServerNode(Discovery.ServiceType.REGION);
+            Map<String, ServerNode> dataMap = collectServerNode(Discovery.ServiceType.DATA);
+            boolean fixModel = regionMap.isEmpty();
+            if (fixModel) {
+                dataMap = fixDataNodeMap(dataMap, metaMap);
             }
-            for (ServerNode server : regions) {
-                regionMap.put(server.getHost(), server);
+            Map<String, NodeSnapshotInfo> snapshotMap = collectResourceMap(dataMap);
+            if (fixModel) {
+                for (String key : dataMap.keySet()) {
+                    if (snapshotMap.get(key) == null) {
+                        dataMap.remove(key);
+                    }
+                }
             }
             Set<String> keys = new HashSet<String>();
             keys.addAll(regionMap.keySet());
@@ -179,7 +180,11 @@ public class DashboardWorker {
             keys.addAll(metaMap.keySet());
             List<NodeSummaryInfo> summaryInfos = new ArrayList<>();
             for (String key : keys) {
-                NodeSummaryInfo summary = packageSummaryInfo(regionMap.get(key), snapshotMap.get(key), metaMap.get(key));
+                NodeSummaryInfo summary =
+                    packageSummaryInfo(key, regionMap.get(key), dataMap.get(key), snapshotMap.get(key), metaMap.get(key), config);
+                if (summary == null) {
+                    continue;
+                }
                 summaryInfos.add(summary);
             }
             return summaryInfos;
@@ -189,33 +194,79 @@ public class DashboardWorker {
         return ImmutableList.of();
     }
 
-    public NodeSummaryInfo packageSummaryInfo(ServerNode region, NodeSnapshotInfo data, DataNodeMetaModel model) {
-        if (region == null && data == null) {
-            if (model == null) {
-                return null;
+    private Map<String, ServerNode> collectServerNode(Discovery.ServiceType type) {
+        try {
+            List<ServerNode> regions = innerClient.getServiceList(type);
+            Map<String, ServerNode> serverNodeMap = new HashMap<>();
+            for (ServerNode server : regions) {
+                serverNodeMap.put(server.getHost(), server);
             }
-            return new NodeSummaryInfo(
-                ServerState.DEAD,
-                NodeState.OFFLINE,
-                NodeState.OFFLINE,
-                model.getIp(),
-                model.getIp(),
-                0.0,
-                0.0,
-                0.0,
-                0.0);
-        } else if (data == null) {
-            return new NodeSummaryInfo(
-                ServerState.HEALTH,
-                NodeState.ONLINE,
-                NodeState.OFFLINE,
-                region.getHost(),
-                region.getHost(),
-                0.0,
-                0.0,
-                0.0,
-                0.0);
-        } else if (region == null) {
+            return serverNodeMap;
+        } catch (Exception e) {
+            LOG.error("get serverNode {} happen error", type, e);
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * 获取资源采集数据
+     *
+     * @param dataNodeMap
+     *
+     * @return
+     */
+
+    private Map<String, NodeSnapshotInfo> collectResourceMap(
+        Map<String, ServerNode> dataNodeMap) {
+        try {
+            Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
+            Collection<ServerNode> services = services = dataNodeMap.values();
+            boolean fixModel = dataNodeMap.isEmpty();
+            List<NodeSnapshotInfo> snapshotInfos = collectSnapshots(services);
+            for (NodeSnapshotInfo node : snapshotInfos) {
+                String host = node.getHost();
+                if (host.contains(":")) {
+                    host = host.substring(0, host.indexOf(":"));
+                }
+                snapshotMap.put(host, node);
+            }
+            return snapshotMap;
+        } catch (Exception e) {
+            LOG.error("request resource map happen error", e);
+        }
+        return ImmutableMap.of();
+    }
+
+    private Map<String, ServerNode> fixDataNodeMap(Map<String, ServerNode> dataNodeMap,
+                                                   Map<String, DataNodeMetaModel> metaModelMap) {
+        boolean fixModel = dataNodeMap.isEmpty();
+        if (fixModel) {
+            for (DataNodeMetaModel model : metaModelMap.values()) {
+                ServerNode node = new ServerNode("",
+                                                 model.getServerID(),
+                                                 model.getIp(),
+                                                 model.getPort(),
+                                                 -1,
+                                                 ImmutableSet.of(),
+                                                 ImmutableSet.of());
+                dataNodeMap.put(model.getIp(), node);
+            }
+        }
+        return dataNodeMap;
+    }
+
+    private NodeSummaryInfo packageSummaryInfo(String host, ServerNode region, ServerNode dataNode, NodeSnapshotInfo data,
+                                               DataNodeMetaModel model, BrfsConfig config) {
+        if (region == null && dataNode == null && data == null && model == null) {
+            return null;
+        }
+        NodeSummaryInfo node = new NodeSummaryInfo();
+        node.setHostName(host);
+        node.setIp(host);
+        node.setDataNodeState(dataNode == null ? NodeState.OFFLINE : NodeState.ONLINE);
+        node.setRegionNodeState(region == null ? NodeState.OFFLINE : NodeState.ONLINE);
+        ServerState state = ServerState.HEALTH;
+        if (data != null) {
             Collection<DiskPartitionStat> stats = data.getDiskPartitionStats();
             long total = stats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
             long usage = stats.stream().mapToLong(DiskPartitionStat::getUsed).sum();
@@ -225,37 +276,19 @@ public class DashboardWorker {
             long sysTotal = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getTotal).sum();
             long sysUsage = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getUsed).sum();
             double sysDiskRate = ((double) sysUsage) / sysTotal;
-            ServerState state = getServerState(cpuRate, memRate, diskRate);
-            return new NodeSummaryInfo(state,
-                                       NodeState.OFFLINE,
-                                       NodeState.ONLINE,
-                                       data.getHost(),
-                                       data.getHost(),
-                                       cpuRate * 100,
-                                       memRate,
-                                       diskRate,
-                                       sysDiskRate);
-        } else {
-            Collection<DiskPartitionStat> stats = data.getDiskPartitionStats();
-            long total = stats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
-            long usage = stats.stream().mapToLong(DiskPartitionStat::getUsed).sum();
-            double cpuRate = data.getCpustat().getTotal() * 100;
-            double memRate = data.getMemStat().getUsedPercent();
-            double diskRate = ((double) usage) / total;
-            long sysTotal = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getTotal).sum();
-            long sysUsage = data.getAllPartitionStats().stream().mapToLong(DiskPartitionStat::getUsed).sum();
-            double sysDiskRate = ((double) sysUsage) / sysTotal;
-            ServerState state = getServerState(cpuRate, memRate, diskRate);
-            return new NodeSummaryInfo(state,
-                                       NodeState.ONLINE,
-                                       NodeState.ONLINE,
-                                       data.getHost(),
-                                       data.getHost(),
-                                       cpuRate,
-                                       memRate,
-                                       diskRate,
-                                       sysDiskRate);
+            state = getServerState(cpuRate, memRate, diskRate);
+            node.setCpuUsage(cpuRate);
+            node.setMemUsage(memRate);
+            node.setBrfsDiskUsage(diskRate);
+            node.setSystemDiskUsage(sysDiskRate);
         }
+        if (region == null && dataNode == null && model != null) {
+            state = ServerState.DEAD;
+        } else if (dataNode == null || region == null) {
+            state = ServerState.ALERT;
+        }
+        node.setState(state);
+        return node;
     }
 
     private ServerState getServerState(double cpuRate, double memRate, double dataDiskRate) {
@@ -267,7 +300,7 @@ public class DashboardWorker {
         return ServerState.HEALTH;
     }
 
-    public Map<String, DataNodeMetaModel> collectDataMetaNodes() {
+    private Map<String, DataNodeMetaModel> collectDataMetaNodes() {
         try {
             String basePath = zkPaths.getBaseDataNodeMetaPath();
             if (zkClient.checkExists().forPath(basePath) == null) {
@@ -296,8 +329,12 @@ public class DashboardWorker {
         return ImmutableMap.of();
     }
 
-    public List<NodeSnapshotInfo> collectResource() throws Exception {
+    private List<NodeSnapshotInfo> collectResource() throws Exception {
         List<ServerNode> services = innerClient.getServiceList(Discovery.ServiceType.DATA);
+        return collectSnapshots(services);
+    }
+
+    private List<NodeSnapshotInfo> collectSnapshots(Collection<ServerNode> services) {
         if (services == null || services.isEmpty()) {
             return ImmutableList.of();
         }

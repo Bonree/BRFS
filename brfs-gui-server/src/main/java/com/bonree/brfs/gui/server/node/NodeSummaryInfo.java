@@ -21,15 +21,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NodeSummaryInfo {
 
-    private final ServerState state;
-    private final NodeState regionNodeState;
-    private final NodeState dataNodeState;
-    private final String hostName;
-    private final String ip;
-    private final double cpuUsage;
-    private final double memUsage;
-    private final double brfsDiskUsage;
-    private final double systemDiskUsage;
+    private ServerState state;
+    private NodeState regionNodeState;
+    private NodeState dataNodeState;
+    private String hostName;
+    private String ip;
+    private double cpuUsage;
+    private double memUsage;
+    private double brfsDiskUsage;
+    private double systemDiskUsage;
 
     @JsonCreator
     public NodeSummaryInfo(
@@ -50,6 +50,45 @@ public class NodeSummaryInfo {
         this.cpuUsage = cpuUsage;
         this.memUsage = memUsage;
         this.brfsDiskUsage = brfsDiskUsage;
+        this.systemDiskUsage = systemDiskUsage;
+    }
+
+    public NodeSummaryInfo() {
+    }
+
+    public void setState(ServerState state) {
+        this.state = state;
+    }
+
+    public void setRegionNodeState(NodeState regionNodeState) {
+        this.regionNodeState = regionNodeState;
+    }
+
+    public void setDataNodeState(NodeState dataNodeState) {
+        this.dataNodeState = dataNodeState;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setCpuUsage(double cpuUsage) {
+        this.cpuUsage = cpuUsage;
+    }
+
+    public void setMemUsage(double memUsage) {
+        this.memUsage = memUsage;
+    }
+
+    public void setBrfsDiskUsage(double brfsDiskUsage) {
+        this.brfsDiskUsage = brfsDiskUsage;
+    }
+
+    public void setSystemDiskUsage(double systemDiskUsage) {
         this.systemDiskUsage = systemDiskUsage;
     }
 
