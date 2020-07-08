@@ -749,7 +749,7 @@ public class TaskDispatcher implements Closeable {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
                             // 构建任务需要使用2级serverid
                             String partitionId = changeSummary.getChangePartitionId();
-                            String selectSecondID = idManager.getSecondId(partitionId, storageIndex);
+                            String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
                             String selectFirstID = idManager.getFirstId(selectSecondID, storageIndex);
                             if (!chosenFirstIds.contains(selectFirstID) || selectFirstID == null) {
                                 for (String firstId : chosenFirstIds) {
@@ -757,8 +757,9 @@ public class TaskDispatcher implements Closeable {
                                         continue;
                                     }
                                     selectFirstID = firstId;
-                                    partitionId = idManager.getSecondIds(selectFirstID, storageIndex).stream().findFirst().get();
-                                    selectSecondID = idManager.getSecondId(partitionId, storageIndex);
+                                    selectSecondID =
+                                        idManager.getSecondIds(selectFirstID, storageIndex).stream().findFirst().get();
+                                    partitionId = idManager.getPartitionId(selectSecondID, storageIndex);
                                     if (selectSecondID == null) {
                                         continue;
                                     }

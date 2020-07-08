@@ -85,7 +85,7 @@ public class TaskOperation implements Closeable {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
                 LOG.info("current storage region list: {}", snManager.getStorageRegionList());
-                StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
+                StorageRegion node = getStorageRegion(snManager, taskSummary.getStorageIndex(), 5, 1000);
                 if (node == null) {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
@@ -95,12 +95,12 @@ public class TaskOperation implements Closeable {
                                            curatorFramework, node, baseBalancePath);
 
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
-                StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
+                StorageRegion node = getStorageRegion(snManager, taskSummary.getStorageIndex(), 5, 1000);
                 if (node == null) {
-                    LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
+                    LOG.error("run storage {}  virtual task happen error ", taskSummary.getStorageIndex());
                     return;
                 }
-                String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
+                String storageName = node.getName();
                 recover =
                     new VirtualRecover(config, curatorFramework, taskSummary, taskPath, storageName, idManager, serviceManager,
                                        partitionInterface, baseBalancePath);
@@ -109,6 +109,22 @@ public class TaskOperation implements Closeable {
             updateTaskStatus(taskSummary, TaskStatus.RUNNING);
             launchTask(recover);
         }
+    }
+
+    private StorageRegion getStorageRegion(StorageRegionManager storageRegionManager, int storageIndex, int count, long sleep) {
+        int times = count;
+        while (times > 0) {
+            StorageRegion sr = storageRegionManager.findStorageRegionById(storageIndex);
+            if (sr != null) {
+                return sr;
+            }
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException ignore) {
+                // ignore Exception
+            }
+        }
+        return null;
     }
 
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) throws Exception {
