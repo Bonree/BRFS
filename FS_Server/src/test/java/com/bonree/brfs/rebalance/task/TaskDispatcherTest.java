@@ -10,7 +10,7 @@ import org.junit.Test;
 public class TaskDispatcherTest {
     @Test
     public void testIsSameFirst() {
-        Map<String, String> map = ImmutableMap.of("26","12","27","10","28","10","29","11");
+        Map<String, String> map = ImmutableMap.of("26", "12", "27", "10", "28", "10", "29", "11");
         List<String> seconds = ImmutableList.of("27", "28");
         System.out.println(!isSameFirst(map, seconds));
     }
