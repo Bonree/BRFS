@@ -41,6 +41,9 @@ public class SigarPartitionGather implements PartitionGather {
     public DiskPartitionStat gatherDiskPartitonStat(String dir) throws Exception {
         FileSystemMap fsMap = sigar.getFileSystemMap();
         FileSystem fs = fsMap.getMountPoint(dir);
+        if (fs == null) {
+            return null;
+        }
         FileSystemUsage fsusage = sigar.getFileSystemUsage(fs.getDirName());
         return this.convertor.convertToPartitionStat(fs, fsusage);
     }

@@ -88,6 +88,9 @@ public class LocalResourceGather implements ResourceGatherInterface {
         Collection<DiskPartitionStat> stats = new ArrayList<>(locals.size());
         for (LocalPartitionInfo local : locals) {
             DiskPartitionStat stat = gather.collectSinglePartitionStats(local.getDataDir());
+            if (stat == null) {
+                continue;
+            }
             stat.setPartitionId(local.getPartitionId());
             stats.add(stat);
         }
