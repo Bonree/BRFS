@@ -626,7 +626,7 @@ public class TaskDispatcher implements Closeable {
                     joinerSecondIDs.remove(cs.getChangeServer());
                 }
 
-                boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDs, idManager, cs.getStorageIndex());
+                boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDs, secondFirstShip, cs.getStorageIndex());
                 if (canRecover) {
                     // 构建任务
                     BalanceTaskSummary taskSummary = taskGenerator
@@ -654,7 +654,7 @@ public class TaskDispatcher implements Closeable {
 
     private boolean isCanRecover(DiskPartitionChangeSummary
                                      cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs,
-                                 IDSManager idManager, int storageIndex) {
+                                 Map<String, String> ship, int storageIndex) {
         if (aliveSecondIDs.contains(cs.getChangeServer())) {
             LOG.debug("change:[{}] No need to execute,the reason is changeServer alive!  change:[{}] aliveServers:{}",
                       cs.getChangeID(), cs.getChangeServer(), aliveSecondIDs);
@@ -688,7 +688,6 @@ public class TaskDispatcher implements Closeable {
             return false;
         }
         // 判断当前存活的二级serverid是否在统一个节点
-        Map<String, String> ship = idManager.getSecondFirstShip(storageIndex);
         return !isSameFirst(ship, aliveSecondIDs);
     }
 
