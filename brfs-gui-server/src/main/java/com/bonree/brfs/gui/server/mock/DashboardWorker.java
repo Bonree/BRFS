@@ -183,25 +183,35 @@ public class DashboardWorker {
     }
 
     private Map<String, ServerNode> collectServerNode(Discovery.ServiceType type) {
-        List<ServerNode> regions = innerClient.getServiceList(type);
-        Map<String, ServerNode> serverNodeMap = new HashMap<>();
-        for (ServerNode server : regions) {
-            serverNodeMap.put(server.getHost(), server);
+        try {
+            List<ServerNode> regions = innerClient.getServiceList(type);
+            Map<String, ServerNode> serverNodeMap = new HashMap<>();
+            for (ServerNode server : regions) {
+                serverNodeMap.put(server.getHost(), server);
+            }
+            return serverNodeMap;
+        } catch (Exception e) {
+            LOG.error("get serverNode {} happen error", type, e);
         }
-        return serverNodeMap;
+        return ImmutableMap.of();
     }
 
-    private Map<String, NodeSnapshotInfo> collectResourceMap() throws Exception {
-        List<NodeSnapshotInfo> snapshotInfos = collectResource();
-        Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
-        for (NodeSnapshotInfo node : snapshotInfos) {
-            String host = node.getHost();
-            if (host.contains(":")) {
-                host = host.substring(0, host.indexOf(":"));
+    private Map<String, NodeSnapshotInfo> collectResourceMap() {
+        try {
+            List<NodeSnapshotInfo> snapshotInfos = collectResource();
+            Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
+            for (NodeSnapshotInfo node : snapshotInfos) {
+                String host = node.getHost();
+                if (host.contains(":")) {
+                    host = host.substring(0, host.indexOf(":"));
+                }
+                snapshotMap.put(host, node);
             }
-            snapshotMap.put(host, node);
+            return snapshotMap;
+        } catch (Exception e) {
+            LOG.error("request resource map happen error", e);
         }
-        return snapshotMap;
+        return ImmutableMap.of();
     }
 
     private NodeSummaryInfo packageSummaryInfo(String host, ServerNode region, ServerNode dataNode, NodeSnapshotInfo data,
@@ -233,6 +243,8 @@ public class DashboardWorker {
         }
         if (region == null && dataNode == null && model != null) {
             state = ServerState.DEAD;
+        } else if (dataNode == null || region == null) {
+            state = ServerState.ALERT;
         }
         node.setState(state);
         return node;
