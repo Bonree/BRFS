@@ -63,6 +63,7 @@
 			<directory>${basedir}/src/main/config/gui</directory>
 			<includes>
 				<include>config.properties</include>
+				<include>logback.xml</include>
 			</includes>
 			<outputDirectory>config/gui</outputDirectory>
 		</fileSet>
