@@ -415,13 +415,13 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return;
         }
 
-        try {
-            if (!this.cfHandles.containsKey(columnFamily)) {
-                LOG.warn("column family [{}] not exists!", columnFamily);
-                return;
-            }
+        if (!this.cfHandles.containsKey(columnFamily)) {
+            LOG.warn("column family [{}] not exists!", columnFamily);
+            return;
+        }
 
-            this.db.dropColumnFamily(this.cfHandles.get(columnFamily));
+        try (ColumnFamilyHandle columnFamilyHandle = this.cfHandles.get(columnFamily)) {
+            this.db.dropColumnFamily(columnFamilyHandle);
             this.cfHandles.remove(columnFamily);
             LOG.info("remove column family complete, cf:{}", columnFamily);
             // 更新ZK信息

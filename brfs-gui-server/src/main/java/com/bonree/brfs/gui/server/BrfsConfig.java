@@ -1,6 +1,7 @@
 package com.bonree.brfs.gui.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 
@@ -13,6 +14,8 @@ public class BrfsConfig {
     private String password;
     @JsonProperty("datanode.http.port")
     private int dataNodePort = 9999;
+    @JsonProperty("clusterName")
+    private String clusterName = "brfs";
 
     public BrfsConfig() {
     }
@@ -49,14 +52,23 @@ public class BrfsConfig {
         this.dataNodePort = dataNodePort;
     }
 
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("BrfsConfig{");
-        sb.append("regionAddress=").append(regionAddress);
-        sb.append(", username='").append(username).append('\'');
-        sb.append(", password='").append(password).append('\'');
-        sb.append(", dataNodePort=").append(dataNodePort);
-        sb.append('}');
-        return sb.toString();
+        return MoreObjects.toStringHelper(this)
+                          .add("regionAddress", regionAddress)
+                          .add("username", username)
+                          .add("password", password)
+                          .add("dataNodePort", dataNodePort)
+                          .add("clusterName", clusterName)
+                          .toString();
     }
+
 }

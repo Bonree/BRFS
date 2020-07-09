@@ -7,6 +7,7 @@ import com.bonree.brfs.client.BRFSClientBuilder;
 import com.bonree.brfs.client.BRFSObject;
 import com.bonree.brfs.client.BRFSPath;
 import com.bonree.brfs.client.ClientConfigurationBuilder;
+import com.bonree.brfs.client.FidException;
 import com.bonree.brfs.client.GetObjectRequest;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.ServerNode;
@@ -166,6 +167,9 @@ public class CatalogGuiResource {
                         output.write(tmp, 0, len);
                         len = 0;
                     }
+                } catch (FidException fidException) {
+                    LOG.warn("data is expired of [{}]!", filePath);
+                    throw new WebApplicationException(506);
                 } catch (Exception e) {
                     LOG.warn("error when get the file[{}]", filePath);
                     throw new NotFoundException();

@@ -68,6 +68,8 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -599,6 +601,7 @@ public class BRFSClient implements BRFS {
             throw new IllegalArgumentException(Strings.format("Invalid FID: %s", fid));
         }
 
+
         if (fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
             throw new IllegalStateException(
                 Strings.format("fid[%s] is not belong to sr[%s]",
@@ -656,10 +659,22 @@ public class BRFSClient implements BRFS {
             uri -> {
                 try {
                     return TaskResult.success(fidReader.read(uri, srName, fidObj, offset, size, idIndex.get(uri)));
+                } catch (FileNotFoundException notFoundException) {
+                    if (isFidExpired(fidObj, srName)) {
+                        return TaskResult.fail(new FidExpiredException("the fid:" + fidObj + "is expired!"));
+                    }
+                    return TaskResult.retry(notFoundException);
                 } catch (Exception e) {
                     return TaskResult.retry(e);
                 }
             }));
+    }
+
+    private boolean isFidExpired(Fid fid, String srName) {
+        return fid.getTime() + Duration.parse(getStorageRegionInfo(srName)
+                                                     .getAttributes()
+                                                     .getDataTTL())
+                                       .toMillis() < System.currentTimeMillis();
     }
 
     @Override

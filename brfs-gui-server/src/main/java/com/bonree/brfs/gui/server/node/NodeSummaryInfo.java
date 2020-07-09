@@ -20,17 +20,22 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NodeSummaryInfo {
-    private final NodeState state;
-    private final String hostName;
-    private final String ip;
-    private final double cpuUsage;
-    private final double memUsage;
-    private final double brfsDiskUsage;
-    private final double systemDiskUsage;
+
+    private ServerState state;
+    private NodeState regionNodeState;
+    private NodeState dataNodeState;
+    private String hostName;
+    private String ip;
+    private double cpuUsage;
+    private double memUsage;
+    private double brfsDiskUsage;
+    private double systemDiskUsage;
 
     @JsonCreator
     public NodeSummaryInfo(
-        @JsonProperty("state") NodeState state,
+        @JsonProperty("state") ServerState state,
+        @JsonProperty("regionNodeState") NodeState regionNodeState,
+        @JsonProperty("dataNodeState") NodeState dataNodeState,
         @JsonProperty("hostName") String hostName,
         @JsonProperty("ip") String ip,
         @JsonProperty("cpuUsage") double cpuUsage,
@@ -38,6 +43,8 @@ public class NodeSummaryInfo {
         @JsonProperty("brfsDiskUsage") double brfsDiskUsage,
         @JsonProperty("systemDiskUsage") double systemDiskUsage) {
         this.state = state;
+        this.regionNodeState = regionNodeState;
+        this.dataNodeState = dataNodeState;
         this.hostName = hostName;
         this.ip = ip;
         this.cpuUsage = cpuUsage;
@@ -46,9 +53,58 @@ public class NodeSummaryInfo {
         this.systemDiskUsage = systemDiskUsage;
     }
 
+    public NodeSummaryInfo() {
+    }
+
+    public void setState(ServerState state) {
+        this.state = state;
+    }
+
+    public void setRegionNodeState(NodeState regionNodeState) {
+        this.regionNodeState = regionNodeState;
+    }
+
+    public void setDataNodeState(NodeState dataNodeState) {
+        this.dataNodeState = dataNodeState;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setCpuUsage(double cpuUsage) {
+        this.cpuUsage = cpuUsage;
+    }
+
+    public void setMemUsage(double memUsage) {
+        this.memUsage = memUsage;
+    }
+
+    public void setBrfsDiskUsage(double brfsDiskUsage) {
+        this.brfsDiskUsage = brfsDiskUsage;
+    }
+
+    public void setSystemDiskUsage(double systemDiskUsage) {
+        this.systemDiskUsage = systemDiskUsage;
+    }
+
     @JsonProperty("state")
-    public NodeState getNodeState() {
+    public ServerState getState() {
         return state;
+    }
+
+    @JsonProperty("regionNodeState")
+    public NodeState getRegionNodeState() {
+        return regionNodeState;
+    }
+
+    @JsonProperty("dataNodeState")
+    public NodeState getDataNodeState() {
+        return dataNodeState;
     }
 
     @JsonProperty("hostName")
@@ -83,8 +139,9 @@ public class NodeSummaryInfo {
 
     @Override
     public String toString() {
-        return toStringHelper(getClass())
-            .add("state", state)
+        return toStringHelper(this)
+            .add("regionNodeState", regionNodeState)
+            .add("dataNodeState", dataNodeState)
             .add("hostName", hostName)
             .add("ip", ip)
             .add("cpuUsage", cpuUsage)

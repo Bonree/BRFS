@@ -8,15 +8,13 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
-import com.bonree.brfs.common.utils.CompareFromName;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -78,12 +76,15 @@ public class MultiRecover implements DataRecover {
     private TaskNodeCache cache;
     private String baseBalancePath;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
+    private ClusterConfig config;
 
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public MultiRecover(LocalPartitionInterface localPartitionInterface, RouteCache routeCache, BalanceTaskSummary summary,
+    public MultiRecover(ClusterConfig config, LocalPartitionInterface localPartitionInterface, RouteCache routeCache,
+                        BalanceTaskSummary summary,
                         IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorFramework curatorFramework,
                         StorageRegion storageRegion, String baseBalancePath) {
+        this.config = config;
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
@@ -104,7 +105,7 @@ public class MultiRecover implements DataRecover {
 
     @SuppressWarnings("checkstyle:EmptyCatchBlock")
     @Override
-    public void recover()throws Exception {
+    public void recover() throws Exception {
 
         log.info("begin normal recover");
         // 注册节点
@@ -270,8 +271,8 @@ public class MultiRecover implements DataRecover {
 
         List<String> aliveMultiIds = getAliveMultiIds();
         log.debug("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
-                 validSecondIds,
-                 aliveMultiIds);
+                  validSecondIds,
+                  aliveMultiIds);
 
         // 3.收集已经不可用的服务集合，若集合为空，则文件不需要恢复
         List<String> deadSecondIds =
@@ -375,11 +376,7 @@ public class MultiRecover implements DataRecover {
                                         break;
                                     }
                                     Service service = serviceManager.getServiceById(
-                                        Configs.getConfiguration()
-                                               .getConfig(
-                                                   CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
-                                        fileRecover
-                                            .getFirstServerID());
+                                        config.getDataNodeGroup(), fileRecover.getFirstServerID());
                                     if (service == null) {
                                         log.warn("get service by first server id [{}] is null, maybe wait and try again!",
                                                  fileRecover.getFirstServerID());
@@ -445,17 +442,6 @@ public class MultiRecover implements DataRecover {
 
     private List<String> getAliveMultiIds() {
         return balanceSummary.getAliveServer();
-    }
-
-    private List<String> getSelectedList(List<String> aliveServerList, List<String> excludeServers) {
-        List<String> selectedList = new ArrayList<>();
-        for (String tmp : aliveServerList) {
-            if (!excludeServers.contains(tmp)) {
-                selectedList.add(tmp);
-            }
-        }
-        selectedList.sort(new CompareFromName());
-        return selectedList;
     }
 
     private boolean isAlive(List<String> aliveServers, String serverId) {

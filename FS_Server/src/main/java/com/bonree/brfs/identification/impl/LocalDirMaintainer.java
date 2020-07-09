@@ -49,11 +49,11 @@ public class LocalDirMaintainer implements PartitionInterface {
     public String getDataDir(String secondId, int storageRegionId) {
         String partitionId = secondIds.getPartitionId(secondId, storageRegionId);
         if (StringUtils.isEmpty(partitionId)) {
-            LOG.info("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
+            LOG.warn("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
             return null;
         }
         String dataPaths = localPartitionInterface.getDataPaths(partitionId);
-        LOG.info("storage {} second {} partitionid:{} path {}", storageRegionId, secondId, partitionId, dataPaths);
+        LOG.debug("storage {} second {} partitionid:{} path {}", storageRegionId, secondId, partitionId, dataPaths);
         return dataPaths;
     }
 

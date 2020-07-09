@@ -8,6 +8,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -48,12 +49,14 @@ public class TaskOperation implements Closeable {
     private LocalPartitionInterface partitionInterface;
     private RouteCache routeCache;
     private String baseBalancePath;
+    private ClusterConfig config;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
     public TaskOperation(CuratorFramework curatorFramework, final String baseBalancePath,
-                         IDSManager idManager,
+                         ClusterConfig config, IDSManager idManager,
                          StorageRegionManager snManager, ServiceManager serviceManager,
                          LocalPartitionInterface partitionInterface, RouteCache routeCache) {
+        this.config = config;
         this.curatorFramework = curatorFramework;
         this.idManager = idManager;
         this.baseBalancePath = baseBalancePath;
@@ -82,29 +85,46 @@ public class TaskOperation implements Closeable {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
                 LOG.info("current storage region list: {}", snManager.getStorageRegionList());
-                StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
+                StorageRegion node = getStorageRegion(snManager, taskSummary.getStorageIndex(), 5, 1000);
                 if (node == null) {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                recover = new MultiRecover(partitionInterface, routeCache, taskSummary,
+                recover = new MultiRecover(config, partitionInterface, routeCache, taskSummary,
                                            idManager, serviceManager, taskPath,
                                            curatorFramework, node, baseBalancePath);
 
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
-                StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
+                StorageRegion node = getStorageRegion(snManager, taskSummary.getStorageIndex(), 5, 1000);
                 if (node == null) {
-                    LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
+                    LOG.error("run storage {}  virtual task happen error ", taskSummary.getStorageIndex());
                     return;
                 }
-                String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
-                recover = new VirtualRecover(curatorFramework, taskSummary, taskPath, storageName, idManager, serviceManager,
-                                             partitionInterface, baseBalancePath);
+                String storageName = node.getName();
+                recover =
+                    new VirtualRecover(config, curatorFramework, taskSummary, taskPath, storageName, idManager, serviceManager,
+                                       partitionInterface, baseBalancePath);
             }
 
             updateTaskStatus(taskSummary, TaskStatus.RUNNING);
             launchTask(recover);
         }
+    }
+
+    private StorageRegion getStorageRegion(StorageRegionManager storageRegionManager, int storageIndex, int count, long sleep) {
+        int times = count;
+        while (times > 0) {
+            StorageRegion sr = storageRegionManager.findStorageRegionById(storageIndex);
+            if (sr != null) {
+                return sr;
+            }
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException ignore) {
+                // ignore Exception
+            }
+        }
+        return null;
     }
 
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) throws Exception {

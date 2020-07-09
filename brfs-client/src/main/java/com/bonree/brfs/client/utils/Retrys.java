@@ -18,6 +18,8 @@ import static com.bonree.brfs.client.utils.Strings.format;
 import static java.util.Objects.requireNonNull;
 
 import com.bonree.brfs.client.ClientException;
+import com.bonree.brfs.client.FidException;
+import com.bonree.brfs.client.FidExpiredException;
 import com.bonree.brfs.client.utils.Retryable.Result;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,8 +38,12 @@ public final class Retrys {
                 if (result == null) {
                     throw new NullPointerException(format("result is null when try execute [%s]", next.getDescription()));
                 }
-
+                if (result.getCause() != null && result.getCause().getCause() instanceof FidExpiredException) {
+                    throw result.getCause().getCause();
+                }
                 next = result.retry();
+            } catch (FidExpiredException fd) {
+                throw new FidException("error about fid");
             } catch (Throwable t) {
                 throw new ClientException(t, "error when try execute [%s]", next.getDescription());
             }

@@ -15,16 +15,22 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StatReportor {
+    private static final Logger LOG = LoggerFactory.getLogger(StatisticCollector.class);
     private StatConfigs configs;
     private static String READ_RD;
     private static String WRITE_RD;
-    private ThreadLocal<Instant> importantMoment = new ThreadLocal<>();
+    private final ThreadLocal<Instant> importantMoment = new ThreadLocal<>();
     // sr=>[ts=>count]
-    private ThreadLocal<Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>>> result = new ThreadLocal();
+    private final ThreadLocal<Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>>> result = new ThreadLocal();
     private List<String> writeFiles = new ArrayList<>();
 
     @Inject
@@ -35,42 +41,58 @@ public class StatReportor {
         result.set(new ConcurrentHashMap<>());
     }
 
-    public BusinessStats getCount(String srName, int minutes) {
+    public BusinessStats getCount(String srName, int minutes, boolean usePrefix) {
         Instant startMoment = Instant.now().truncatedTo(ChronoUnit.MINUTES).minus(minutes, ChronoUnit.MINUTES);
         importantMoment.set(startMoment);
-        getWriteCount(minutes, srName, true);
-        getWriteCount(minutes, srName, false);
+        getCount(srName, true, usePrefix);
+        getCount(srName, false, usePrefix);
         return popAll(srName);
     }
 
-    public Map<String, Integer> getWriteCount(int minutes, String srName, boolean isWrite) {
-        Instant now = importantMoment.get();
-        File directory = new File(isWrite ? WRITE_RD : READ_RD);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-        File[] filelist = directory.listFiles();
-        if (filelist == null) {
-            throw new NotFoundException("no data has been collected");
-        }
-        File tmp;
-        Instant fileInstant;
-        for (int i = 0; i < filelist.length; i++) {
-            writeFiles.add(filelist[i].getAbsolutePath());
-            System.out.println(filelist[i].getAbsolutePath());
-            tmp = filelist[i];
-            fileInstant = parseFromDay(getDayFromFileName(tmp.getName()));
-            if (fileInstant.compareTo(now.truncatedTo(ChronoUnit.DAYS)) >= 0) {
-                captureFromFile(tmp, srName, isWrite);
-            }
-        }
-        return null;
+    public BusinessStats getCountByPrefix(String prefix, int minutes) {
+        return getCount(prefix, minutes, true);
     }
 
-    private void captureFromFile(File tmp, String srName, boolean isWrite) {
+    public void getCount(String srName, boolean isWrite, boolean usePrefix) {
+        for (File file : getFileList(isWrite)) {
+            captureFromFile(file, srName, isWrite, usePrefix);
+        }
+    }
+
+    /**
+     * 获得所有在查询时间内的file
+     * @param isWrite 写统计
+     * @return 时间内的file列表
+     */
+    private List<File> getFileList(boolean isWrite) {
+        Instant now = importantMoment.get();
+        File directory = new File(isWrite ? WRITE_RD : READ_RD);
+        if (!directory.exists() && !directory.mkdirs()) {
+            LOG.error("create stat dir error!");
+            throw new InternalServerErrorException();
+        }
+        File[] allFiles = directory.listFiles();
+        if (allFiles == null) {
+            LOG.info("no data has been collected.");
+            throw new NotFoundException("no data has been collected");
+        }
+        Instant fileInstant;
+        List<File> fileList = new ArrayList<>();
+        for (File file : allFiles) {
+            writeFiles.add(file.getAbsolutePath());
+            fileInstant = parseFromDay(getDayFromFileName(file.getName()));
+            if (fileInstant.compareTo(now.truncatedTo(ChronoUnit.DAYS)) >= 0) {
+                fileList.add(file);
+                //captureFromFile(file, srName, isWrite);
+            }
+        }
+        return fileList;
+    }
+
+    private void captureFromFile(File tmp, String srName, boolean isWrite, boolean usePrefix) {
         try {
             RandomAccessFile rf = new RandomAccessFile(tmp, "r");
-            long start = 0; // 返回此文件中的当前偏移量
+            long start; // 返回此文件中的当前偏移量
             long fileLength = rf.length();
             if (fileLength <= 0) {
                 return;
@@ -79,33 +101,30 @@ public class StatReportor {
             long readIndex = start + fileLength - 1;
             String line;
             rf.seek(readIndex); // 设置偏移量为文件末尾
-            int c = -1;
+            int c;
             while (readIndex > start) {
                 c = rf.read();
                 if (c == '\n' || c == '\r') {
                     line = rf.readLine();
-                    System.out.println(line);
                     if (line != null) {
-                        extractLine(line, srName, isWrite);
-                        System.out.println(line);
-                    } else {
-                        System.out.println(line);
+                        extractLine(line, srName, isWrite, usePrefix);
                     }
                     readIndex--;
                 }
                 readIndex--;
                 rf.seek(readIndex);
                 if (readIndex == 0) { // 当文件指针退至文件开始处，输出第一行
-                    extractLine(rf.readLine(), srName, isWrite);
+                    extractLine(rf.readLine(), srName, isWrite, usePrefix);
                 }
             }
         } catch (IOException e) {
+            LOG.error("error when collect stat from data center!");
             e.printStackTrace();
         }
     }
 
-    private void extractLine(String line, String srName, boolean isWrite) {
-        if (line.equals("") || line == null) {
+    private void extractLine(String line, String srName, boolean isWrite, boolean usePrefix) {
+        if (line == null || line.equals("")) {
             return;
         }
         String[] s = line.split(" ");
@@ -113,44 +132,57 @@ public class StatReportor {
         String sr = s[1];
         String count = s[2];
         Instant instant = parseFromMinute(moment);
-        if (instant.compareTo(importantMoment.get()) >= 0 && (srName.equals("") || sr.equals(srName))) {
+        if (instant.compareTo(importantMoment.get()) >= 0 && (srName.equals("")
+            || (usePrefix ? isSameBussiness(sr, srName) : sr.equals(srName)))) {
             Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
             if (srMap == null) {
                 srMap = new ConcurrentHashMap<>();
                 result.set(srMap);
             }
-            Map<Long, Pair<ReadCountModel, WriteCountModel>> tsMap = srMap.get(srName);
-            if (tsMap == null) {
-                tsMap = new ConcurrentHashMap<Long, Pair<ReadCountModel, WriteCountModel>>();
-                srMap.put(srName, tsMap);
-            }
+            Map<Long, Pair<ReadCountModel, WriteCountModel>> tsMap =
+                srMap.computeIfAbsent(srName, k -> new TreeMap<>());
 
             if (isWrite) {
                 if (tsMap.containsKey(instant.toEpochMilli())) {
                     tsMap.get(instant.toEpochMilli()).getFirst().addReadCount(0);
-                    tsMap.get(instant.toEpochMilli()).getSecond().addWriteCount(Long.valueOf(count));
+                    tsMap.get(instant.toEpochMilli()).getSecond().addWriteCount(Long.parseLong(count));
                 } else {
                     tsMap.put(instant.toEpochMilli(), new Pair(new ReadCountModel(0, srName),
-                                                               new WriteCountModel(Long.valueOf(count))));
+                                                               new WriteCountModel(Long.parseLong(count))));
                 }
             } else {
                 if (tsMap.containsKey(instant.toEpochMilli())) {
-                    tsMap.get(instant.toEpochMilli()).getFirst().addReadCount(Long.valueOf(count));
+                    tsMap.get(instant.toEpochMilli()).getFirst().addReadCount(Long.parseLong(count));
                     tsMap.get(instant.toEpochMilli()).getSecond().addWriteCount(0);
                 } else {
-                    tsMap.put(instant.toEpochMilli(), new Pair(new ReadCountModel(Long.valueOf(count), srName),
+                    tsMap.put(instant.toEpochMilli(), new Pair(new ReadCountModel(Long.parseLong(count), srName),
                                                                new WriteCountModel(0)));
                 }
             }
         }
     }
 
+    private boolean isSameBussiness(String base, String req) {
+        if (base.equals(req)) {
+            return true;
+        }
+        return getBusinessByRlue(base).equals(req);
+    }
+
+    private String getBusinessByRlue(String region) {
+        String[] array = StringUtils.split(region, "_");
+        if (array == null || array.length < 2) {
+            return region;
+        }
+        return array[0] + "_" + array[1];
+    }
+
     private Instant parseFromMinute(String moment) {
-        return Instant.ofEpochMilli(Long.valueOf(moment));
+        return Instant.ofEpochMilli(Long.parseLong(moment));
     }
 
     private Instant parseFromDay(String day) {
-        return Instant.ofEpochMilli(Long.valueOf(day)).atZone(ZoneId.systemDefault()).toInstant();
+        return Instant.ofEpochMilli(Long.parseLong(day)).atZone(ZoneId.systemDefault()).toInstant();
     }
 
     private String getDayFromFileName(String logName) {
@@ -179,7 +211,7 @@ public class StatReportor {
     public BusinessStats popAll(String srName) {
         Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
         if (srMap == null) {
-            new BusinessStats(srName, ImmutableList.of());
+            return new BusinessStats(srName, ImmutableList.of());
         }
 
         Map<Long, Pair<ReadCountModel, WriteCountModel>> tsMap = srMap.get(srName);
