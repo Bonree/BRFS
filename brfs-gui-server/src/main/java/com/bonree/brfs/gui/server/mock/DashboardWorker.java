@@ -132,7 +132,23 @@ public class DashboardWorker {
 
     public TotalDiskUsage getTotalDiskUsage() {
         try {
-            List<NodeSnapshotInfo> snapshotInfos = collectResource();
+            Collection<ServerNode> serverNodes = collectServerNode(Discovery.ServiceType.DATA).values();
+            if (serverNodes.isEmpty()) {
+                Collection<DataNodeMetaModel> mets = collectDataMetaNodes().values();
+                serverNodes = new HashSet<>();
+                for (DataNodeMetaModel node : mets) {
+                    ServerNode serverNode = new ServerNode("",
+                                                           node.getServerID(),
+                                                           node.getIp(),
+                                                           node.getPort(),
+                                                           -1,
+                                                           ImmutableSet.of(),
+                                                           ImmutableSet.of());
+                    serverNodes.add(serverNode);
+                }
+            }
+
+            List<NodeSnapshotInfo> snapshotInfos = collectSnapshots(serverNodes);
             if (snapshotInfos == null || snapshotInfos.isEmpty()) {
                 return new TotalDiskUsage(0, 0);
             }
@@ -220,8 +236,7 @@ public class DashboardWorker {
         Map<String, ServerNode> dataNodeMap) {
         try {
             Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
-            Collection<ServerNode> services = services = dataNodeMap.values();
-            boolean fixModel = dataNodeMap.isEmpty();
+            Collection<ServerNode> services  = dataNodeMap.values();
             List<NodeSnapshotInfo> snapshotInfos = collectSnapshots(services);
             for (NodeSnapshotInfo node : snapshotInfos) {
                 String host = node.getHost();
