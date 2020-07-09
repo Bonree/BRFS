@@ -226,9 +226,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         byte[] query = transferToKey(path);
         byte[] value = rocksDBManager.read(srName, query);
         if (null == value) {
-            String resp = "the path[" + path + "] is not store correctly";
-            LOG.error(resp);
-            throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
+            String resp = "the path[" + path + "] is not not found";
+            LOG.info(resp);
+            throw new NotFoundException();
         }
         String s = new String(value);
         return s;
