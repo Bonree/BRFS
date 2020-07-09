@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -216,7 +217,7 @@ public class DashboardWorker {
     private Map<String, ServerNode> collectServerNode(Discovery.ServiceType type) {
         try {
             List<ServerNode> regions = innerClient.getServiceList(type);
-            Map<String, ServerNode> serverNodeMap = new HashMap<>();
+            Map<String, ServerNode> serverNodeMap = new ConcurrentHashMap<>();
             for (ServerNode server : regions) {
                 serverNodeMap.put(server.getHost(), server);
             }
@@ -224,7 +225,7 @@ public class DashboardWorker {
         } catch (Exception e) {
             LOG.error("get serverNode {} happen error", type, e);
         }
-        return new HashMap<>();
+        return new ConcurrentHashMap<>();
     }
 
     /**
@@ -327,7 +328,7 @@ public class DashboardWorker {
                 LOG.warn("brfs data meta path is not exists ! path [{}]", basePath);
                 return ImmutableMap.of();
             }
-            Map<String, DataNodeMetaModel> map = new HashMap<>();
+            Map<String, DataNodeMetaModel> map = new ConcurrentHashMap<>();
             for (String child : childs) {
                 String childPath = ZKPaths.makePath(basePath, child);
                 byte[] data = zkClient.getData().forPath(childPath);
