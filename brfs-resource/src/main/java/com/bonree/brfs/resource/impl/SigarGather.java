@@ -177,6 +177,12 @@ public class SigarGather implements ResourceCollectionInterface {
         sysInfoGather.start();
         loadGather.start();
         this.start = true;
+        // 加载完成后，开始采集数据，若成功则启动成功
+        this.cpuGather.gatherCpuStat();
+        this.memoryGather.gatherMemStat();
+        this.netGather.gatherNetInfos();
+        this.loadGather.gather();
+        this.sysInfoGather.gatherOSInfo();
     }
 
     public String libPath() throws Exception {
