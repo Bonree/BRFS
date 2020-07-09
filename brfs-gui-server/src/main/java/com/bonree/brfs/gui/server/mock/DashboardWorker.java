@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -97,6 +98,9 @@ public class DashboardWorker {
         this.zkClient.start();
         this.zkClient.blockUntilConnected();
         zkPaths = ZookeeperPaths.getBasePath(config.getClusterName(), this.zkClient);
+        LOG.info("brfs config {}", this.config);
+        LOG.info("alert config {}", this.alertLine);
+        LOG.info("zookeeper config {}", this.zkConfig);
         LOG.info("DashboardWorker start");
     }
 
@@ -197,7 +201,7 @@ public class DashboardWorker {
             List<NodeSummaryInfo> summaryInfos = new ArrayList<>();
             for (String key : keys) {
                 NodeSummaryInfo summary =
-                    packageSummaryInfo(key, regionMap.get(key), dataMap.get(key), snapshotMap.get(key), metaMap.get(key), config);
+                    packageSummaryInfo(key, regionMap.get(key), dataMap.get(key), snapshotMap.get(key), metaMap.get(key));
                 if (summary == null) {
                     continue;
                 }
@@ -213,7 +217,7 @@ public class DashboardWorker {
     private Map<String, ServerNode> collectServerNode(Discovery.ServiceType type) {
         try {
             List<ServerNode> regions = innerClient.getServiceList(type);
-            Map<String, ServerNode> serverNodeMap = new HashMap<>();
+            Map<String, ServerNode> serverNodeMap = new ConcurrentHashMap<>();
             for (ServerNode server : regions) {
                 serverNodeMap.put(server.getHost(), server);
             }
@@ -221,7 +225,7 @@ public class DashboardWorker {
         } catch (Exception e) {
             LOG.error("get serverNode {} happen error", type, e);
         }
-        return new HashMap<>();
+        return new ConcurrentHashMap<>();
     }
 
     /**
@@ -236,7 +240,7 @@ public class DashboardWorker {
         Map<String, ServerNode> dataNodeMap) {
         try {
             Map<String, NodeSnapshotInfo> snapshotMap = new HashMap<>();
-            Collection<ServerNode> services  = dataNodeMap.values();
+            Collection<ServerNode> services = dataNodeMap.values();
             List<NodeSnapshotInfo> snapshotInfos = collectSnapshots(services);
             for (NodeSnapshotInfo node : snapshotInfos) {
                 String host = node.getHost();
@@ -254,24 +258,21 @@ public class DashboardWorker {
 
     private Map<String, ServerNode> fixDataNodeMap(Map<String, ServerNode> dataNodeMap,
                                                    Map<String, DataNodeMetaModel> metaModelMap) {
-        boolean fixModel = dataNodeMap.isEmpty();
-        if (fixModel) {
-            for (DataNodeMetaModel model : metaModelMap.values()) {
-                ServerNode node = new ServerNode("",
-                                                 model.getServerID(),
-                                                 model.getIp(),
-                                                 model.getPort(),
-                                                 -1,
-                                                 ImmutableSet.of(),
-                                                 ImmutableSet.of());
-                dataNodeMap.put(model.getIp(), node);
-            }
+        for (DataNodeMetaModel model : metaModelMap.values()) {
+            ServerNode node = new ServerNode("",
+                                             model.getServerID(),
+                                             model.getIp(),
+                                             model.getPort(),
+                                             -1,
+                                             ImmutableSet.of(),
+                                             ImmutableSet.of());
+            dataNodeMap.put(model.getIp(), node);
         }
         return dataNodeMap;
     }
 
-    private NodeSummaryInfo packageSummaryInfo(String host, ServerNode region, ServerNode dataNode, NodeSnapshotInfo data,
-                                               DataNodeMetaModel model, BrfsConfig config) {
+    private NodeSummaryInfo packageSummaryInfo(
+        String host, ServerNode region, ServerNode dataNode, NodeSnapshotInfo data, DataNodeMetaModel model) {
         if (region == null && dataNode == null && data == null && model == null) {
             return null;
         }
@@ -319,13 +320,15 @@ public class DashboardWorker {
         try {
             String basePath = zkPaths.getBaseDataNodeMetaPath();
             if (zkClient.checkExists().forPath(basePath) == null) {
+                LOG.warn("brfs data meta path is not exists ! path [{}]", basePath);
                 return ImmutableMap.of();
             }
             List<String> childs = zkClient.getChildren().forPath(basePath);
             if (childs == null || childs.isEmpty()) {
+                LOG.warn("brfs data meta path is not exists ! path [{}]", basePath);
                 return ImmutableMap.of();
             }
-            Map<String, DataNodeMetaModel> map = new HashMap<>();
+            Map<String, DataNodeMetaModel> map = new ConcurrentHashMap<>();
             for (String child : childs) {
                 String childPath = ZKPaths.makePath(basePath, child);
                 byte[] data = zkClient.getData().forPath(childPath);
