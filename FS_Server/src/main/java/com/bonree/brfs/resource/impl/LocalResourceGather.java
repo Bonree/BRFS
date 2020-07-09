@@ -7,6 +7,7 @@ import com.bonree.brfs.common.resource.vo.Load;
 import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.resource.vo.MemStat;
 import com.bonree.brfs.common.resource.vo.NodeSnapshotInfo;
+import com.bonree.brfs.common.resource.vo.PartitionType;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.identification.impl.DiskDaemon;
@@ -50,6 +51,9 @@ public class LocalResourceGather implements ResourceGatherInterface {
         Collection<LocalPartitionInfo> disks = diskDaemon.getPartitions();
         Collection<DiskPartitionStat> diskStats = new ArrayList<>();
         for (LocalPartitionInfo x : disks) {
+            if (PartitionType.EXCEPTION.equals(x.getType())) {
+                continue;
+            }
             DiskPartitionStat stat = gather.collectSinglePartitionStats(x.getDataDir());
             if (stat != null) {
                 diskStats.add(stat);
@@ -87,6 +91,9 @@ public class LocalResourceGather implements ResourceGatherInterface {
         Collection<LocalPartitionInfo> locals = diskDaemon.getPartitions();
         Collection<DiskPartitionStat> stats = new ArrayList<>(locals.size());
         for (LocalPartitionInfo local : locals) {
+            if (PartitionType.EXCEPTION.equals(local.getType())) {
+                continue;
+            }
             DiskPartitionStat stat = gather.collectSinglePartitionStats(local.getDataDir());
             if (stat == null) {
                 continue;
