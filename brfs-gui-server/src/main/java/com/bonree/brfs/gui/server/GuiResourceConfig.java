@@ -1,6 +1,7 @@
 package com.bonree.brfs.gui.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
 
 public class GuiResourceConfig {
@@ -50,12 +51,11 @@ public class GuiResourceConfig {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("GuiResourceConfig{");
-        sb.append("guiDir='").append(guiDir).append('\'');
-        sb.append(", intervalTime=").append(intervalTime);
-        sb.append(", ttlTime=").append(ttlTime);
-        sb.append(", scanIntervalTime=").append(scanIntervalTime);
-        sb.append('}');
-        return sb.toString();
+        return MoreObjects.toStringHelper(this)
+                          .add("guiDir", guiDir)
+                          .add("intervalTime", intervalTime)
+                          .add("ttlTime", ttlTime)
+                          .add("scanIntervalTime", scanIntervalTime)
+                          .toString();
     }
 }

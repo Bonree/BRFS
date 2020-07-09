@@ -1,6 +1,7 @@
 package com.bonree.brfs.gui.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 public class HttpConfig {
     @JsonProperty("request.timeout.second")
@@ -49,12 +50,11 @@ public class HttpConfig {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("HttpConfig{");
-        sb.append("requestTimeout=").append(requestTimeout);
-        sb.append(", connectTimeout=").append(connectTimeout);
-        sb.append(", readTimeout=").append(readTimeout);
-        sb.append(", writeTimeout=").append(writeTimeout);
-        sb.append('}');
-        return sb.toString();
+        return MoreObjects.toStringHelper(this)
+                          .add("requestTimeout", requestTimeout)
+                          .add("connectTimeout", connectTimeout)
+                          .add("readTimeout", readTimeout)
+                          .add("writeTimeout", writeTimeout)
+                          .toString();
     }
 }
