@@ -169,7 +169,7 @@ public class CatalogGuiResource {
                     }
                 } catch (FidExpiredException fide) {
                     LOG.warn("data is expired of [{}]!", filePath);
-                    throw new WebApplicationException(505);
+                    throw new WebApplicationException(506);
                 } catch (Exception e) {
                     LOG.warn("error when get the file[{}]", filePath);
                     throw new NotFoundException();
