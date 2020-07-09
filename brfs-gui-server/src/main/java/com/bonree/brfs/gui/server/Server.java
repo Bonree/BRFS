@@ -22,6 +22,7 @@ import com.facebook.airlift.http.server.TheServlet;
 import com.facebook.airlift.jaxrs.JaxrsModule;
 import com.facebook.airlift.node.NodeInfo;
 import com.google.inject.Injector;
+import io.airlift.units.DataSize;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +45,8 @@ import org.slf4j.LoggerFactory;
 public class Server {
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
     private static final String SYS_PROPERTIES_FILE = "configuration.file";
+    private static final String HTTP_LOG_PATH = "http-server.log.path";
+    private static final String HTTP_LOG_SIZE = "http-server.log.max-size";
 
     @SuppressWarnings("checkstyle:WhitespaceAround")
     public static void main(String[] args) throws Exception {
@@ -140,6 +143,14 @@ public class Server {
         prop.forEach((x, y) -> {
             map.put((String) x, (String) y);
         });
+        String brfsLogDir = System.getProperty("log.dir");
+        String logFile = System.getProperty("log.file.name");
+        if (!map.containsKey(HTTP_LOG_PATH)) {
+            map.put(HTTP_LOG_PATH, brfsLogDir + File.separator + logFile + "_http_request.log");
+        }
+        if (!map.containsKey(HTTP_LOG_SIZE)) {
+            map.put(HTTP_LOG_SIZE, "100MB");
+        }
         return map;
     }
 
