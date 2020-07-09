@@ -598,9 +598,11 @@ public class TaskDispatcher implements Closeable {
          * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
          */
         Map<String, Integer> secondFreeMap = new HashMap<>();
+        List<String> aliveSecondIDS = new ArrayList<>();
         partitionInfoManager.getDiskPartitionInfoFreeSize().forEach(
             (key, value) -> {
                 String second = idManager.getSecondId(key, snIndex);
+                aliveSecondIDS.add(second);
                 secondFreeMap.put(second, value);
             }
         );
@@ -613,9 +615,6 @@ public class TaskDispatcher implements Closeable {
                 LOG.debug("alivePartitionIds: {}", alivePartitionIds);
                 LOG.debug("joinerPartitionIds: {}", joinerPartitionIds);
                 LOG.debug("further to filter dead server...");
-                List<String> aliveSecondIDs = alivePartitionIds.stream()
-                                                               .map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
-                                                               .collect(Collectors.toList());
                 List<String> joinerSecondIDs = joinerPartitionIds.stream()
                                                                  .map((partitionId) -> idManager
                                                                      .getSecondId(partitionId, cs.getStorageIndex()))
@@ -626,13 +625,13 @@ public class TaskDispatcher implements Closeable {
                     joinerSecondIDs.remove(cs.getChangeServer());
                 }
 
-                boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDs, secondFirstShip, cs.getStorageIndex());
+                boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDS, secondFirstShip, cs.getStorageIndex());
                 if (canRecover) {
                     // 构建任务
                     BalanceTaskSummary taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(),
                                         cs.getChangeServer(),
-                                        aliveSecondIDs, joinerSecondIDs, secondFreeMap, secondFirstShip, normalDelay);
+                                        aliveSecondIDS, joinerSecondIDs, secondFreeMap, secondFirstShip, normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
