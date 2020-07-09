@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication.catalog;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class NonRocksDBManager implements RocksDBManager {
@@ -19,7 +20,7 @@ public class NonRocksDBManager implements RocksDBManager {
 
     @Override
     public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey) {
-        return ImmutableMap.of();
+        return new HashMap<>();
     }
 
     @Override
