@@ -19,6 +19,7 @@ import static java.util.Objects.requireNonNull;
 import com.bonree.brfs.common.http.HttpServer;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.lifecycle.ManageLifecycleServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -34,7 +35,7 @@ import io.netty.util.internal.SocketUtils;
 import java.net.InetSocketAddress;
 import javax.inject.Inject;
 
-@ManageLifecycleServer
+@ManageLifecycle
 public class NettyHttpServer implements HttpServer {
 
     private final NettyHttpServerConfig serverConfig;
