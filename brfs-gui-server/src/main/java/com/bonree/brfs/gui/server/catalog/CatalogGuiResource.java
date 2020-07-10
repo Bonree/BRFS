@@ -14,6 +14,7 @@ import com.bonree.brfs.client.discovery.ServerNode;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.bonree.brfs.gui.server.BrfsConfig;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
@@ -197,8 +198,8 @@ public class CatalogGuiResource {
         try {
             result = client.listStorageRegions();
         } catch (Exception e) {
-            LOG.warn("error when get srs");
-            throw new NotFoundException();
+            result = ImmutableList.of();
+            LOG.warn("can not get srs");
         }
         return result;
     }
