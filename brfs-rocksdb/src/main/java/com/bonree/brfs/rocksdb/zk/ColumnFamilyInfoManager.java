@@ -95,4 +95,19 @@ public class ColumnFamilyInfoManager {
         }
     }
 
+    public Map<String, Integer> getColumnFamilyInfo() {
+        Map<String, Integer> map = null;
+        try {
+            if (this.client.checkExists().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO) == null) {
+                return null;
+            }
+            byte[] bytes = this.client.getData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO);
+            map = JsonUtils.toObject(bytes, new TypeReference<Map<String, Integer>>() {
+            });
+        } catch (Exception e) {
+            LOG.error("get column family info err", e);
+        }
+        return map;
+    }
+
 }

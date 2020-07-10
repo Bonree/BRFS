@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.ProcessingException;
@@ -62,6 +63,10 @@ public class CatalogResource {
             String fid = null;
             try {
                 fid = catalog.getFid(srName, absPath);
+            } catch (NotFoundException nfe) {
+                LOG.info("not found the path [{}], maybe it is expired.", absPath);
+                asyncResponse.resume(nfe);
+                return;
             } catch (Exception e) {
                 LOG.error("error when get fid from rocksDb!");
                 asyncResponse.resume(new ProcessingException("error when get fid from rocksDb"));

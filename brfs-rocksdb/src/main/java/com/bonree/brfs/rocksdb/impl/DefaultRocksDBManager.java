@@ -478,6 +478,13 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     private void syncColumnFamilyByStorageRegionInfo() {
         Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
+
+        Map<String, Integer> cfMapFromZk = this.columnFamilyInfoManager.getColumnFamilyInfo();
+        if (cfMapFromZk != null) {
+            srNameAndDataTtl.replaceAll((k, v) -> cfMapFromZk
+                .getOrDefault(k, Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DATA_TTL)));
+        }
+
         // 先更新本地缓存
         updateColumnFamilyHandles(srNameAndDataTtl);
         // 再重置zk上保存的列族信息
