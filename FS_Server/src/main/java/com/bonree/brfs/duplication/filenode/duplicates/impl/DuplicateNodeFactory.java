@@ -12,6 +12,7 @@ import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.resource.vo.LimitServerResource;
 import java.util.concurrent.Executors;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ public class DuplicateNodeFactory {
         } else if (type == 2) {
             LOG.info("Load resource service selector !!");
             return createResource(serviceManager, nodeSelector, secondIds, zookeeperPaths, client, storer,
-                    dataGroup);
+                                  dataGroup);
         } else {
             throw new RuntimeException("[invalid config] regionnode.duplication.select.type  " + type);
         }
@@ -52,24 +53,24 @@ public class DuplicateNodeFactory {
     }
 
     private static DuplicateNodeSelector createResource(
-            ServiceManager serviceManager, PartitionNodeSelector nodeSelector,
-            SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths, CuratorFramework client,
-            FileNodeStorer storer, String dataGroup) throws Exception {
+        ServiceManager serviceManager, PartitionNodeSelector nodeSelector,
+        SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths, CuratorFramework client,
+        FileNodeStorer storer, String dataGroup) throws Exception {
         LimitServerResource limitServerResource = new LimitServerResource();
-        String rpath = zookeeperPaths.getBaseResourcesPath() + "/" + limitServerResource.getDiskGroup() + "/resource";
+        String rpath = ZKPaths.makePath(zookeeperPaths.getBaseResourcesPath(), "stat");
         ClusterResource clusterResource = ClusterResource.newBuilder()
-                .setCache(true)
-                .setClient(client)
-                .setListenPath(rpath)
-                .setPool(Executors.newSingleThreadExecutor())
-                .build()
-                .start();
+                                                         .setCache(true)
+                                                         .setClient(client)
+                                                         .setListenPath(rpath)
+                                                         .setPool(Executors.newSingleThreadExecutor())
+                                                         .build()
+                                                         .start();
         MachineResourceWriterSelector serviceSelector =
-                new MachineResourceWriterSelector(storer, limitServerResource);
+            new MachineResourceWriterSelector(storer, limitServerResource);
         // 生成备用选择器
         DuplicateNodeSelector bakSelect =
-                new MinimalDuplicateNodeSelector(serviceManager, ResourceSelector.LOG, dataGroup);
+            new MinimalDuplicateNodeSelector(serviceManager, ResourceSelector.LOG, dataGroup);
         return new ResourceSelector(clusterResource, serviceSelector, bakSelect, limitServerResource.getDiskGroup(), nodeSelector,
-                secondIds);
+                                    secondIds);
     }
 }
