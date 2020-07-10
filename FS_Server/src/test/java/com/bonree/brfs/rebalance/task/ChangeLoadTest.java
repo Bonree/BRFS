@@ -74,8 +74,8 @@ public class ChangeLoadTest {
         }
         Collections.sort(list);
         list.stream().forEach(ele -> {
-            long time = Long.parseLong(ele.getChangeID().substring(0,10))*1000;
-            String timeStr = TimeUtils.formatTimeStamp(time,TimeUtils.TIME_MILES_FORMATE);
+            long time = Long.parseLong(ele.getChangeID().substring(0, 10)) * 1000;
+            String timeStr = TimeUtils.formatTimeStamp(time, TimeUtils.TIME_MILES_FORMATE);
             System.out.println(timeStr + ":" + ele.getChangePartitionId() + "->" + ele.getChangeType());
         });
     }
