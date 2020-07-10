@@ -35,7 +35,7 @@ public class EmailConfigs {
      * 收件人地址
      */
     public static final ConfigUnit<String> CONFIG_EMAILS =
-        ConfigUnit.ofString("email.recipient", "zhucg@bonree.com,weizheng@bonree.com,chenyp@bonree.com");
+        ConfigUnit.ofString("email.recipient", "zhucg@bonree.com");
     /**
      * 邮件内容表格头
      */

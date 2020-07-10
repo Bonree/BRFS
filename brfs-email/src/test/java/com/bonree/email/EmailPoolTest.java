@@ -47,7 +47,7 @@ public class EmailPoolTest {
         MailWorker.Builder builder = MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo()).setMessage("我是谁");
         EmailPool.getInstance().sendEmail(builder);
         try {
-            Thread.sleep(1000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
