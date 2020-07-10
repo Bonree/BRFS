@@ -38,7 +38,7 @@ public class RebalanceManager implements Closeable {
                             ServiceManager serviceManager, LocalPartitionInterface partitionInterface,
                             DiskPartitionInfoManager partitionInfoManager, RouteCache routeCache, CuratorFramework client,
                             ClusterConfig clusterConfig) {
-        dispatch = new TaskDispatcher(client, zkPaths.getBaseRebalancePath(),
+        dispatch = new TaskDispatcher(routeCache, client, zkPaths.getBaseRebalancePath(),
                                       zkPaths.getBaseV2RoutePath(), idManager,
                                       serviceManager, snManager,
                                       Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
