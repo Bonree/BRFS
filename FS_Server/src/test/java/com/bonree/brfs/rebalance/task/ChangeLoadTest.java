@@ -1,11 +1,15 @@
 package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
@@ -56,5 +60,23 @@ public class ChangeLoadTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void loadChanges() throws Exception {
+        String path = this.getClass().getResource("/changesArray.json").getPath();
+        File changesFile = new File(path);
+        byte[] data = FileUtils.readFileToByteArray(changesFile);
+        DiskPartitionChangeSummary[] array = JsonUtils.toObjectQuietly(data, DiskPartitionChangeSummary[].class);
+        List<DiskPartitionChangeSummary> list = new ArrayList<>();
+        for (DiskPartitionChangeSummary summary : array) {
+            list.add(summary);
+        }
+        Collections.sort(list);
+        list.stream().forEach(ele -> {
+            long time = Long.parseLong(ele.getChangeID().substring(0, 10)) * 1000;
+            String timeStr = TimeUtils.formatTimeStamp(time, TimeUtils.TIME_MILES_FORMATE);
+            System.out.println(timeStr + ":" + ele.getChangePartitionId() + "->" + ele.getChangeType());
+        });
     }
 }

@@ -22,6 +22,8 @@ import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
+import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
 import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.mail.worker.MailWorker;
@@ -40,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -98,6 +101,7 @@ public class TaskDispatcher implements Closeable {
     private final BalanceTaskGenerator taskGenerator;
     private DiskPartitionInfoManager partitionInfoManager;
     private ClusterConfig clusterConfig;
+    private RouteCache routeCache;
 
     private int virtualDelay;
     private int normalDelay;
@@ -119,9 +123,10 @@ public class TaskDispatcher implements Closeable {
     // 为了能够有序的处理变更，需要将变更添加到队列中
     private BlockingQueue<DiskPartitionChangeSummary> detailQueue = new ArrayBlockingQueue<>(256);
 
-    public TaskDispatcher(CuratorFramework client, String baseRebalancePath, String baseRoutesPath,
+    public TaskDispatcher(RouteCache routeCache, CuratorFramework client, String baseRebalancePath, String baseRoutesPath,
                           IDSManager idManager, ServiceManager serviceManager, StorageRegionManager snManager, int virtualDelay,
                           int normalDelay, DiskPartitionInfoManager partitionInfoManager, ClusterConfig clusterConfig) {
+        this.routeCache = routeCache;
         this.clusterConfig = clusterConfig;
         String balancePath =
             BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
@@ -571,6 +576,15 @@ public class TaskDispatcher implements Closeable {
             List<DiskPartitionChangeSummary> csList = entry.getValue();
             Collections.sort(csList);
             DiskPartitionChangeSummary lastCs = csList.get(csList.size() - 1);
+            BlockAnalyzer analyzer = routeCache.getBlockAnalyzer(lastCs.getStorageIndex());
+            if (analyzer.isRoute(lastCs.getChangeServer())) {
+                LOG.warn("remove invalid changes {} {}", entry.getKey(), lastCs.getChangeServer());
+                for (DiskPartitionChangeSummary invalid : csList) {
+                    changeSummaries.remove(invalid);
+                    delChangeSummaryNode(invalid);
+                }
+                continue;
+            }
             for (DiskPartitionChangeSummary tmpCs : csList) {
                 if (!StringUtils.equals(lastCs.getChangeID(), tmpCs.getChangeID())) {
                     // 不是最终状态的变更都删除掉
