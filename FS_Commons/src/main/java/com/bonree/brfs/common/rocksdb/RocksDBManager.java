@@ -45,6 +45,16 @@ public interface RocksDBManager extends LifeCycle {
     Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey);
 
     /**
+     * @param columnFamily 列族名称，对应到SN名称
+     * @param prefixKey    key前缀
+     *
+     * @return value       返回null则异常
+     *
+     * @description: 从RocksDB中获取列族为columnFamily的前缀为prefixKey的从start开始的n条记录
+     */
+    Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey, int start, int count);
+
+    /**
      * @param columnFamily 列族名称
      * @param key          K
      * @param value        V

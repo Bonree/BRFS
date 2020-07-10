@@ -310,6 +310,37 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey, int start, int count) {
+        if (null == columnFamily || columnFamily.isEmpty() || null == prefixKey || start == 0 || count == 0) {
+            LOG.warn("read by prefix column family is empty or prefixKey is null!");
+            return null;
+        }
+
+        int counter = 0;
+        Map<byte[], byte[]> result = new LinkedHashMap<>(count);
+        try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
+            for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
+                if (new String(iterator.key()).startsWith(new String(prefixKey))) {
+                    // 大于起始位置时才put
+                    if (start >= counter) {
+                        result.put(iterator.key(), iterator.value());
+                    }
+                    // 满员后返回
+                    if (result.size() >= count) {
+                        return result;
+                    }
+                }
+                counter++;
+            }
+        } catch (Exception e) {
+            LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey), e);
+            return null;
+        }
+
+        return result;
+    }
+
+    @Override
     public WriteStatus syncData(String columnFamily, byte[] key, byte[] value) throws RocksDBException {
         return this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
     }

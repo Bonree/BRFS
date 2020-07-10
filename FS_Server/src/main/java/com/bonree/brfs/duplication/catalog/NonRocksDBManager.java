@@ -24,6 +24,11 @@ public class NonRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey, int start, int count) {
+        return new HashMap<>();
+    }
+
+    @Override
     public WriteStatus write(String columnFamily, byte[] key, byte[] value) throws Exception {
         return null;
     }
