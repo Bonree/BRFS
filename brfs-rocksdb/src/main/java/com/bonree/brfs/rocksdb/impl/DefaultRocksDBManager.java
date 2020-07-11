@@ -322,7 +322,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
                     // 大于起始位置时才put
-                    if (start >= counter) {
+                    if (counter >= start) {
                         result.put(iterator.key(), iterator.value());
                     }
                     // 满员后返回
