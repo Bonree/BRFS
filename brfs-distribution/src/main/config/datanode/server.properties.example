@@ -45,6 +45,9 @@ datanode.service.host = 192.168.150.103
 # datanode保存数据文件的目录路径(默认为项目根目录下的data目录)
 # datanode.storage.dirs = ["/data1", "/data2"]
 
+# 是否开启数据压缩
+# datanode.data.compress=true
+
 # 磁盘文件的最大容量（字节）
 #datanode.file.max.capacity = 67108864
 
