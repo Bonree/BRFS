@@ -59,7 +59,7 @@
 
 	<name>${project.artifactId}</name>
 	<description>BRFS is a fast high-performance file system stored large small file by Bonree</description>
-	<url>http://bonree.com/brfs</url>
+	<url>http://brgit.ibr.cc/brfs/brfs</url>
 
 	<inceptionYear>2017</inceptionYear>
 	<licenses>
@@ -68,6 +68,13 @@
 			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
 		</license>
 	</licenses>
+
+	<scm>
+		<connection>scm:git:http://brgit.ibr.cc/brfs/brfs.git</connection>
+		<developerConnection>scm:git:http://brgit.ibr.cc/brfs/brfs.git</developerConnection>
+		<url>http://brgit.ibr.cc/brfs/brfs.git</url>
+		<tag>HEAD</tag>
+	</scm>
 
 	<properties>
 		<project.build.targetJdk>1.8</project.build.targetJdk>
@@ -135,6 +142,8 @@
 		<dep.jersey.version>2.27</dep.jersey.version>
 		<dep.slf4j.version>1.7.30</dep.slf4j.version>
 		<dep.aether.version>1.13.1</dep.aether.version>
+
+		<dep.plugin.scm.version>1.11.2</dep.plugin.scm.version>
 
 		<httpasyncclient_version>4.1.3</httpasyncclient_version>
 		<sigar_version>1.6.4</sigar_version>
@@ -554,6 +563,19 @@
 	</dependencyManagement>
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-provider-gitexe</artifactId>
+				<version>${dep.plugin.scm.version}</version>
+			</extension>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-manager-plexus</artifactId>
+				<version>${dep.plugin.scm.version}</version>
+			</extension>
+		</extensions>
+
 		<pluginManagement>
 			<plugins>
 				<plugin>
