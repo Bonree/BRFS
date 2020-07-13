@@ -97,7 +97,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             throw new NotFoundException();
         }
         int startPos = (pageNo - 1) * pageSize;
-        int count = 0;
+        //int count = 0;
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
         byte[] prefixQueryKey;
         if ("/".equals(path)) {
@@ -119,9 +119,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             if (new String(prefixQueryKey).equals(key)) {
                 continue;
             }
-            if (count >= (startPos + pageSize)) {
-                break;
-            }
+            //if (count >= (startPos + pageSize)) {
+            //    break;
+            //}
             if (key.equals("//")) {
                 continue;
             }
@@ -132,9 +132,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                 LOG.error(resp);
                 throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
             }
-            if (count++ < startPos) {
-                continue;
-            }
+            //if (count++ < startPos) {
+            //    continue;
+            //}
             if (new String(value).equals("0")) {
                 inodes.add(new Inode(nodeName, null, 0));
             } else {
