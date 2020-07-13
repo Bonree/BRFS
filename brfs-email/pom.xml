@@ -14,7 +14,7 @@
 	<name>brfs-email</name>
 
 	<properties>
-		<bonree_mail_version>0.0.2-SNAPSHOT</bonree_mail_version>
+		<bonree_mail_version>0.0.3</bonree_mail_version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
