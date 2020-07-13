@@ -3,44 +3,29 @@ package com.bonree.brfs.duplication.filenode.duplicates;
 import com.google.common.base.Strings;
 
 public class DuplicateNode implements Comparable<DuplicateNode> {
-    private String group;
-    private String id;
+    private final String group;
+    private final String id;
     /**
      * 二级serverId
      */
-    private String secondId;
+    private final String secondId;
 
-    public DuplicateNode() {
-    }
-
-    public DuplicateNode(String group, String id) {
+    public DuplicateNode(String group, String id, String secondId) {
         this.group = group;
         this.id = id;
+        this.secondId = secondId;
     }
 
     public String getGroup() {
         return group;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getSecondId() {
         return secondId;
-    }
-
-    public DuplicateNode setSecondId(String secondId) {
-        this.secondId = secondId;
-        return this;
     }
 
     @Override
