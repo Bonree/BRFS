@@ -166,7 +166,7 @@
         <dependency>
             <groupId>com.bonree</groupId>
             <artifactId>MailUtil</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>0.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
