@@ -602,13 +602,13 @@
 					<artifactId>maven-release-plugin</artifactId>
 					<version>3.0.0-M1</version>
 					<configuration>
-						<releaseProfiles>${sweet.release.release-profiles}</releaseProfiles>
-						<autoVersionSubmodules>${sweet.release.auto-version-submodules}</autoVersionSubmodules>
+						<releaseProfiles>oss-release</releaseProfiles>
+						<autoVersionSubmodules>true</autoVersionSubmodules>
 						<mavenExecutorId>forked-path</mavenExecutorId>
-						<pushChanges>${sweet.release.push-changes}</pushChanges>
+						<pushChanges>false</pushChanges>
 						<localCheckout>true</localCheckout>
-						<preparationGoals>${sweet.release.preparation-goals}</preparationGoals>
-						<tagNameFormat>${sweet.release.tag-name-format}</tagNameFormat>
+						<preparationGoals>clean install</preparationGoals>
+						<tagNameFormat>${project.version}</tagNameFormat>
 						<useReleaseProfile>false</useReleaseProfile>
 						<goals>deploy</goals>
 					</configuration>
@@ -942,5 +942,29 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>oss-release</id>
+			<properties>
+				<!-- tests run in the preparation step of the release -->
+				<skipTests>true</skipTests>
+			</properties>
+			<build>
+				<plugins>
+					<!-- oss requires a javadoc jar. Build one when releasing. -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+					</plugin>
+					<!-- Sign artifacts using gpg for oss upload -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
