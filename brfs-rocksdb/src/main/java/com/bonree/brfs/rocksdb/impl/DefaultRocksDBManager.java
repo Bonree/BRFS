@@ -311,7 +311,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     @Override
     public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey, int start, int count) {
-        if (null == columnFamily || columnFamily.isEmpty() || null == prefixKey || start == 0 || count == 0) {
+        if (null == columnFamily || columnFamily.isEmpty() || null == prefixKey || count == 0) {
             LOG.warn("read by prefix column family is empty or prefixKey is null!");
             return null;
         }
