@@ -18,7 +18,7 @@ public class TaskConfig {
     @JsonProperty("switch.set")
     private List<String> taskSwitch = TaskType.getDefaultTaskString();
     @JsonProperty("system.delete.pool.size")
-    private int sysDeleteSize = 1;
+    private int sysDeleteSize = 3;
     @JsonProperty("user.delete.pool.size")
     private int userDeleteSize = 1;
     @JsonProperty("system.check.pool.size")
