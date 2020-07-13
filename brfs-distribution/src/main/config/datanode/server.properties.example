@@ -102,7 +102,7 @@ datanode.service.host = 192.168.150.103
 # task.switch.set = ["SYSTEM_DELETE","SYSTEM_CHECK","USER_DELETE","SYSTEM_COPY_CHECK","VIRTUAL_ID_RECOVERY"]
 
 # 系统删除任务线程池大小设置，默认值为1
-# task.system.delete.pool.size=1
+# task.system.delete.pool.size=3
 
 # 用户删除任务线程池大小设置，默认值为1
 # task.user.delete.pool.size=1
@@ -117,7 +117,7 @@ datanode.service.host = 192.168.150.103
 # 通用任务包含 系统删除任务，系统CRC校验任务，用户删除任务，副本缺失任务
 # task.common.create.interval.second=60
 
-# 通用任务周期执行时间，默认为60s
+# 通用任务周期执行时间，默认为30s
 # task.common.execute.interval.second=30
 
 # 每天周期统计副本缺失任务的启动时间，默认为2:30
@@ -132,7 +132,7 @@ datanode.service.host = 192.168.150.103
 # 清理脏数据线程执行的时刻，默认为 02:00
 # task.file.block.scan.time="02:00"
 
-# 清理脏数据线程执行频率，默认60分钟
+# 清理脏数据线程执行频率，默认1440分钟
 # task.file.block.scan.interval.minute=1440
 
 # datanode 启动时清理线程延迟多久执行一次，默认10分钟
@@ -148,22 +148,15 @@ datanode.service.host = 192.168.150.103
 #二期兼容一期读取开关， 默认值为false
 #compatible.v1.model.switch=false
 
-
-
-
-
-
-
 ###############################################
 ##############资源管理模块 Config################
 ###############################################
-#资源采集
 
 # 资源采集开关 默认开启
-#datanode.resource.switch=true
+# datanode.resource.switch=true
 
 # 资源采集的时间间隔 单位 秒 默认10s
-#datanode.resource.interval.seconds=10
+# datanode.resource.interval.seconds=10
 
 # 资源选择的比值大小
 # resource.cent.size=1000
@@ -173,7 +166,6 @@ datanode.service.host = 192.168.150.103
 
 # 资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
 # limit.resource.value.disk.remain.size=20971520
-
 
 
 ######################
@@ -241,19 +233,6 @@ datanode.service.host = 192.168.150.103
 ###############################################
 ##############  gui config   ##################
 ###############################################
-
-
-# GUI 资源采集任务开关 默认关闭
-# datanode.gui.switch=true
-
-# GUI资源采集任务的时间间隔 单位秒，默认60s
-# datanode.gui.interval.seconds=10
-
-# GUI资源文件定时扫描的时间 单位秒，默认60s
-# datanode.gui.maintain.interval.seconds=10
-
-# GUI资源文件的过期时间，单位秒，默认为7*24*60*60
-# datanode.gui.maintain.interval.seconds=1000
 
 # 用于gui采集数据的服务端口
 # datanode.httpserver.port = 18002
