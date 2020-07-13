@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.filenode.duplicates;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 
 public class DuplicateNode implements Comparable<DuplicateNode> {
@@ -10,20 +12,26 @@ public class DuplicateNode implements Comparable<DuplicateNode> {
      */
     private final String secondId;
 
-    public DuplicateNode(String group, String id, String secondId) {
+    @JsonCreator
+    public DuplicateNode(@JsonProperty("group") String group,
+                         @JsonProperty("id") String id,
+                         @JsonProperty("secondId") String secondId) {
         this.group = group;
         this.id = id;
         this.secondId = secondId;
     }
 
+    @JsonProperty
     public String getGroup() {
         return group;
     }
 
+    @JsonProperty
     public String getId() {
         return id;
     }
 
+    @JsonProperty("secondId")
     public String getSecondId() {
         return secondId;
     }
