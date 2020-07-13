@@ -514,6 +514,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (cfMapFromZk != null) {
             srNameAndDataTtl.replaceAll((k, v) -> cfMapFromZk
                 .getOrDefault(k, Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DATA_TTL)));
+        } else {
+            srNameAndDataTtl.replaceAll((k, v) -> Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DATA_TTL));
         }
 
         // 先更新本地缓存
