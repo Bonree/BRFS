@@ -58,7 +58,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
             ResourceModel next;
             while (iterator.hasNext()) {
                 next = iterator.next();
-                duplicateNodes[i] = new DuplicateNode(groupName, next.getServerId());
+                duplicateNodes[i] = new DuplicateNode(groupName, next.getServerId(), null);
                 i++;
             }
 

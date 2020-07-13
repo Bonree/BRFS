@@ -14,6 +14,8 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -61,6 +63,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             .maximumSize(64)
             .initialCapacity(32)
             .expireAfterAccess(30, TimeUnit.SECONDS)
+            .refreshAfterWrite(5, TimeUnit.SECONDS)
             .removalListener(new RemovalListener<String, BufferRef>() {
 
                 @Override
@@ -79,6 +82,19 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
                     return new BufferRef(Files.map(new File(filePath), MapMode.READ_ONLY));
                 }
 
+                @Override
+                public ListenableFuture<BufferRef> reload(String filePath, BufferRef oldValue) throws Exception {
+                    File file = new File(filePath);
+                    if (oldValue.buffer().capacity() == file.length()) {
+                        return Futures.immediateFuture(oldValue);
+                    }
+
+                    synchronized (releaseList) {
+                        releaseList.addLast(oldValue);
+                    }
+                    
+                    return Futures.immediateFuture(load(filePath));
+                }
             });
 
     private LoadingCache<TimePair, String> timeCache;
