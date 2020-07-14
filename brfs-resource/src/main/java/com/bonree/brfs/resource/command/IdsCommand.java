@@ -21,6 +21,8 @@ import io.airlift.airline.Option;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,9 @@ public class IdsCommand implements Runnable {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.getBasePath(clusterName, client);
             ResourceCollectionInterface gather = new SigarGather();
             // V1 的数据目录 转换为磁盘id
+            if (!checkRepeatZK(gather, client, zookeeperPaths, config)) {
+                return;
+            }
             LocalPartitionInfo local = gahterLocalPartition(client, gather, zookeeperPaths, dataDir, partitionGroup);
             DataNodeMetaModel model = gatherDataNodeMetaModel(gather, local, firstServer, ip, port);
             // 注册磁盘id
@@ -202,6 +207,38 @@ public class IdsCommand implements Runnable {
                   .forPath(nodePath, data);
         }
         LOG.info("convert data dir successfull");
+    }
+
+    public boolean checkRepeatZK(ResourceCollectionInterface gather, CuratorFramework client, ZookeeperPaths zkPath,
+                                 MinDeployModel deployModel) {
+        try {
+            String ip = deployModel.getIp();
+            NetInfo netInfo = gather.collectSingleNetInfo(ip);
+            String nodeName = netInfo.getHwaddr().hashCode() + "_" + deployModel.getPort();
+            String nodePath = ZKPaths.makePath(zkPath.getBaseDataNodeMetaPath(), nodeName);
+            if (client.checkExists().forPath(nodePath) == null) {
+                return false;
+            }
+            byte[] data = client.getData().forPath(nodePath);
+            if (data == null || data.length == 0) {
+                return false;
+            }
+            DataNodeMetaModel meta = JsonUtils.toObjectQuietly(data, DataNodeMetaModel.class);
+            if (meta == null) {
+                return false;
+            }
+            Map<String, LocalPartitionInfo> partitionInfoMap = meta.getPartitionInfoMap();
+            Collection<LocalPartitionInfo> localPartitions = partitionInfoMap.values();
+            String dataDir = deployModel.getDataDir();
+            for (LocalPartitionInfo local : localPartitions) {
+                if (dataDir.equals(local.getDataDir())) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("check repeat zk happen error !", e);
+        }
+        return true;
     }
 
     public DataNodeMetaModel gatherDataNodeMetaModel(

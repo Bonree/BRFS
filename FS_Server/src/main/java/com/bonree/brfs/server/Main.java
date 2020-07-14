@@ -54,7 +54,7 @@ public class Main {
         );
 
         builder.withGroup("tools")
-               .withDescription("Various tools for working with Druid")
+               .withDescription("Various tools for working with BRFS")
                .withDefaultCommand(Help.class)
                .withCommands(toolCommands);
 
