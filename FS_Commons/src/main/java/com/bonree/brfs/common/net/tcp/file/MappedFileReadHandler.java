@@ -28,6 +28,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,12 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             .refreshAfterWrite(5, TimeUnit.SECONDS)
             .removalListener((RemovalListener<String, BufferHolder>) notification -> {
                 log.info("remove file mapping of [{}] from cache", notification.getKey());
-                notification.getValue().close();
+                BufferHolder holder = notification.getValue();
+                if (holder.isReloaded()) {
+                    return;
+                }
+
+                holder.close();
             })
             .build(new CacheLoader<String, BufferHolder>() {
 
@@ -60,6 +66,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
                 public ListenableFuture<BufferHolder> reload(String filePath, BufferHolder oldValue) throws Exception {
                     File file = new File(filePath);
                     if (oldValue.buffer().capacity() == file.length()) {
+                        oldValue.reload();
                         return Futures.immediateFuture(oldValue);
                     }
 
@@ -166,9 +173,18 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         private final MappedByteBuffer buffer;
         private AtomicInteger refCount = new AtomicInteger();
         private volatile boolean close;
+        private AtomicBoolean reloaded = new AtomicBoolean(false);
 
         public BufferHolder(MappedByteBuffer buffer) {
             this.buffer = buffer;
+        }
+
+        public void reload() {
+            reloaded.set(true);
+        }
+
+        public boolean isReloaded() {
+            return reloaded.compareAndSet(true, false);
         }
 
         public MappedByteBuffer buffer() {
