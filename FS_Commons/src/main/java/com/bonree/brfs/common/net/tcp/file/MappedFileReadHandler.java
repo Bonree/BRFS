@@ -46,12 +46,12 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             .expireAfterAccess(3, TimeUnit.MINUTES)
             .refreshAfterWrite(5, TimeUnit.SECONDS)
             .removalListener((RemovalListener<String, BufferHolder>) notification -> {
-                log.info("remove file mapping of [{}] from cache", notification.getKey());
                 BufferHolder holder = notification.getValue();
                 if (holder.isReloaded()) {
                     return;
                 }
 
+                log.info("remove file mapping of [{}] from cache", notification.getKey());
                 holder.close();
             })
             .build(new CacheLoader<String, BufferHolder>() {
@@ -171,9 +171,9 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     private static class BufferHolder implements Closeable {
         private final MappedByteBuffer buffer;
-        private AtomicInteger refCount = new AtomicInteger();
+        private final AtomicInteger refCount = new AtomicInteger();
         private volatile boolean close;
-        private AtomicBoolean reloaded = new AtomicBoolean(false);
+        private final AtomicBoolean reloaded = new AtomicBoolean(false);
 
         public BufferHolder(MappedByteBuffer buffer) {
             this.buffer = buffer;
