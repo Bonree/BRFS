@@ -3,11 +3,11 @@ package com.bonree.brfs.duplication.catalog;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.utils.Bytes;
-import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -89,6 +89,52 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     @Override
     public boolean isUsable() {
         return rocksDBManager.isOpen();
+    }
+
+    @Override
+    public List<String> getFidsByDir(String srName, String path) {
+        if (!validPath(path)) {
+            throw new NotFoundException();
+        }
+
+        LinkedList<String> fids = new LinkedList<>();
+        byte[] prefixQueryKey;
+        if ("/".equals(path)) {
+            path = "";
+        }
+        prefixQueryKey = Bytes.byteMerge(path.getBytes(), "//".getBytes());
+        Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
+        if (map == null) {
+            LOG.error("dir [{}] is not found.", path);
+            throw new NotFoundException();
+        }
+
+        String fid;
+        String key;
+        for (byte[] k : map.keySet()) {
+            key = new String(k);
+            //去掉自己
+            if (new String(prefixQueryKey).equals(key)) {
+                continue;
+            }
+
+            if (key.equals("//")) {
+                continue;
+            }
+            String nodeName = getLastNodeNameWithOutSep(key);
+            byte[] value = map.get(k);
+            if (null == value) {
+                String resp = "the path[" + path + "]'child[" + nodeName + "] is not store correctly";
+                LOG.error(resp);
+                throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
+            }
+            fid = new String(value);
+            if ("0".equals(fid)) {
+                continue;
+            }
+            fids.add(fid);
+        }
+        return fids;
     }
 
     @Override
