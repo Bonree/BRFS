@@ -69,7 +69,7 @@ public class IdsCommand implements Runnable {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.getBasePath(clusterName, client);
             ResourceCollectionInterface gather = new SigarGather();
             // V1 的数据目录 转换为磁盘id
-            if (!checkRepeatZK(gather, client, zookeeperPaths, config)) {
+            if (!checkRepeatZK(gather, client, zookeeperPaths, config, firstServer)) {
                 return;
             }
             LocalPartitionInfo local = gahterLocalPartition(client, gather, zookeeperPaths, dataDir, partitionGroup);
@@ -210,7 +210,7 @@ public class IdsCommand implements Runnable {
     }
 
     public boolean checkRepeatZK(ResourceCollectionInterface gather, CuratorFramework client, ZookeeperPaths zkPath,
-                                 MinDeployModel deployModel) {
+                                 MinDeployModel deployModel, String firstServer) {
         try {
             String ip = deployModel.getIp();
             NetInfo netInfo = gather.collectSingleNetInfo(ip);
@@ -227,8 +227,17 @@ public class IdsCommand implements Runnable {
             if (meta == null) {
                 return false;
             }
+            if (meta.getServerID().equals(firstServer)) {
+                return false;
+            }
             Map<String, LocalPartitionInfo> partitionInfoMap = meta.getPartitionInfoMap();
+            if (partitionInfoMap == null) {
+                return false;
+            }
             Collection<LocalPartitionInfo> localPartitions = partitionInfoMap.values();
+            if (localPartitions == null) {
+                return false;
+            }
             String dataDir = deployModel.getDataDir();
             for (LocalPartitionInfo local : localPartitions) {
                 if (dataDir.equals(local.getDataDir())) {

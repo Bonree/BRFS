@@ -25,7 +25,7 @@ public class IdsCommandTest {
     private CuratorFramework client = null;
     private String zkAddress = "192.168.150.236:2181";
 
-    @Before
+    // @Before
     public void init() throws Exception {
         client = CuratorFrameworkFactory.newClient(zkAddress, new RetryNTimes(10, 1000));
         client.start();
@@ -184,4 +184,27 @@ public class IdsCommandTest {
         FileUtils.deleteFile(ids);
     }
 
+    @Test
+    public void testCheck() throws Exception {
+        IdsCommand deploy = new IdsCommand();
+        String config = createTest();
+        String ids = createIdsFile();
+        deploy.setConfigPath(config);
+        deploy.setIdsPath(ids);
+        deploy.run();
+
+    }
+
+    private String createTest() throws Exception {
+        String filePath = this.getClass().getResource("/").getPath() + "/config";
+        Properties prop = new Properties();
+        prop.setProperty("cluster.name", "idea");
+        prop.setProperty("zookeeper.addresses", "192.168.150.237:2181");
+        prop.setProperty("datanode.data.root", "/data/br/brfs/data");
+        prop.setProperty("partition.group", "partition_group");
+        prop.setProperty("datanode.service.host", "192.168.150.237");
+        prop.setProperty("datanode.service.port", "9900");
+        prop.store(new FileOutputStream(new File(filePath)), "utf-8");
+        return filePath;
+    }
 }
