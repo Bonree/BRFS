@@ -15,6 +15,7 @@
 package com.bonree.brfs.client;
 
 import static com.bonree.brfs.client.utils.Strings.format;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.requireNonNull;
 
 import com.bonree.brfs.client.data.DataSplitter;
@@ -68,8 +69,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -587,6 +586,57 @@ public class BRFSClient implements BRFS {
         }
         BRFSObject object = getObject(request.getStorageRegionName(), fid, request.getRange());
         return object;
+    }
+
+    public List<BRFSObject> getObjects(GetObjectsRequest request) throws Exception {
+        return getFidListFromDir(request.getSrName(), request.getFilePath())
+            .stream()
+            .map(fid -> {
+                try {
+                    return getObject(request.getSrName(), fid, null);
+                } catch (Exception e) {
+                    throw new ClientException(e, "get file content error by fid[%s]", fid);
+                }
+            })
+            .collect(toImmutableList());
+    }
+
+    private List<String> getFidListFromDir(String srName, BRFSPath dirPath) {
+        return Retrys.execute(new URIRetryable<List<String>>(
+            format("get fids from dir[%s] in [%s]", dirPath, srName),
+            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            uri -> {
+                Request httpRequest = new Request.Builder()
+                    .url(HttpUrl.get(uri)
+                             .newBuilder()
+                             .encodedPath("/catalog/getFidsByDir")
+                             .addQueryParameter("srName", srName)
+                             .addQueryParameter("dir", dirPath.getPath())
+                             .build())
+                    .get()
+                    .build();
+
+                try {
+                    Response response = httpClient.newCall(httpRequest).execute();
+                    ResponseBody body = response.body();
+                    if (response.code() != HttpStatus.CODE_OK) {
+                        String errorMsg = "Unkown server error";
+                        if (body != null) {
+                            errorMsg = body.string();
+                        }
+
+                        return TaskResult.fail(new IllegalStateException(format("Server error[%d]: %s", response.code(), errorMsg)));
+                    }
+
+                    if (body == null) {
+                        return TaskResult.fail(new IllegalStateException(format("No content is returned")));
+                    }
+
+                    return TaskResult.success(codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {}));
+                } catch (IOException e) {
+                    return TaskResult.retry(e);
+                }
+            }));
     }
 
     private BRFSObject getObject(String srName, String fid, Range range) throws Exception {
