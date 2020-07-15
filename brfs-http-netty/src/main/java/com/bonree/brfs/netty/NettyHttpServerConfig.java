@@ -30,7 +30,7 @@ public class NettyHttpServerConfig implements HttpServerConfig {
     @JsonProperty
     private int acceptWorkerNum = 2;
     @JsonProperty
-    private int requestHandleWorkerNum = 6;
+    private int requestHandleWorkerNum = Runtime.getRuntime().availableProcessors();
 
     @JsonProperty
     private int connectTimeoutMillies = 30000;

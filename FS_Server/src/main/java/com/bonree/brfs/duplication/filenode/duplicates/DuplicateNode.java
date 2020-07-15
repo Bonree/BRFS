@@ -1,46 +1,39 @@
 package com.bonree.brfs.duplication.filenode.duplicates;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 
 public class DuplicateNode implements Comparable<DuplicateNode> {
-    private String group;
-    private String id;
+    private final String group;
+    private final String id;
     /**
      * 二级serverId
      */
-    private String secondId;
+    private final String secondId;
 
-    public DuplicateNode() {
-    }
-
-    public DuplicateNode(String group, String id) {
+    @JsonCreator
+    public DuplicateNode(@JsonProperty("group") String group,
+                         @JsonProperty("id") String id,
+                         @JsonProperty("secondId") String secondId) {
         this.group = group;
         this.id = id;
+        this.secondId = secondId;
     }
 
+    @JsonProperty
     public String getGroup() {
         return group;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
+    @JsonProperty
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
+    @JsonProperty("secondId")
     public String getSecondId() {
         return secondId;
-    }
-
-    public DuplicateNode setSecondId(String secondId) {
-        this.secondId = secondId;
-        return this;
     }
 
     @Override

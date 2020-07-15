@@ -3,12 +3,15 @@ package com.bonree.brfs.rebalance.task.listener;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
+import com.bonree.brfs.rebalance.task.DiskPartitionChangeSummary;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +20,13 @@ public class TaskExecutorListener implements TreeCacheListener {
     private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorListener.class);
 
     private TaskOperation opt;
+    private String taskQueuePath;
+    private String taskHistoryQueuePath;
 
-    public TaskExecutorListener(TaskOperation opt) {
+    public TaskExecutorListener(TaskOperation opt, String banalcePath) {
         this.opt = opt;
+        this.taskHistoryQueuePath = ZKPaths.makePath(banalcePath, Constants.TASKS_HISTORY_NODE);
+        this.taskQueuePath = ZKPaths.makePath(banalcePath, Constants.TASKS_NODE);
     }
 
     @Override
@@ -37,7 +44,28 @@ public class TaskExecutorListener implements TreeCacheListener {
                     BalanceTaskSummary taskSummary = JsonUtils.toObjectQuietly(data, BalanceTaskSummary.class);
                     LOG.info("deal task:" + taskSummary);
                     String taskPath = event.getData().getPath();
+
                     if (taskSummary != null) {
+                        if (taskSummary.getVersion() == null) {
+                            try {
+                                client.delete().deletingChildrenIfNeeded().forPath(taskPath);
+                                String historyPath = StringUtils.replace(taskPath, taskQueuePath, taskHistoryQueuePath);
+                                if (historyPath.indexOf(taskHistoryQueuePath) == 0) {
+                                    if (client.checkExists().forPath(historyPath) == null) {
+                                        client.create()
+                                              .creatingParentsIfNeeded()
+                                              .withMode(CreateMode.PERSISTENT)
+                                              .forPath(historyPath, data);
+                                    } else {
+                                        client.setData().forPath(historyPath, data);
+                                    }
+                                }
+                                LOG.warn("find v1 invalid task remove it {}", taskPath);
+                            } catch (Exception e) {
+                                LOG.warn("remove invald v1 task happen error", e);
+                            }
+                            return;
+                        }
                         opt.launchDelayTaskExecutor(taskSummary, taskPath);
                     }
                 }

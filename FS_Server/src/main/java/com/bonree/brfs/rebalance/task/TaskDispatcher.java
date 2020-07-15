@@ -267,6 +267,11 @@ public class TaskDispatcher implements Closeable {
                         byte[] data = this.client.getData().forPath(childPath);
                         DiskPartitionChangeSummary cs = JsonUtils.toObjectQuietly(data, DiskPartitionChangeSummary.class);
                         if (cs != null) {
+                            if (cs.getVersion() == null) {
+                                delChangeSummaryNode(cs);
+                                LOG.warn("find invalid v1 chang {} delete it", cs);
+                                continue;
+                            }
                             changeSummaries.add(cs);
                         } else {
                             LOG.warn("find invalid change {}", childPath);
@@ -313,6 +318,12 @@ public class TaskDispatcher implements Closeable {
      */
     public void addOneCache(DiskPartitionChangeSummary cs) {
         int storageIndex = cs.getStorageIndex();
+        if (cs.getVersion() == null) {
+            delChangeSummaryNode(cs);
+            LOG.warn("find invalid v1 chang {} delete it", cs);
+            return;
+        }
+
         List<DiskPartitionChangeSummary> changeSummaries = changeSummaryCache.get(storageIndex);
 
         if (changeSummaries == null) {
@@ -389,11 +400,6 @@ public class TaskDispatcher implements Closeable {
                                                                   bts.getInputServers().get(0), TaskVersion.V1);
                             LOG.debug("add virtual route: {}", route);
                             addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
-                            // 无效化virtualID,直到成功
-                            boolean flag = false;
-                            do {
-                                flag = idManager.invalidVirtualId(bts.getStorageIndex(), bts.getServerId());
-                            } while (!flag);
                             // 删除virtual server ID
                             LOG.debug("delete the virtual server id: {}", bts.getServerId());
                             idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
@@ -644,8 +650,8 @@ public class TaskDispatcher implements Closeable {
                     // 构建任务
                     BalanceTaskSummary taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(),
-                                        cs.getChangeServer(),
-                                        aliveSecondIDS, joinerSecondIDs, secondFreeMap, secondFirstShip, normalDelay);
+                                        cs.getChangeServer(), aliveSecondIDS, joinerSecondIDs, secondFreeMap,
+                                        secondFirstShip, cs.getVersion(), normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
@@ -805,7 +811,8 @@ public class TaskDispatcher implements Closeable {
                             BalanceTaskSummary taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, partitionId, virtualID,
                                                 Lists.newArrayList(selectSecondID), (List<String>) outDataServerSecondIds,
-                                                partitionInfoManager.getDiskPartitionInfoFreeSize(), selectFirstID, virtualDelay);
+                                                partitionInfoManager.getDiskPartitionInfoFreeSize(), selectFirstID,
+                                                changeSummary.getVersion(), virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);

@@ -11,77 +11,75 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import java.io.Closeable;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Sharable
 public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
-    private static final Logger LOG = LoggerFactory.getLogger(MappedFileReadHandler.class);
-    private ReadStatCollector readCountCollector;
+    private static final Logger log = LoggerFactory.getLogger(MappedFileReadHandler.class);
+    private final ReadStatCollector readCountCollector;
     private final Deliver deliver;
 
-    private ReadObjectTranslator translator;
-    private ExecutorService releaseRunner = Executors.newSingleThreadExecutor(new ThreadFactory() {
+    private final ReadObjectTranslator translator;
 
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, "map_release_t");
-            thread.setDaemon(true);
-
-            return thread;
-        }
-    });
-
-    private LinkedList<BufferRef> releaseList = new LinkedList<>();
-    private LoadingCache<String, BufferRef> bufferCache =
+    private final LoadingCache<String, BufferHolder> bufferCache =
         CacheBuilder.newBuilder()
-            .concurrencyLevel(Runtime.getRuntime().availableProcessors())
-            .maximumSize(64)
-            .initialCapacity(32)
-            .expireAfterAccess(30, TimeUnit.SECONDS)
-            .removalListener(new RemovalListener<String, BufferRef>() {
-
-                @Override
-                public void onRemoval(RemovalNotification<String, BufferRef> notification) {
-                    LOG.info("remove file mapping of [{}] from cache", notification.getKey());
-                    synchronized (releaseList) {
-                        releaseList.addLast(notification.getValue());
-                    }
+            .expireAfterAccess(3, TimeUnit.MINUTES)
+            .refreshAfterWrite(5, TimeUnit.SECONDS)
+            .removalListener((RemovalListener<String, BufferHolder>) notification -> {
+                BufferHolder holder = notification.getValue();
+                if (holder.isReloaded()) {
+                    return;
                 }
+
+                log.info("remove file mapping of [{}] from cache", notification.getKey());
+                holder.close();
             })
-            .build(new CacheLoader<String, BufferRef>() {
+            .build(new CacheLoader<String, BufferHolder>() {
 
                 @Override
-                public BufferRef load(String filePath) throws Exception {
-                    LOG.info("loading file[{}] to memory...", filePath);
-                    return new BufferRef(Files.map(new File(filePath), MapMode.READ_ONLY));
+                public BufferHolder load(String filePath) throws Exception {
+                    log.info("loading file[{}] to memory...", filePath);
+                    return new BufferHolder(Files.map(new File(filePath), MapMode.READ_ONLY));
                 }
 
+                @Override
+                public ListenableFuture<BufferHolder> reload(String filePath, BufferHolder oldValue) throws Exception {
+                    File file = new File(filePath);
+                    if (oldValue.buffer().capacity() == file.length()) {
+                        oldValue.reload();
+                        return Futures.immediateFuture(oldValue);
+                    }
+
+                    log.info("reloading file[{}], old length[{}], new length[{}]",
+                             filePath,
+                             oldValue.buffer().capacity(),
+                             file.length());
+
+                    return Futures.immediateFuture(new BufferHolder(Files.map(file, MapMode.READ_ONLY)));
+                }
             });
 
-    private LoadingCache<TimePair, String> timeCache;
+    private final LoadingCache<TimePair, String> timeCache;
 
     public MappedFileReadHandler(ReadObjectTranslator translator, Deliver deliver, LoadingCache<TimePair, String> timeCache,
                                  ReadStatCollector readCountCollector) {
@@ -89,24 +87,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         this.translator = translator;
         this.timeCache = timeCache;
         this.readCountCollector = readCountCollector;
-        this.releaseRunner.execute(() -> {
-            while (true) {
-                Iterator<BufferRef> iter = releaseList.iterator();
-                while (iter.hasNext()) {
-                    BufferRef bufferRef = iter.next();
-                    if (bufferRef.refCount() == 0) {
-                        BufferUtils.release(bufferRef.buffer());
-                        iter.remove();
-                    }
-                }
-
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     @Override
@@ -126,10 +106,10 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0
             ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 
-        MappedByteBuffer fileBuffer = null;
         try {
-            BufferRef ref = bufferCache.get(filePath).retain();
-            fileBuffer = ref.buffer();
+            BufferHolder holder = bufferCache.get(filePath);
+            holder.increment();
+            MappedByteBuffer fileBuffer = holder.buffer();
 
             long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) :
                 readObject.getOffset();
@@ -137,17 +117,13 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
                 readObject.getLength();
             long fileLength = fileBuffer.capacity();
             if (readOffset < 0 || readOffset > fileLength) {
-                LOG.error("unexcepted file[{}] offset : {}, file length : {}", filePath, readOffset, fileLength);
+                log.error("unexcepted file[{}] offset : {}, file length : {}", filePath, readOffset, fileLength);
                 ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
                     .addListener(ChannelFutureListener.CLOSE);
                 return;
             }
 
             int readableLength = (int) Math.min(readLength, fileLength - readOffset);
-            if (readableLength == 0) {
-                bufferCache.invalidate(filePath);
-                fileBuffer = ref.buffer();
-            }
 
             readMetric.setDataSize(readableLength);
             readCountCollector.submit(srName);
@@ -160,28 +136,22 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
                                                     Unpooled.wrappedBuffer(Ints.toByteArray(readableLength)),
                                                     Unpooled.wrappedBuffer(contentBuffer.slice()));
 
-            ctx.writeAndFlush(result).addListener(new ChannelFutureListener() {
-
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
+            ctx.writeAndFlush(result)
+                .addListener((ChannelFutureListener) future -> {
                     readMetric.setElapsedTime(timeWatcher.getElapsedTime());
-                    ref.release();
-
                     deliver.sendReaderMetric(readMetric.toMap());
-                }
-            }).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+
+                    holder.decrement();
+                })
+                .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         } catch (ExecutionException e) {
-            LOG.error("can not open file channel for {}", filePath, e);
+            log.error("can not open file channel for {}", filePath, e);
             ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
                 .addListener(ChannelFutureListener.CLOSE);
-            return;
         } catch (Exception e) {
-            LOG.error("read file error", e);
+            log.error("read file error", e);
             ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
                 .addListener(ChannelFutureListener.CLOSE);
-            return;
-        } finally {
-            bufferCache.cleanUp();
         }
     }
 
@@ -195,34 +165,48 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LOG.error("file read error", cause);
+        log.error("file read error", cause);
         ctx.close();
     }
 
-    private class BufferRef {
-        private AtomicInteger refCount;
+    private static class BufferHolder implements Closeable {
         private final MappedByteBuffer buffer;
+        private final AtomicInteger refCount = new AtomicInteger();
+        private volatile boolean close;
+        private final AtomicBoolean reloaded = new AtomicBoolean(false);
 
-        public BufferRef(MappedByteBuffer buffer) {
+        public BufferHolder(MappedByteBuffer buffer) {
             this.buffer = buffer;
-            this.refCount = new AtomicInteger(0);
+        }
+
+        public void reload() {
+            reloaded.set(true);
+        }
+
+        public boolean isReloaded() {
+            return reloaded.compareAndSet(true, false);
         }
 
         public MappedByteBuffer buffer() {
-            return this.buffer;
+            return buffer;
         }
 
-        public int refCount() {
-            return this.refCount.get();
+        public void increment() {
+            this.refCount.incrementAndGet();
         }
 
-        public BufferRef retain() {
-            refCount.incrementAndGet();
-            return this;
+        public void decrement() {
+            if (refCount.decrementAndGet() <= 0 && close) {
+                BufferUtils.release(buffer);
+            }
         }
 
-        public boolean release() {
-            return refCount.decrementAndGet() == 0;
+        @Override
+        public void close() {
+            close = true;
+            if (refCount.compareAndSet(0, -1)) {
+                BufferUtils.release(buffer);
+            }
         }
     }
 }

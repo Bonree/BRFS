@@ -35,12 +35,12 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
             Iterator<Service> iterator = ListUtils.random(serviceList);
             for (int i = 0; i < nums; i++) {
                 Service service = iterator.next();
-                DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
+                DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId(), null);
                 selects.add(node);
             }
         } else {
             for (Service service : serviceList) {
-                DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
+                DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId(), null);
                 selects.add(node);
             }
         }

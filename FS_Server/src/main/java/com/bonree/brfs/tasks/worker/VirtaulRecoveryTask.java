@@ -115,7 +115,10 @@ public class VirtaulRecoveryTask implements Runnable {
                     LOG.warn("cycle atom rebalance task is running skip run {} {}", taskType, currentTask);
                     return;
                 }
-                AtomTaskResultModel result = dealAtom(atom);
+                AtomTaskResultModel result = dealAtom(atom, taskMonitor);
+                if (result == null) {
+                    continue;
+                }
                 resultModel.setSuccess(resultModel.isSuccess() && result.isSuccess());
                 resultModel.add(result);
             }
@@ -187,7 +190,7 @@ public class VirtaulRecoveryTask implements Runnable {
         }
     }
 
-    public AtomTaskResultModel dealAtom(AtomTaskModel model) throws Exception {
+    public AtomTaskResultModel dealAtom(AtomTaskModel model, RebalanceTaskMonitor taskMonitor) throws Exception {
         AtomTaskResultModel result = new AtomTaskResultModel();
         result.setSn(model.getStorageName());
         StorageRegion region = regionManager.findStorageRegionByName(model.getStorageName());
@@ -248,7 +251,13 @@ public class VirtaulRecoveryTask implements Runnable {
                 if (virtualMap.isEmpty()) {
                     continue;
                 }
+                if (taskMonitor.isExecute()) {
+                    return null;
+                }
                 worker.downloadFiles(virtualMap, local.getDataDir(), 100);
+            }
+            if (taskMonitor.isExecute()) {
+                return null;
             }
             String path = ZKPaths.makePath(zkPaths.getBaseV2RoutePath(), Constants.VIRTUAL_ROUTE, region.getId() + "", uuid);
             client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, JsonUtils.toJsonBytes(route));

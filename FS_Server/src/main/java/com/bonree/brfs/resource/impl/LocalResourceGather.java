@@ -60,17 +60,17 @@ public class LocalResourceGather implements ResourceGatherInterface {
             }
         }
         long totalSize = diskStats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
-        long availSize = diskStats.stream().mapToLong(DiskPartitionStat::getAvail).sum();
+        long availSize = diskStats.stream().mapToLong(DiskPartitionStat::getFree).sum();
         double serviceTime = diskStats.stream().mapToDouble(DiskPartitionStat::getDiskServiceTime).average().getAsDouble();
         model.setHost(local.getHost());
         model.setServerId(local.getServiceId());
         model.setCpuRate(cpuStat.getTotal());
         model.setLoad(load.getMin1Load());
         model.setMemoryRate(memStat.getUsed());
-        model.setStorageRemainSize(totalSize - availSize);
-        model.setStorageSize(totalSize);
+        model.setFreeSize(availSize);
+        model.setTotalSize(totalSize);
         model.setDiskServiceTime(serviceTime);
-        model.setClustorStorageRemainValue((double) (totalSize) / cluster.getClustorStorageSize());
+        model.setClusterFreeValue((double) (totalSize) / cluster.getClustorStorageSize());
         return model;
     }
 

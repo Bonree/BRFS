@@ -49,8 +49,8 @@ public class ResourceSelector extends ResourceWriteSelector {
             if (StringUtils.isEmpty(secondId)) {
                 continue;
             }
-            node.setSecondId(secondId);
-            duplicateNodes.add(node);
+
+            duplicateNodes.add(new DuplicateNode(node.getGroup(), node.getId(), secondId));
         }
         // 升序排列，如果存在降序，则在发生多次副本迁移后，影响副本的读取
         Collections.sort(duplicateNodes);

@@ -116,7 +116,7 @@ public class DefaultFileObjectSyncProcessor implements FileObjectSyncProcessor {
             }
 
             String filePath = pathMaker.buildPath(fileNode, node);
-            LOG.info("checking---{}", filePath);
+            LOG.info("checking---{}, {}, {}", filePath, fileNode.getName(), node.getSecondId());
             long fileLength = connection.getClient().getFileLength(filePath);
 
             if (fileLength < 0) {

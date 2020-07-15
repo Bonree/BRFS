@@ -6,7 +6,6 @@ import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,8 +40,8 @@ public class RandomSelector extends MinimalDuplicateNodeSelector {
             if (StringUtils.isEmpty(secondId)) {
                 continue;
             }
-            node.setSecondId(secondId);
-            duplicateNodes.add(node);
+
+            duplicateNodes.add(new DuplicateNode(node.getGroup(), node.getId(), secondId));
         }
         // 升序排列，如果存在降序，则在发生多次副本迁移后，影响副本的读取
         Collections.sort(duplicateNodes);

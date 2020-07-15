@@ -89,6 +89,8 @@ public class CatalogGuiResource {
                         continue;
                     }
                     return responseBody.string();
+                } else if (response.code() == HttpStatus.CODE_NOT_FOUND) {
+                    throw new NotFoundException();
                 }
             } catch (IOException e) {
                 throw new WebApplicationException(777);

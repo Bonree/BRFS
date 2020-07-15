@@ -118,8 +118,13 @@ public class VirtualServerIDImpl implements VirtualServerID {
         String node = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId);
 
         try {
+            if (client.checkExists().forPath(node) == null) {
+                client.create()
+                      .creatingParentsIfNeeded()
+                      .withMode(CreateMode.PERSISTENT)
+                      .forPath(node);
+            }
             Stat stat = client.setData().forPath(node, Ints.toByteArray(state));
-
             return stat != null;
         } catch (Exception e) {
             LOG.error("invalid virtual id[{}:{}] error", storageId, virtualId, e);
@@ -155,8 +160,11 @@ public class VirtualServerIDImpl implements VirtualServerID {
     @Override
     public boolean deleteVirtualId(int storageIndex, String virtualId) {
         try {
-            client.delete().guaranteed().deletingChildrenIfNeeded()
-                  .forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
+            String nodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId);
+            if (client.checkExists().forPath(nodePath) != null) {
+                client.delete().guaranteed().deletingChildrenIfNeeded()
+                      .forPath(nodePath);
+            }
             return true;
         } catch (Exception e) {
             LOG.error("delete virtual id node[{}:{}] error", storageIndex, virtualId, e);
@@ -266,7 +274,10 @@ public class VirtualServerIDImpl implements VirtualServerID {
         }
 
         try {
-            client.create().withMode(CreateMode.PERSISTENT).forPath(ZKPaths.makePath(virtualIdNodePath, firstId));
+            String firstVirtualPath = ZKPaths.makePath(virtualIdNodePath, firstId);
+            if (client.checkExists().forPath(firstVirtualPath) == null) {
+                client.create().withMode(CreateMode.PERSISTENT).forPath(firstVirtualPath);
+            }
         } catch (Exception e) {
             LOG.error("add first id error", e);
         }

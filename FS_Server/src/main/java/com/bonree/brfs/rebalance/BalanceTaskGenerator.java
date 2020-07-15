@@ -17,7 +17,7 @@ public interface BalanceTaskGenerator {
      */
     BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
                                       List<String> selectIDs, List<String> participators, Map<String, Integer> newSecondIds,
-                                      String virtualTarget, long delayTime);
+                                      String virtualTarget, String version, long delayTime);
 
     /**
      * 概述：生成普通的SID迁移任务
@@ -28,6 +28,6 @@ public interface BalanceTaskGenerator {
      */
     BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
                                       List<String> selectIDs, List<String> participators, Map<String, Integer> newSecondIds,
-                                      Map<String, String> secondFirstShip, long delayTime);
+                                      Map<String, String> secondFirstShip, String version, long delayTime);
 
 }

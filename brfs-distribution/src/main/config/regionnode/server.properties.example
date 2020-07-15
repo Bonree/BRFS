@@ -43,7 +43,7 @@ regionnode.httpserver.host = localhost
 # 文件清理程序只会清理文件空间使用比率大于此值的文件
 # regionnode.file.clean.usage.rate = 0.95
 
-# regionnode中sr向datanode写数据的线程数
+# regionnode中sr向datanode写数据的线程数,cpu核数
 # regionnode.writer.worker.num = 16
 
 # regionnode中sr向datanode写数据时的缓存队列

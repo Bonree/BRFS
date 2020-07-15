@@ -100,4 +100,12 @@ public class CatalogResource {
         @QueryParam("pageSize") @DefaultValue("100") int pageSize) {
         return catalog.list(srName, nodePath, pageNumber, pageSize);
     }
+
+    @GET
+    @Path("/getFidsByDir")
+    public List<String> getFidsByDir(
+        @QueryParam("srName") String srName,
+        @QueryParam("dir") String dir) {
+        return catalog.getFidsByDir(srName, dir);
+    }
 }
