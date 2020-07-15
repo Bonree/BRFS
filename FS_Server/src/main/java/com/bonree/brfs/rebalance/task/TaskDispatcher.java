@@ -400,11 +400,6 @@ public class TaskDispatcher implements Closeable {
                                                                   bts.getInputServers().get(0), TaskVersion.V1);
                             LOG.debug("add virtual route: {}", route);
                             addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
-                            // 无效化virtualID,直到成功
-                            boolean flag = false;
-                            do {
-                                flag = idManager.invalidVirtualId(bts.getStorageIndex(), bts.getServerId());
-                            } while (!flag);
                             // 删除virtual server ID
                             LOG.debug("delete the virtual server id: {}", bts.getServerId());
                             idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
