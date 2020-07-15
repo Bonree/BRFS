@@ -267,6 +267,11 @@ public class TaskDispatcher implements Closeable {
                         byte[] data = this.client.getData().forPath(childPath);
                         DiskPartitionChangeSummary cs = JsonUtils.toObjectQuietly(data, DiskPartitionChangeSummary.class);
                         if (cs != null) {
+                            if (cs.getVersion() == null) {
+                                delChangeSummaryNode(cs);
+                                LOG.warn("find invalid v1 chang {} delete it", cs);
+                                continue;
+                            }
                             changeSummaries.add(cs);
                         } else {
                             LOG.warn("find invalid change {}", childPath);
@@ -315,7 +320,7 @@ public class TaskDispatcher implements Closeable {
         int storageIndex = cs.getStorageIndex();
         if (cs.getVersion() == null) {
             delChangeSummaryNode(cs);
-            LOG.warn("find invalid chang {}", cs);
+            LOG.warn("find invalid v1 chang {} delete it", cs);
             return;
         }
 
