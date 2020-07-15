@@ -313,6 +313,12 @@ public class TaskDispatcher implements Closeable {
      */
     public void addOneCache(DiskPartitionChangeSummary cs) {
         int storageIndex = cs.getStorageIndex();
+        if (cs.getVersion() == null) {
+            delChangeSummaryNode(cs);
+            LOG.warn("find invalid chang {}", cs);
+            return;
+        }
+
         List<DiskPartitionChangeSummary> changeSummaries = changeSummaryCache.get(storageIndex);
 
         if (changeSummaries == null) {
@@ -644,8 +650,8 @@ public class TaskDispatcher implements Closeable {
                     // 构建任务
                     BalanceTaskSummary taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(),
-                                        cs.getChangeServer(),
-                                        aliveSecondIDS, joinerSecondIDs, secondFreeMap, secondFirstShip, normalDelay);
+                                        cs.getChangeServer(), aliveSecondIDS, joinerSecondIDs, secondFreeMap,
+                                        secondFirstShip, cs.getVersion(), normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
@@ -805,7 +811,8 @@ public class TaskDispatcher implements Closeable {
                             BalanceTaskSummary taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, partitionId, virtualID,
                                                 Lists.newArrayList(selectSecondID), (List<String>) outDataServerSecondIds,
-                                                partitionInfoManager.getDiskPartitionInfoFreeSize(), selectFirstID, virtualDelay);
+                                                partitionInfoManager.getDiskPartitionInfoFreeSize(), selectFirstID,
+                                                changeSummary.getVersion(), virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);

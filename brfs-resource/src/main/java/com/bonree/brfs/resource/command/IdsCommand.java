@@ -228,20 +228,19 @@ public class IdsCommand implements Runnable {
                 return false;
             }
             if (meta.getServerID().equals(firstServer)) {
-                return false;
-            }
-            Map<String, LocalPartitionInfo> partitionInfoMap = meta.getPartitionInfoMap();
-            if (partitionInfoMap == null) {
-                return false;
-            }
-            Collection<LocalPartitionInfo> localPartitions = partitionInfoMap.values();
-            if (localPartitions == null) {
-                return false;
-            }
-            String dataDir = deployModel.getDataDir();
-            for (LocalPartitionInfo local : localPartitions) {
-                if (dataDir.equals(local.getDataDir())) {
+                Map<String, LocalPartitionInfo> partitionInfoMap = meta.getPartitionInfoMap();
+                if (partitionInfoMap == null) {
                     return false;
+                }
+                Collection<LocalPartitionInfo> localPartitions = partitionInfoMap.values();
+                if (localPartitions == null) {
+                    return false;
+                }
+                String dataDir = deployModel.getDataDir();
+                for (LocalPartitionInfo local : localPartitions) {
+                    if (dataDir.equals(local.getDataDir())) {
+                        return false;
+                    }
                 }
             }
         } catch (Exception e) {

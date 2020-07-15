@@ -16,6 +16,7 @@ import java.util.Map;
  ******************************************************************************/
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChangeSummary> {
+    public static final String VERSION_V2 = "v2";
 
     @JsonProperty("changeID")
     private String changeID;
@@ -37,6 +38,9 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
 
     @JsonProperty("currentPartitionIds")
     private List<String> currentPartitionIds;
+
+    @JsonProperty("version")
+    private String version = null;
 
     // @JsonProperty("newSecondIds")
     // private Map<String, Integer> newSecondIds;
@@ -71,17 +75,18 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return currentPartitionIds;
     }
 
-    //public Map<String, Integer> getNewSecondIds() {
-    //    return newSecondIds;
-    // }
+    public String getVersion() {
+        return version;
+    }
 
     @SuppressWarnings("unused")
     private DiskPartitionChangeSummary() {
 
     }
 
-    public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
-                                      String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
+    public DiskPartitionChangeSummary(
+        int storageIndex, String createTime, ChangeType changeType, String changeServer,
+        String changePartitionId, List<String> currentServers, List<String> currentPartitionIds, String version) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
         this.changeType = changeType;
@@ -89,6 +94,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         this.changePartitionId = changePartitionId;
         this.currentServers = currentServers;
         this.currentPartitionIds = currentPartitionIds;
+        this.version = version;
     }
 
     @Override
@@ -119,7 +125,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this.getClass())
+        return MoreObjects.toStringHelper(this)
                           .add("changeID", changeID)
                           .add("storageIndex", storageIndex)
                           .add("changeType", changeType)
@@ -127,7 +133,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
                           .add("changePartitionId", changePartitionId)
                           .add("currentServers", currentServers)
                           .add("currentPartitionIds", currentPartitionIds)
-                          // .add("newSecondIds", newSecondIds)
+                          .add("version", version)
                           .toString();
     }
 }

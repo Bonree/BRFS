@@ -3,6 +3,7 @@ package com.bonree.brfs.rebalance.task.listener;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
+import com.bonree.brfs.rebalance.task.DiskPartitionChangeSummary;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -37,6 +38,11 @@ public class TaskExecutorListener implements TreeCacheListener {
                     BalanceTaskSummary taskSummary = JsonUtils.toObjectQuietly(data, BalanceTaskSummary.class);
                     LOG.info("deal task:" + taskSummary);
                     String taskPath = event.getData().getPath();
+                    if (taskSummary.getVersion() == null) {
+                        client.delete().deletingChildrenIfNeeded().forPath(taskPath);
+                        LOG.warn("find v1 invalid task remove it {}", taskPath);
+                        return;
+                    }
                     if (taskSummary != null) {
                         opt.launchDelayTaskExecutor(taskSummary, taskPath);
                     }
