@@ -115,7 +115,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         Collection<ResourceModel> resourceModels = selectRandom(map, sids, intValues, ssize);
         wins.addAll(resourceModels);
         // 若依旧不满足则发送邮件
-        if (currentTime - preTime > 360000) {
+        if (wins.size() < num && currentTime - preTime > 360000) {
             sendSelectEmail(wins, num);
         }
         return wins;
