@@ -52,7 +52,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         List<ResourceModel> washroom = new ArrayList<>();
         // 将已经满足条件的服务过滤
         for (ResourceModel wash : resourceModels) {
-            diskRemainSize = wash.getStorageRemainSize();
+            diskRemainSize = wash.getFreeSize();
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("First: {}({}), remainsize: {}, force:{} !! will refused",
                          wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
@@ -67,7 +67,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         // 预测值，假设现在所有正在写的文件大小为0，并且每个磁盘节点都写入。通过现有写入的文件的数×配置的文件大小即可得单个数据节点写入数据的大小
         long writeSize = numSize * fileSize / size;
         for (ResourceModel resourceModel : washroom) {
-            diskRemainSize = resourceModel.getStorageRemainSize() - writeSize;
+            diskRemainSize = resourceModel.getFreeSize() - writeSize;
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("Second : {}({}),  remainsize: {}, force:{} !! will refused", resourceModel.getServerId(),
                          resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
@@ -138,7 +138,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         String key;
         for (ResourceModel resource : resourceModels) {
             key = resource.getServerId() + "(" + resource.getHost() + ")";
-            part = resource.getStorageRemainSize() + "B";
+            part = resource.getFreeSize() + "B";
             map.put(key, part);
         }
         EmailPool emailPool = EmailPool.getInstance();
@@ -210,7 +210,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     }
 
     private double getWriteValue(ResourceModel resource) {
-        return resource.getStorageRemainSize();
+        return resource.getFreeSize();
     }
 
     /**

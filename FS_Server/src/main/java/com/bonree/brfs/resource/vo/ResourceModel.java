@@ -19,16 +19,16 @@ public class ResourceModel {
     /**
      * 本机总共存储空间
      */
-    private long storageSize = 0;
+    private long totalSize = 0;
     /**
      * 本机硬盘剩余大小 告警
      */
-    private long storageRemainSize = 0;
+    private long freeSize = 0;
 
     /**
      * 本集群磁盘剩余值
      */
-    private double clustorStorageRemainValue;
+    private double clusterFreeValue;
     /**
      * 本机负载最近1分钟
      */
@@ -72,28 +72,28 @@ public class ResourceModel {
         this.memoryRate = memoryRate;
     }
 
-    public long getStorageSize() {
-        return storageSize;
+    public long getTotalSize() {
+        return totalSize;
     }
 
-    public void setStorageSize(long storageSize) {
-        this.storageSize = storageSize;
+    public void setTotalSize(long totalSize) {
+        this.totalSize = totalSize;
     }
 
-    public long getStorageRemainSize() {
-        return storageRemainSize;
+    public long getFreeSize() {
+        return freeSize;
     }
 
-    public void setStorageRemainSize(long storageRemainSize) {
-        this.storageRemainSize = storageRemainSize;
+    public void setFreeSize(long freeSize) {
+        this.freeSize = freeSize;
     }
 
-    public double getClustorStorageRemainValue() {
-        return clustorStorageRemainValue;
+    public double getClusterFreeValue() {
+        return clusterFreeValue;
     }
 
-    public void setClustorStorageRemainValue(double clustorStorageRemainValue) {
-        this.clustorStorageRemainValue = clustorStorageRemainValue;
+    public void setClusterFreeValue(double clusterFreeValue) {
+        this.clusterFreeValue = clusterFreeValue;
     }
 
     public double getLoad() {
