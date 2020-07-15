@@ -69,7 +69,8 @@ public class IdsCommand implements Runnable {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.getBasePath(clusterName, client);
             ResourceCollectionInterface gather = new SigarGather();
             // V1 的数据目录 转换为磁盘id
-            if (!checkRepeatZK(gather, client, zookeeperPaths, config, firstServer)) {
+            if (checkRepeatZK(gather, client, zookeeperPaths, config, firstServer)) {
+                LOG.warn("skip updata {} becasue  it not need ", firstServer);
                 return;
             }
             LocalPartitionInfo local = gahterLocalPartition(client, gather, zookeeperPaths, dataDir, partitionGroup);
@@ -239,7 +240,7 @@ public class IdsCommand implements Runnable {
                 String dataDir = deployModel.getDataDir();
                 for (LocalPartitionInfo local : localPartitions) {
                     if (dataDir.equals(local.getDataDir())) {
-                        return false;
+                        return true;
                     }
                 }
             }

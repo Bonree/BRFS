@@ -55,7 +55,7 @@ public class IdsCommandTest {
 
     private String createIdsFile() throws Exception {
         String filePath = this.getClass().getResource("/").getPath() + "/disknode";
-        Files.write("10".getBytes(), new File(filePath));
+        Files.write("100".getBytes(), new File(filePath));
         return filePath;
     }
 
@@ -203,7 +203,7 @@ public class IdsCommandTest {
         prop.setProperty("datanode.data.root", "/data/br/brfs/data");
         prop.setProperty("partition.group", "partition_group");
         prop.setProperty("datanode.service.host", "192.168.150.237");
-        prop.setProperty("datanode.service.port", "9900");
+        prop.setProperty("datanode.service.port", "9910");
         prop.store(new FileOutputStream(new File(filePath)), "utf-8");
         return filePath;
     }
