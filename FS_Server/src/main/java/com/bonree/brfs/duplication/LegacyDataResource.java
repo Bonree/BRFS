@@ -73,6 +73,8 @@ public class LegacyDataResource {
                     for (String fid : fids) {
                         if (fid == null) {
                             log.error("some fid is null in result of legacy");
+                        }else {
+                            dataResource.getWriteCollector().submit(storageRegion.getName());
                         }
                     }
 

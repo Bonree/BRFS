@@ -129,6 +129,8 @@ public class DataResource {
 
                             // set fid null after error
                             fids[i] = null;
+                        }else {
+                            writeCollector.submit(srName);
                         }
                     }
 
@@ -378,6 +380,10 @@ public class DataResource {
 
     private boolean checkNotNull(String args) {
         return args != null && !args.equals("");
+    }
+
+    public WriteStatCollector getWriteCollector(){
+        return this.writeCollector;
     }
 
 }
