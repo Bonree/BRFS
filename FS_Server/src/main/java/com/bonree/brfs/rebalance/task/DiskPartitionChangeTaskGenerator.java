@@ -199,7 +199,8 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                     try {
                         DiskPartitionChangeSummary summaryObj =
                             new DiskPartitionChangeSummary(snModel.getId(), genChangeID(), type, secondID,
-                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds);
+                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds,
+                                                           DiskPartitionChangeSummary.VERSION_V2);
                         String summary = JsonUtils.toJsonString(summaryObj);
                         String diskPartitionTaskNode =
                             ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());

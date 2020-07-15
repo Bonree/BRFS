@@ -100,6 +100,9 @@ public class BalanceTaskSummary {
     @JsonProperty("virtualTarget")
     private String virtualTarget;
 
+    @JsonProperty("version")
+    private String version = null;
+
     public String getId() {
         return id;
     }
@@ -220,6 +223,14 @@ public class BalanceTaskSummary {
         this.virtualTarget = virtualTarget;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -237,6 +248,8 @@ public class BalanceTaskSummary {
                           .add("aliveServer", aliveServer)
                           .add("delayTime", delayTime)
                           .add("interval", interval)
+                          .add("virtualTarget", virtualTarget)
+                          .add("version", version)
                           .toString();
     }
 }

@@ -18,7 +18,8 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
     @Override
     public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
                                              List<String> selectIDs, List<String> participators,
-                                             Map<String, Integer> newSecondIds, String virtualTarget, long delayTime) {
+                                             Map<String, Integer> newSecondIds, String virtualTarget, String version,
+                                             long delayTime) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // changeID
@@ -42,6 +43,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setPartitionId(partitionId);
         taskSummary.setNewSecondIds(newSecondIds);
         taskSummary.setVirtualTarget(virtualTarget);
+        taskSummary.setVersion(version);
 
         return taskSummary;
     }
@@ -50,7 +52,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
     public BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
                                              List<String> selectIDs, List<String> participators,
                                              Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip,
-                                             long delayTime) {
+                                             String version, long delayTime) {
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
 
         taskSummary.setChangeID(changeID);
@@ -65,6 +67,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setPartitionId(partitionId);
         taskSummary.setNewSecondIds(newSecondIds);
         taskSummary.setSecondFirstShip(secondFirstShip);
+        taskSummary.setVersion(version);
 
         return taskSummary;
     }

@@ -608,11 +608,11 @@ public class BRFSClient implements BRFS {
             uri -> {
                 Request httpRequest = new Request.Builder()
                     .url(HttpUrl.get(uri)
-                             .newBuilder()
-                             .encodedPath("/catalog/getFidsByDir")
-                             .addQueryParameter("srName", srName)
-                             .addQueryParameter("dir", dirPath.getPath())
-                             .build())
+                                .newBuilder()
+                                .encodedPath("/catalog/getFidsByDir")
+                                .addQueryParameter("srName", srName)
+                                .addQueryParameter("dir", dirPath.getPath())
+                                .build())
                     .get()
                     .build();
 
@@ -625,14 +625,16 @@ public class BRFSClient implements BRFS {
                             errorMsg = body.string();
                         }
 
-                        return TaskResult.fail(new IllegalStateException(format("Server error[%d]: %s", response.code(), errorMsg)));
+                        return TaskResult
+                            .fail(new IllegalStateException(format("Server error[%d]: %s", response.code(), errorMsg)));
                     }
 
                     if (body == null) {
                         return TaskResult.fail(new IllegalStateException(format("No content is returned")));
                     }
 
-                    return TaskResult.success(codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {}));
+                    return TaskResult.success(codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {
+                    }));
                 } catch (IOException e) {
                     return TaskResult.retry(e);
                 }
@@ -650,7 +652,6 @@ public class BRFSClient implements BRFS {
         } catch (Exception e) {
             throw new IllegalArgumentException(Strings.format("Invalid FID: %s", fid));
         }
-
 
         if (fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
             throw new IllegalStateException(
@@ -722,8 +723,8 @@ public class BRFSClient implements BRFS {
 
     private boolean isFidExpired(Fid fid, String srName) {
         return fid.getTime() + Duration.parse(getStorageRegionInfo(srName)
-                                                     .getAttributes()
-                                                     .getDataTTL())
+                                                  .getAttributes()
+                                                  .getDataTTL())
                                        .toMillis() < System.currentTimeMillis();
     }
 

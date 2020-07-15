@@ -60,7 +60,7 @@ public class TaskOperation implements Closeable {
         this.curatorFramework = curatorFramework;
         this.idManager = idManager;
         this.baseBalancePath = baseBalancePath;
-        this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
+        this.tasksPath = ZKPaths.makePath(this.baseBalancePath, Constants.TASKS_NODE);
         treeCache = CuratorCacheFactory.getTreeCache();
         this.snManager = snManager;
         this.serviceManager = serviceManager;
@@ -70,7 +70,7 @@ public class TaskOperation implements Closeable {
 
     public void start() {
         LOG.info("add tree cache for path: {}", tasksPath);
-        treeCache.addListener(tasksPath, new TaskExecutorListener(this));
+        treeCache.addListener(tasksPath, new TaskExecutorListener(this, this.baseBalancePath));
     }
 
     public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) throws Exception {

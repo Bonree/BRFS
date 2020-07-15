@@ -67,10 +67,10 @@ public class LocalResourceGather implements ResourceGatherInterface {
         model.setCpuRate(cpuStat.getTotal());
         model.setLoad(load.getMin1Load());
         model.setMemoryRate(memStat.getUsed());
-        model.setStorageRemainSize(availSize);
-        model.setStorageSize(totalSize);
+        model.setFreeSize(availSize);
+        model.setTotalSize(totalSize);
         model.setDiskServiceTime(serviceTime);
-        model.setClustorStorageRemainValue((double) (totalSize) / cluster.getClustorStorageSize());
+        model.setClusterFreeValue((double) (totalSize) / cluster.getClustorStorageSize());
         return model;
     }
 
