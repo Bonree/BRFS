@@ -638,6 +638,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             db.close();
         }
         this.produceExec.shutdown();
+        this.queueChecker.shutdown();
         LOG.info("rocksdb manager stop");
     }
 }
