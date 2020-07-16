@@ -36,7 +36,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
@@ -73,6 +75,8 @@ import org.slf4j.LoggerFactory;
 public class DefaultRocksDBManager implements RocksDBManager {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRocksDBManager.class);
 
+    private static final int DEFAULT_QUEUE_SYNC_TIMEOUT = 10000;
+
     private DBOptions dbOptions;
     private ReadOptions readOptions;
     private WriteOptions writeOptionsSync;
@@ -108,6 +112,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     );
 
     private BlockingQueue<RocksDBDataUnit> rocksdbQueue = new ArrayBlockingQueue<>(1000);
+    private ScheduledExecutorService
+        queueChecker = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -175,6 +181,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 LOG.info("service removed:{}, current services:{}", service.getServiceId(), serviceCache);
             }
         });
+
+        queueChecker.scheduleAtFixedRate(new QueueChecker(), 3, 5, TimeUnit.SECONDS);
 
         this.dbOptions.setCreateIfMissing(true)
                       .setCreateMissingColumnFamilies(true)
@@ -362,6 +370,28 @@ public class DefaultRocksDBManager implements RocksDBManager {
             LOG.warn("offer data ro queue failed, size:{}", rocksdbQueue.size());
         }
         return writeStatus;
+    }
+
+    private class QueueChecker implements Runnable {
+        private TimeWatcher watcher = new TimeWatcher();
+
+        @Override
+        public void run() {
+            if (!rocksdbQueue.isEmpty()) {
+                if (rocksdbQueue.size() >= dataSynchronizeCountOnce) {
+                    List<RocksDBDataUnit> datas = new ArrayList<>(dataSynchronizeCountOnce);
+                    rocksdbQueue.drainTo(datas, dataSynchronizeCountOnce);
+                    dataSynchronizer(datas);
+                } else {
+                    if (watcher.getElapsedTime() > DEFAULT_QUEUE_SYNC_TIMEOUT) {
+                        List<RocksDBDataUnit> datas = new ArrayList<>(rocksdbQueue.size());
+                        rocksdbQueue.drainTo(datas, rocksdbQueue.size());
+                        dataSynchronizer(datas);
+                        watcher.getElapsedTimeAndRefresh();
+                    }
+                }
+            }
+        }
     }
 
     public void dataSynchronizer(List<RocksDBDataUnit> datas) {
