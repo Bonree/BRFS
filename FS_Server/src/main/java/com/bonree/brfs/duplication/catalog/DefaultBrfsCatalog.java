@@ -29,7 +29,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     static final byte[] DIR_VALUE = "0".getBytes();
     static final String SEPRATOR = "/";
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
-    private static final String pattern = "^(/+(\\.*[\\w,\\-]+\\.*)+)+$";
+    private static final String pattern = "^(/+(\\.*[\\u4e00-\\u9fa5_a-zA-Z0-9，\\w,\\-]+\\.*)+)+$";
     private static Pattern p = Pattern.compile(pattern);
     private LoadingCache<PathKey, Boolean> pathCache = CacheBuilder.newBuilder()
                                                                    .concurrencyLevel(Runtime.getRuntime().availableProcessors())
