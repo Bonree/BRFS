@@ -1,5 +1,7 @@
 package com.bonree.brfs.schedulers.task.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,8 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Description:任务类型节点 , 存储各个sn的创建
  * ****************************************************************************
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskTypeModel {
+    @JsonProperty("snTimes")
     private Map<String, Long> snTimes = new ConcurrentHashMap<>();
+    @JsonProperty("switchFlag")
     private boolean switchFlag = true;
 
     public Map<String, Long> getSnTimes() {

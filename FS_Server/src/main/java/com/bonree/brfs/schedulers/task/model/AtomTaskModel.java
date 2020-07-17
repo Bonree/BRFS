@@ -2,6 +2,7 @@ package com.bonree.brfs.schedulers.task.model;
 
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,12 +18,19 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AtomTaskModel {
+    @JsonProperty("storageName")
     private String storageName;
+    @JsonProperty("dataStartTime")
     private String dataStartTime;
+    @JsonProperty("dataStopTime")
     private String dataStopTime;
+    @JsonProperty("files")
     private List<String> files = new ArrayList<>();
+    @JsonProperty("taskOperation")
     private String taskOperation;
+    @JsonProperty("granule")
     private long granule;
+    @JsonProperty("patitionNum")
     private int patitionNum;
 
     /**

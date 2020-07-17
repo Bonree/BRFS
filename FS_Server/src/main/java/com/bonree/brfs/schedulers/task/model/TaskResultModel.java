@@ -1,10 +1,15 @@
 package com.bonree.brfs.schedulers.task.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskResultModel {
+    @JsonProperty("isSuccess")
     private boolean isSuccess = true;
+    @JsonProperty("atoms")
     private List<AtomTaskResultModel> atoms = new ArrayList<AtomTaskResultModel>();
 
     public List<AtomTaskResultModel> getAtoms() {

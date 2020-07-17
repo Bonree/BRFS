@@ -4,6 +4,7 @@ import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,18 +13,22 @@ public class TaskModel {
     /**
      * 任务类型taskType
      */
+    @JsonProperty("taskType")
     private int taskType;
     /**
      * 任务状态，TaskStat
      */
+    @JsonProperty("taskState")
     private int taskState;
     /**
      * 任务创建时间
      */
+    @JsonProperty("createTime")
     private String createTime;
     /**
      * sn执行最小单元
      */
+    @JsonProperty("atomList")
     private List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
 
     public static TaskModel getInitInstance(TaskType taskType) {

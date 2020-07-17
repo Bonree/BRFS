@@ -1,6 +1,8 @@
 package com.bonree.brfs.schedulers.task.model;
 
 import com.bonree.brfs.common.task.TaskState;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +16,19 @@ import java.util.List;
  * @Description: 任务服务节点
  *****************************************************************************
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskServerNodeModel {
+    @JsonProperty("taskStartTime")
     private String taskStartTime;
+    @JsonProperty("taskStopTime")
     private String taskStopTime;
+    @JsonProperty("taskState")
     private int taskState = TaskState.INIT.code();
+    @JsonProperty("retryCount")
     private int retryCount = 0;
+    @JsonProperty("atomTaskModels")
     private List<AtomTaskModel> atomTaskModels = new ArrayList<AtomTaskModel>();
+    @JsonProperty("result")
     private TaskResultModel result;
 
     public TaskResultModel getResult() {
