@@ -2,19 +2,27 @@ package com.bonree.brfs.schedulers.task.model;
 
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AtomTaskResultModel {
+    @JsonProperty("sn")
     private String sn;
+    @JsonProperty("dataStartTime")
     private String dataStartTime;
+    @JsonProperty("dataStopTime")
     private String dataStopTime;
+    @JsonProperty("partNum")
     private int partNum;
+    @JsonProperty("isSuccess")
     private boolean isSuccess = true;
-
+    @JsonProperty("files")
     private List<String> files = new ArrayList<>();
+    @JsonProperty("operationFileCount")
     private int operationFileCount = 0;
+    @JsonProperty("message")
     private String message;
 
     public static AtomTaskResultModel getInstance(List<String> files, String snName, long startTime, long endTime, String message,
