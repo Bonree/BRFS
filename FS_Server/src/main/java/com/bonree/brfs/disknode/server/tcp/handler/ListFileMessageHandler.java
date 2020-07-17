@@ -19,11 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ListFileMessageHandler implements MessageHandler<BaseResponse> {
-    private static final Logger LOG = LoggerFactory.getLogger(ListFileMessageHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ListFileMessageHandler.class);
     //TODO : 二期优化副本数校验任务，希望只返回与brfs文件系统有关的文件及目录
-    private DiskContext context;
-
-    private LinkedList<FileInfo> fileList = new LinkedList<FileInfo>();
+    private final DiskContext context;
 
     public ListFileMessageHandler(DiskContext context) {
         this.context = context;
@@ -57,25 +55,27 @@ public class ListFileMessageHandler implements MessageHandler<BaseResponse> {
                 return;
             }
 
+            LinkedList<FileInfo> fileList = new LinkedList<>();
+
             FileInfo dirInfo = new FileInfo();
             dirInfo.setLevel(0);
             dirInfo.setType(FileInfo.TYPE_DIR);
             dirInfo.setPath(dirPath);
             fileList.addLast(dirInfo);
 
-            ArrayList<FileInfo> fileInfoList = new ArrayList<FileInfo>();
-            traverse(message.getLevel(), fileInfoList);
+            ArrayList<FileInfo> fileInfoList = new ArrayList<>();
+            traverse(fileList, message.getLevel(), fileInfoList);
 
             BaseResponse response = new BaseResponse(ResponseCode.OK);
             response.setBody(JsonUtils.toJsonBytes(fileInfoList));
             writer.write(response);
         } catch (Exception e) {
-            LOG.error("list dir[{}] error", dirPath, e);
+            log.error("list dir[{}] error", dirPath, e);
             writer.write(new BaseResponse(ResponseCode.ERROR));
         }
     }
 
-    private void traverse(int level, ArrayList<FileInfo> fileInfoList) {
+    private void traverse(LinkedList<FileInfo> fileList, int level, ArrayList<FileInfo> fileInfoList) {
         while (!fileList.isEmpty()) {
             FileInfo fileInfo = fileList.remove();
 
