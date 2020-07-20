@@ -118,6 +118,9 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         }
         File file = new File(path);
         try {
+            if (!file.exists() && !file.getParentFile().exists()) {
+                FileUtils.forceMkdir(file.getParentFile());
+            }
             FileUtils.writeByteArrayToFile(file, data, false);
         } catch (IOException e) {
             LOG.error("save happen error content: {}", data == null ? "" : new String(data), e);

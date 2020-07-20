@@ -2,11 +2,12 @@ package com.bonree.brfs.gui.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
-import com.google.inject.Inject;
+import com.google.common.base.Strings;
+import java.io.File;
 
 public class GuiResourceConfig {
     @JsonProperty("dir")
-    private String guiDir = "gui";
+    private String guiDir = System.getProperty("brfs.home") + "/gui";
     @JsonProperty("interval.seconds")
     private int intervalTime = 60;
     @JsonProperty("ttl.seconds")
@@ -22,7 +23,18 @@ public class GuiResourceConfig {
     }
 
     public void setGuiDir(String guiDir) {
-        this.guiDir = guiDir;
+        String brfsHome = System.getProperty("brfs.home");
+        if (Strings.isNullOrEmpty(brfsHome) || guiDir.startsWith("/")) {
+            this.guiDir = guiDir;
+        } else if (guiDir.startsWith("./")) {
+            int subIndex = guiDir.indexOf("./") + 2;
+            this.guiDir = brfsHome + File.separator + guiDir.substring(subIndex);
+        } else if (guiDir.startsWith("../")) {
+            int subIndex = guiDir.indexOf("../") + 3;
+            this.guiDir = brfsHome + File.separator + guiDir.substring(subIndex);
+        } else {
+            this.guiDir = guiDir;
+        }
     }
 
     public int getIntervalTime() {
