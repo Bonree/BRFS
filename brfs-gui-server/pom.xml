@@ -132,7 +132,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <appendAssemblyId>true</appendAssemblyId>
+                            <appendAssemblyId>false</appendAssemblyId>
                             <descriptorRefs>
                                 <descriptorRef>brfs-plugin</descriptorRef>
                             </descriptorRefs>
