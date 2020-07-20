@@ -7,7 +7,7 @@ import java.io.File;
 
 public class GuiResourceConfig {
     @JsonProperty("dir")
-    private String guiDir = System.getProperty("brfs.home") + "/gui";
+    private String guiDir = System.getProperty("brfs.home") + "/guiData";
     @JsonProperty("interval.seconds")
     private int intervalTime = 60;
     @JsonProperty("ttl.seconds")
@@ -23,18 +23,7 @@ public class GuiResourceConfig {
     }
 
     public void setGuiDir(String guiDir) {
-        String brfsHome = System.getProperty("brfs.home");
-        if (Strings.isNullOrEmpty(brfsHome) || guiDir.startsWith("/")) {
-            this.guiDir = guiDir;
-        } else if (guiDir.startsWith("./")) {
-            int subIndex = guiDir.indexOf("./") + 2;
-            this.guiDir = brfsHome + File.separator + guiDir.substring(subIndex);
-        } else if (guiDir.startsWith("../")) {
-            int subIndex = guiDir.indexOf("../") + 3;
-            this.guiDir = brfsHome + File.separator + guiDir.substring(subIndex);
-        } else {
-            this.guiDir = guiDir;
-        }
+        this.guiDir = guiDir;
     }
 
     public int getIntervalTime() {

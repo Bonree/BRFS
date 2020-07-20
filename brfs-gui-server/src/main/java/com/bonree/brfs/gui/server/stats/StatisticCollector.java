@@ -203,7 +203,7 @@ public class StatisticCollector implements LifeCycle {
                         String srName = readCountModel.getSrName();
                         // statisticFlusher.flush(srName, );
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOG.error("flush error");
                     }
                 }
 
