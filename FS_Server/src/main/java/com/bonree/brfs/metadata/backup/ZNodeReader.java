@@ -52,6 +52,11 @@ public class ZNodeReader implements Runnable {
             String path = znode.getAbsolutePath();
             LOG.debug("Reading node [{}]", path);
 
+            Stat exists = zk.exists(path, false);
+            if (exists == null) {
+                return;
+            }
+
             byte[] data = zk.getData(path, false, stat);
             if (stat.getEphemeralOwner() != 0) {
                 znode.setEphemeral(true);
