@@ -43,7 +43,6 @@ public class StatisticFlusher implements LifeCycle {
     @Inject
     public StatisticFlusher(StatConfigs configs) {
         this.basePath = configs.getBaseDir();
-        System.out.println("222" + basePath);
         this.intervalTime = configs.getScanIntervalTime();
         this.ttlTime = configs.getTtlTime();
 
@@ -261,14 +260,14 @@ public class StatisticFlusher implements LifeCycle {
                     Collection<File> sumLoss = new ArrayList<>();
                     for (File file : childs) {
                         Collection<File> loss = StatisticFlusher.this.collectTTLFile(file, time);
-                        if (loss != null && !loss.isEmpty()) {
+                        if (!loss.isEmpty()) {
                             sumLoss.addAll(loss);
                         }
                     }
-                    if (sumLoss != null && !sumLoss.isEmpty() && start) {
-                        sumLoss.stream().forEach(FileUtils::deleteQuietly);
+                    if (!sumLoss.isEmpty() && start) {
+                        sumLoss.forEach(FileUtils::deleteQuietly);
                     }
-                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
+                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss.size());
                 });
             }
         }, 0, intervalTime, TimeUnit.SECONDS);
@@ -289,19 +288,24 @@ public class StatisticFlusher implements LifeCycle {
             fileName = new StringBuilder(this.basePath)
                 .append(File.separator)
                 .append(READ_DIR)
-                .append(File.separator)
-                .append(curDay)
-                .append(".rd")
                 .toString();
         } else {
             fileName = new StringBuilder(this.basePath)
                 .append(File.separator)
                 .append(WRITE_DIR)
-                .append(File.separator)
-                .append(curDay)
-                .append(".rd")
                 .toString();
         }
+        File dir = new File(fileName);
+        if (!dir.isDirectory()) {
+            dir.deleteOnExit();
+            dir.mkdirs();
+        }
+        fileName = new StringBuilder(fileName)
+            .append(File.separator)
+            .append(curDay)
+            .append(".rd")
+            .toString();
+
         String content = new StringBuilder()
             .append(currentStartTime)
             .append(SPACE_SEPARATOR)

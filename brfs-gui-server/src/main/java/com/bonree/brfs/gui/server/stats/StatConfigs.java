@@ -6,7 +6,7 @@ public class StatConfigs {
     @JsonProperty("seed.uri")
     private String seedUri;
     @JsonProperty("base.dir")
-    private String baseDir = "stat";
+    private String baseDir = System.getProperty("BRFS_HOME") + "/guiData/stat";
     @JsonProperty("interval.seconds")
     private int intervalTime = 60;
     @JsonProperty("ttl.seconds")
