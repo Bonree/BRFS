@@ -7,6 +7,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -135,6 +136,51 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             fids.add(fid);
         }
         return fids;
+    }
+
+    @Override
+    public List<String> getFileNamesByDir(String srName, String dir) {
+        if (!validPath(dir)) {
+            throw new NotFoundException();
+        }
+
+        LinkedList<String> fileNames = new LinkedList<>();
+        if ("/".equals(dir)) {
+            dir = "";
+        }
+
+        byte[] prefixQueryKey = Bytes.byteMerge(dir.getBytes(), "//".getBytes());
+        Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
+        if (map == null) {
+            LOG.error("dir [{}] is not found.", dir);
+            throw new NotFoundException();
+        }
+
+        for (byte[] k : map.keySet()) {
+            String key = new String(k);
+            //去掉自己
+            if (Arrays.equals(prefixQueryKey, k)) {
+                continue;
+            }
+
+            if (key.equals("//")) {
+                continue;
+            }
+            String nodeName = getLastNodeNameWithOutSep(key);
+            byte[] value = map.get(k);
+            if (null == value) {
+                String resp = "the path[" + dir + "]'child[" + nodeName + "] is not store correctly";
+                LOG.error(resp);
+                throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
+            }
+
+            if ("0".equals(new String(value))) {
+                continue;
+            }
+
+            fileNames.add(nodeName);
+        }
+        return fileNames;
     }
 
     @Override
