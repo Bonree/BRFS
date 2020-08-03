@@ -7,6 +7,8 @@ public interface BrfsCatalog {
 
     List<String> getFidsByDir(String srName, String path);
 
+    List<String> getFileNamesByDir(String srName, String dir);
+
     List<Inode> list(String srName, String path, int pageNo, int pageSize);
 
     boolean isFileNode(String srName, String path);

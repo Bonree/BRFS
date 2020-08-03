@@ -588,31 +588,19 @@ public class BRFSClient implements BRFS {
         return object;
     }
 
-    public List<BRFSObject> getObjects(GetObjectsRequest request) throws Exception {
-        return getFidListFromDir(request.getSrName(), request.getFilePath())
-            .stream()
-            .map(fid -> {
-                try {
-                    return getObject(request.getSrName(), fid, null);
-                } catch (Exception e) {
-                    throw new ClientException(e, "get file content error by fid[%s]", fid);
-                }
-            })
-            .collect(toImmutableList());
-    }
-
-    private List<String> getFidListFromDir(String srName, BRFSPath dirPath) {
-        return Retrys.execute(new URIRetryable<List<String>>(
-            format("get fids from dir[%s] in [%s]", dirPath, srName),
+    @Override
+    public List<String> getFileListFromDir(String srName, BRFSPath dirPath) throws Exception {
+        return Retrys.execute(new URIRetryable<>(
+            format("get file names from dir[%s] in [%s]", dirPath, srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
                 Request httpRequest = new Request.Builder()
                     .url(HttpUrl.get(uri)
-                                .newBuilder()
-                                .encodedPath("/catalog/getFidsByDir")
-                                .addQueryParameter("srName", srName)
-                                .addQueryParameter("dir", dirPath.getPath())
-                                .build())
+                             .newBuilder()
+                             .encodedPath("/catalog/fileNames")
+                             .addQueryParameter("srName", srName)
+                             .addQueryParameter("dirName", dirPath.getPath())
+                             .build())
                     .get()
                     .build();
 
@@ -639,6 +627,60 @@ public class BRFSClient implements BRFS {
                     return TaskResult.retry(e);
                 }
             }));
+    }
+
+    private List<String> getFidListFromDir(String srName, BRFSPath dirPath) {
+        return Retrys.execute(new URIRetryable<List<String>>(
+            format("get fids from dir[%s] in [%s]", dirPath, srName),
+            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            uri -> {
+                Request httpRequest = new Request.Builder()
+                    .url(HttpUrl.get(uri)
+                             .newBuilder()
+                             .encodedPath("/catalog/getFidsByDir")
+                             .addQueryParameter("srName", srName)
+                             .addQueryParameter("dir", dirPath.getPath())
+                             .build())
+                    .get()
+                    .build();
+
+                try {
+                    Response response = httpClient.newCall(httpRequest).execute();
+                    ResponseBody body = response.body();
+                    if (response.code() != HttpStatus.CODE_OK) {
+                        String errorMsg = "Unkown server error";
+                        if (body != null) {
+                            errorMsg = body.string();
+                        }
+
+                        return TaskResult
+                            .fail(new IllegalStateException(format("Server error[%d]: %s", response.code(), errorMsg)));
+                    }
+
+                    if (body == null) {
+                        return TaskResult.fail(new IllegalStateException(format("No content is returned")));
+                    }
+
+                    return TaskResult.success(codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {
+                    }));
+                } catch (IOException e) {
+                    return TaskResult.retry(e);
+                }
+            }));
+    }
+
+    @Override
+    public List<BRFSObject> getObjects(GetObjectsRequest request) throws Exception {
+        return getFidListFromDir(request.getSrName(), request.getFilePath())
+            .stream()
+            .map(fid -> {
+                try {
+                    return getObject(request.getSrName(), fid, null);
+                } catch (Exception e) {
+                    throw new ClientException(e, "get file content error by fid[%s]", fid);
+                }
+            })
+            .collect(toImmutableList());
     }
 
     private BRFSObject getObject(String srName, String fid, Range range) throws Exception {
