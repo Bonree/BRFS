@@ -33,7 +33,7 @@ public class LocalByteStreamConsumer implements ByteConsumer {
         try {
             this.byteStream.write(bytes);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("write happen error! data[{}]", new String(bytes), e);
         }
         if (endOfConsume) {
             wirteLocalFileData(this.byteStream.toByteArray());

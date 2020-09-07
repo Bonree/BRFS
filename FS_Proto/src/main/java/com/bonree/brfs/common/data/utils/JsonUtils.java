@@ -11,7 +11,8 @@ package com.bonree.brfs.common.data.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Json与Java对象之间的转换工具类
@@ -19,13 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author chen
  */
 public final class JsonUtils {
+    private static Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
     private static ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Java对象转换为Json字符串
      *
      * @param obj
+     *
      * @return
+     *
      * @throws JsonException
      */
     public static <T> String toJsonString(T obj) throws JsonException {
@@ -40,7 +44,7 @@ public final class JsonUtils {
         try {
             return mapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            //
         }
 
         return null;
@@ -51,6 +55,7 @@ public final class JsonUtils {
      *
      * @param jsonString
      * @param cls
+     *
      * @return
      */
     public static <T> T toObject(String jsonString, Class<T> cls) throws JsonException {
@@ -65,7 +70,7 @@ public final class JsonUtils {
         try {
             return mapper.readValue(jsonString, cls);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("json [{}] build error", jsonString, e);
         }
 
         return null;
@@ -75,7 +80,9 @@ public final class JsonUtils {
      * 把Java对象转化为Json形式的字节数组
      *
      * @param obj
+     *
      * @return
+     *
      * @throws JsonException
      */
     public static <T> byte[] toJsonBytes(T obj) throws JsonException {
@@ -90,7 +97,7 @@ public final class JsonUtils {
         try {
             return mapper.writeValueAsBytes(obj);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOG.debug("json build error", e);
         }
 
         return null;
@@ -101,7 +108,9 @@ public final class JsonUtils {
      *
      * @param jsonBytes
      * @param cls
+     *
      * @return
+     *
      * @throws JsonException
      */
     public static <T> T toObject(byte[] jsonBytes, Class<T> cls) throws JsonException {
@@ -116,7 +125,7 @@ public final class JsonUtils {
         try {
             return mapper.readValue(jsonBytes, cls);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("json [{}] build error", new String(jsonBytes), e);
         }
 
         return null;
@@ -127,7 +136,9 @@ public final class JsonUtils {
      *
      * @param jsonBytes
      * @param ref
+     *
      * @return
+     *
      * @throws JsonException
      */
     public static <T> T toObject(byte[] jsonBytes, TypeReference<T> ref) throws JsonException {

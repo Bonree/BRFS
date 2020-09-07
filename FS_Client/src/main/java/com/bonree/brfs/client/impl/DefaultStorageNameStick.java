@@ -186,7 +186,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("read fid {} happen error ", fid, e);
         }
 
         return null;

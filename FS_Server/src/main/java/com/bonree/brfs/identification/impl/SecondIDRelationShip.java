@@ -89,7 +89,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                 }
                 Thread.sleep(50);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get secondid happen error first{}[{}]", serverId, storageRegionId, e);
             }
         }
         return secondIds;
@@ -108,7 +108,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                     return secondId;
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get secondid happen error first{}[{}]", partitionId, storageRegionId, e);
             }
         }
     }
@@ -127,7 +127,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                 }
                 Thread.sleep(50);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get first happen error first{}[{}]", secondId, storageRegionId, e);
             }
         }
     }
@@ -143,7 +143,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                 }
                 Thread.sleep(50);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get partition happen error first{}[{}]", secondId, storageRegionId, e);
             }
         }
     }

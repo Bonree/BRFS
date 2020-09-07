@@ -8,8 +8,11 @@ import java.util.concurrent.ExecutionException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TimeUtils {
+    private static Logger LOG = LoggerFactory.getLogger(TimeUtils.class);
     private static final String TIME_FORMAT = "yyyy-MM-dd'T'HH-mm-ss";
     public static final String TIME_MILES_FORMATE = "yyyy-MM-dd HH:mm:ss.SSS";
 
@@ -66,7 +69,7 @@ public final class TimeUtils {
             DateTimeFormatter format = DateTimeFormat.forPattern(timeFormate);
             time = new DateTime().parse(timeStr, format).getMillis();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("find invalid time formate! time:{},formate:{}", timeStr, timeFormate, e);
         }
         return time;
     }

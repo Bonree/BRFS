@@ -131,7 +131,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
                         try {
                             Thread.sleep(300);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            LOG.debug("sleep thread 300ms interrupted", e);
                         }
                     }
                 }

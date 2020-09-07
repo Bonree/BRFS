@@ -13,7 +13,6 @@ import java.io.UnsupportedEncodingException;
  * ****************************************************************************
  */
 public class FSCode {
-
     private static final String hexStr = "0123456789ABCDEF";
 
     public static final byte[] start = {(byte) 0xAC};
@@ -24,7 +23,9 @@ public class FSCode {
      *
      * @param size   数字
      * @param length 转换后byte数组的长度
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] longToByte(long value, int length) {
@@ -49,7 +50,9 @@ public class FSCode {
      * 概述：byte数组转换long数字
      *
      * @param bytes
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long byteToLong(byte[] bytes) {
@@ -62,7 +65,9 @@ public class FSCode {
      * @param bytes  源字节数组
      * @param pos    从源字节数组里取数据的开始位置
      * @param length 从源字节数组里读取字节的长度
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long byteToLong(byte[] bytes, int pos, int length) {
@@ -90,7 +95,9 @@ public class FSCode {
      * 概述：byte转16进制
      *
      * @param bytes
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static String byteToHex(byte[] bytes) {
@@ -103,7 +110,9 @@ public class FSCode {
      * @param bytes  源字节数组
      * @param pos    从源字节数组里取数据的开始位置
      * @param length 从源字节数组里读取字节的长度
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static String byteToHex(byte[] bytes, int pos, int length) {
@@ -122,7 +131,9 @@ public class FSCode {
      * 概述：16进制转byte
      *
      * @param hexString
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] hexToByte(String hexString) {
@@ -146,7 +157,9 @@ public class FSCode {
      *
      * @param value  要编码的数字
      * @param length moreflag后面可以表示其长度的位数(如编码后超过一个字节,那么从第二个字节开始moreflag就在高位上)
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] moreFlagEncoder(long value, int length) {
@@ -177,7 +190,9 @@ public class FSCode {
      *
      * @param bytes  要解码的数字字节数组
      * @param length moreflag后面可以表示其长度的位数(如编码后超过一个字节,那么从第二个字节开始moreflag就在高位上)
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long moreFlagDecoder(byte[] bytes, int length) {
@@ -190,7 +205,9 @@ public class FSCode {
      * @param bytes  要解码的数字字节数组
      * @param length moreflag后面可以表示其长度的位数(如编码后超过一个字节,那么从第二个字节开始moreflag就在高位上)
      * @param pos    字节数组开始的位置
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long moreFlagDecoder(byte[] bytes, int length, int pos) {
@@ -218,7 +235,9 @@ public class FSCode {
      *
      * @param value  moreFlag存储的数值
      * @param length moreflag后面可以表示其长度的位数
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static int moreFlagLength(long value, int length) {
@@ -236,7 +255,9 @@ public class FSCode {
      * 概述：合并数组
      *
      * @param src 待合并的数组集合
+     *
      * @return
+     *
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
@@ -266,7 +287,9 @@ public class FSCode {
      * @param src   源字节数组
      * @param pos   截取的开始位置
      * @param count 截取的长度
+     *
      * @return
+     *
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] subBytes(byte[] src, int pos, int count) {

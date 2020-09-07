@@ -121,7 +121,7 @@ public class MultiRecover implements DataRecover {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.error("sleep 1s is interrupted", e);
             }
         }
         // 主任务结束，则直接退出
@@ -434,7 +434,7 @@ public class MultiRecover implements DataRecover {
                     }
 
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error("consumer queue thread interrupted ", e);
                 }
             }
         };
@@ -496,7 +496,7 @@ public class MultiRecover implements DataRecover {
             }
         } catch (Exception e) {
             success = false;
-            e.printStackTrace();
+            log.error("copy file {}/{} to {}:{} happen error", localPath, fileName, service.getHost(), remoteDir, e);
         }
         return success;
     }

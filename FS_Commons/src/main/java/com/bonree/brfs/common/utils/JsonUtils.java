@@ -3,6 +3,8 @@ package com.bonree.brfs.common.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Json与Java对象之间的转换工具类
@@ -10,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author chen
  */
 public final class JsonUtils {
+    private static Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
     private static ObjectMapper mapper = new ObjectMapper();
 
     /**
@@ -33,7 +36,7 @@ public final class JsonUtils {
         try {
             return mapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOG.debug("found invalid object to json ", e);
         }
 
         return null;
@@ -59,7 +62,7 @@ public final class JsonUtils {
         try {
             return mapper.readValue(jsonString, cls);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("found invalid json object {}[{}]", jsonString, cls == null ? "empty" : cls.getSimpleName(), e);
         }
 
         return null;
@@ -86,7 +89,7 @@ public final class JsonUtils {
         try {
             return mapper.writeValueAsBytes(obj);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOG.debug("json build error", e);
         }
 
         return null;
@@ -114,7 +117,7 @@ public final class JsonUtils {
         try {
             return mapper.readValue(jsonBytes, cls);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("find invalid json object {}", new String(jsonBytes), e);
         }
 
         return null;
