@@ -34,7 +34,7 @@ public class SingleRouteFactory {
         try {
             normal = JsonUtils.toObject(data, SuperNormalRoute.class);
         } catch (JsonUtils.JsonException e) {
-            throw new IllegalArgumentException("Invalid input !! content: " + new String(data));
+            throw new IllegalArgumentException("Invalid input !! content: " + new String(data), e);
         }
         if (normal == null) {
             throw new IllegalArgumentException("Invalid input !! It's empty !!");

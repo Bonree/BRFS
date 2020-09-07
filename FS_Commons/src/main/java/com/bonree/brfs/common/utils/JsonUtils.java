@@ -109,7 +109,7 @@ public final class JsonUtils {
         try {
             return mapper.readValue(jsonBytes, cls);
         } catch (Exception e) {
-            throw new JsonException("parse json bytes ot object error", e);
+            throw new JsonException("parse json bytes to object error", e);
         }
     }
 
