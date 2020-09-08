@@ -367,15 +367,15 @@ public class FileWriterManager implements LifeCycle {
 
         binding.first().flush();
         byte[] fileBytes = DataFileReader.readFile(filePath, fileFormater.fileHeader().length());
+        long length = fileBytes.length;
         long crcCode = ByteUtils.crc(fileBytes);
         log.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
 
         binding.first().write(Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail()));
         binding.first().flush();
-
         timeoutWheel.remove(filePath);
         CloseUtils.closeQuietly(binding.first());
 
-        return crcCode;
+        return length;
     }
 }
