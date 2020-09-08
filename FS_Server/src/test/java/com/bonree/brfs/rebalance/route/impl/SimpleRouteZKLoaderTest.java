@@ -1,6 +1,7 @@
 package com.bonree.brfs.rebalance.route.impl;
 
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
@@ -8,8 +9,12 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -67,7 +72,6 @@ public class SimpleRouteZKLoaderTest {
             Assert.fail("zookeeper is invaild ! address: " + ZK_ADDRESS);
         }
     }
-
 
     /**
      * 在zookeeper 创建路由规则
@@ -230,6 +234,35 @@ public class SimpleRouteZKLoaderTest {
         SimpleRouteZKLoader loader = new SimpleRouteZKLoader(client, MUL_VERSION_ROUTE_BAS_PATH);
         Collection<VirtualRoute> list = loader.loadVirtualRoutes(SR_ID);
         Assert.assertNotNull(list);
+    }
+
+    @Test
+    public void filterInvalidVirtualTest() {
+        List<VirtualRoute> list = new ArrayList<>();
+        Set<String> onceVirtuals = new HashSet<>();
+        VirtualRoute virtual1 = new VirtualRoute("1", 0, "29", "21", TaskVersion.V1);
+        VirtualRoute virtual2 = new VirtualRoute("2", 0, "30", "21", TaskVersion.V1);
+        VirtualRoute virtual3 = new VirtualRoute("3", 0, "30", "21", TaskVersion.V1);
+        list.add(virtual1);
+        list.add(virtual2);
+        list.add(virtual3);
+        onceVirtuals.add(virtual1.getVirtualID());
+        onceVirtuals.add(virtual2.getVirtualID());
+        onceVirtuals.add(virtual3.getVirtualID());
+        List<VirtualRoute> results = new ArrayList<>();
+        list.sort(new Comparator<VirtualRoute>() {
+            @Override
+            public int compare(VirtualRoute o1, VirtualRoute o2) {
+                return o1.getChangeID().compareTo(o2.getChangeID());
+            }
+        });
+        for (VirtualRoute route : list) {
+            if (onceVirtuals.contains(route.getVirtualID())) {
+                onceVirtuals.remove(route.getVirtualID());
+                results.add(route);
+            }
+        }
+        System.out.println(JsonUtils.toJsonStringQuietly(results));
     }
 
     @After
