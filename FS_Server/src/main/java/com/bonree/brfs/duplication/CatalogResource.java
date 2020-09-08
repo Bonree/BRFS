@@ -108,4 +108,11 @@ public class CatalogResource {
         @QueryParam("dir") String dir) {
         return catalog.getFidsByDir(srName, dir);
     }
+
+    @GET
+    @Path("fileNames")
+    public List<String> getFileNamesByDir(@QueryParam("srName") String srName,
+                                          @QueryParam("dirName") String dirName) {
+        return catalog.getFileNamesByDir(srName, dirName);
+    }
 }

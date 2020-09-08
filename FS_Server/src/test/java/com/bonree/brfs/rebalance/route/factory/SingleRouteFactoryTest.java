@@ -10,6 +10,9 @@ package com.bonree.brfs.rebalance.route.factory;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
+import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
+import com.bonree.brfs.common.utils.JsonUtils;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
@@ -124,5 +127,21 @@ public class SingleRouteFactoryTest {
     public void deserializeVirtualRoute() throws Exception {
         byte[] data = readBytesFromFile(virtualFile);
         SingleRouteFactory.createVirtualRoute(data);
+    }
+
+    @Test
+    public void deserializeRouteCase() throws Exception {
+        String content =
+            "{\n"
+                + "\"changeID\": \"15822594190b2e25e4-f7d3-45aa-a323-4f47f93cacd3\",\n"
+                + "\"storageIndex\": 1,\n"
+                + "\"secondID\": \"23\",\n"
+                + "\"newSecondIDs\": [\n"
+                + "  \"25\",\n"
+                + "  \"24\"\n"
+                + "],\n"
+                + "\"version\": \"V1\""
+                + "}";
+        JsonUtils.toObject(content, SuperNormalRoute.class);
     }
 }

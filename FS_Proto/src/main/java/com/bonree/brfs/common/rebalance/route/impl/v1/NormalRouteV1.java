@@ -20,6 +20,7 @@ import java.util.Map;
 
 public class NormalRouteV1 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V1;
+    @JsonProperty("newSecondIDs")
     private List<String> newSecondIDs;
     @JsonIgnore
     private Map<String, Integer> routes;
@@ -33,6 +34,7 @@ public class NormalRouteV1 extends SuperNormalRoute {
         super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
         routes = new HashMap<>();
+        this.secondFirstShip = new HashMap<>();
         for (String id : this.newSecondIDs) {
             routes.put(id, 1);
             secondFirstShip.put(id, id);
@@ -60,10 +62,12 @@ public class NormalRouteV1 extends SuperNormalRoute {
         return secondFirstShip;
     }
 
+    @JsonProperty("newSecondIDs")
     public List<String> getNewSecondIDs() {
         return newSecondIDs;
     }
 
+    @JsonProperty("newSecondIDs")
     public void setNewSecondIDs(List<String> newSecondIDs) {
         this.newSecondIDs = newSecondIDs;
     }

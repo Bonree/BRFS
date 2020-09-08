@@ -107,7 +107,7 @@ public class VirtualRecover implements DataRecover {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("sleep 1s interrupted ", e);
             }
         }
         // 注册节点
@@ -340,7 +340,7 @@ public class VirtualRecover implements DataRecover {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.error("consumer virtual queue happen error ", e);
                 }
             }
         };
@@ -355,7 +355,7 @@ public class VirtualRecover implements DataRecover {
             }
         } catch (Exception e) {
             success = false;
-            e.printStackTrace();
+            LOG.error("copy file {}/{} to {}:{} happen error", localPath, fileName, service.getHost(), remoteDir, e);
         }
         return success;
     }
@@ -398,7 +398,7 @@ public class VirtualRecover implements DataRecover {
                 detail = JsonUtils.toObject(data, TaskDetail.class);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("registernode {} happen error", node, e);
         }
 
         return detail;

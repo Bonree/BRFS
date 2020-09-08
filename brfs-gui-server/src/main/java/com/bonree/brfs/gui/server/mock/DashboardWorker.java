@@ -432,7 +432,7 @@ public class DashboardWorker {
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        LOG.debug("thread sleep 300ms interrupted", e);
                     }
                 }
             }

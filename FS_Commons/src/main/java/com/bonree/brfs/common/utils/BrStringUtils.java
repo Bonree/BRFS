@@ -5,9 +5,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BrStringUtils {
-
+    private static Logger LOG = LoggerFactory.getLogger(BrStringUtils.class);
     private static final char SEPARATOR_DIR = '/';
 
     /**
@@ -65,7 +67,7 @@ public class BrStringUtils {
         try {
             return s.getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            LOG.debug("find unsupported encode error {}", s, e);
         }
 
         return new byte[0];
@@ -83,7 +85,7 @@ public class BrStringUtils {
             try {
                 return new String(bytes, "UTF-8");
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                LOG.debug("find unsupported encode error {}", new String(bytes), e);
             }
         }
 
@@ -234,17 +236,17 @@ public class BrStringUtils {
         try {
             instance = cls.getConstructor(String.class).newInstance(numStr);
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            LOG.debug("find invalid number string {}", numStr, e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            LOG.debug("find invalid number string {}", numStr, e);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            LOG.debug("find invalid number string {}", numStr, e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            LOG.debug("find invalid number string {}", numStr, e);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            LOG.debug("find invalid number string {}", numStr, e);
         } catch (SecurityException e) {
-            e.printStackTrace();
+            LOG.debug("find invalid number string {}", numStr, e);
         }
         if (instance == null) {
             throw new NumberFormatException("parse number numStr fail!!");

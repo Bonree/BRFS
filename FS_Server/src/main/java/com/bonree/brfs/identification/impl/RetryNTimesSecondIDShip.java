@@ -97,7 +97,7 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
                 }
                 Thread.sleep(time);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get secondId hapeen error ", e);
             }
         }
         return secondIds;
@@ -136,7 +136,7 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
                 }
                 Thread.sleep(time);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get firstid happen error! secondId {}[{}]", secondId, storageRegionId, e);
             }
         }
         return null;
@@ -153,7 +153,7 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
                 }
                 Thread.sleep(time);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get partition happen error! secondId {}[{}]", secondId, storageRegionId, e);
             }
         }
         return null;

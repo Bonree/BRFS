@@ -23,6 +23,7 @@ import java.util.function.BiConsumer;
 @JsonIgnoreProperties("routes")
 public class NormalRouteV2 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V2;
+    @JsonProperty("newSecondIDs")
     private Map<String, Integer> newSecondIDs;
     @JsonProperty("secondFirstShip")
     private Map<String, String> secondToFirstShip;
@@ -58,10 +59,12 @@ public class NormalRouteV2 extends SuperNormalRoute {
         this.firstSecondsSetShip = cache;
     }
 
+    @JsonProperty("newSecondIDs")
     public Map<String, Integer> getNewSecondIDs() {
         return newSecondIDs;
     }
 
+    @JsonProperty("newSecondIDs")
     public void setNewSecondIDs(Map<String, Integer> newSecondIDs) {
         this.newSecondIDs = newSecondIDs;
     }
@@ -90,6 +93,16 @@ public class NormalRouteV2 extends SuperNormalRoute {
     @Override
     public Map<String, String> getSecondFirst() {
         return this.secondToFirstShip;
+    }
+
+    @JsonProperty("secondFirstShip")
+    public Map<String, String> getSecondToFirstShip() {
+        return secondToFirstShip;
+    }
+
+    @JsonProperty("secondFirstShip")
+    public void setSecondToFirstShip(Map<String, String> secondToFirstShip) {
+        this.secondToFirstShip = secondToFirstShip;
     }
 
     /**

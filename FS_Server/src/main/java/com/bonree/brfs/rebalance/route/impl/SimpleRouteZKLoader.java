@@ -8,9 +8,15 @@ import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -21,6 +27,7 @@ import org.apache.curator.framework.CuratorFramework;
  ******************************************************************************/
 
 public class SimpleRouteZKLoader implements RouteLoader {
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleRouteZKLoader.class);
     private String basePath = null;
     private CuratorFramework client = null;
 
@@ -47,15 +54,37 @@ public class SimpleRouteZKLoader implements RouteLoader {
         if (virtualRoutes == null || virtualRoutes.isEmpty()) {
             return result.build();
         }
-
+        Set<String> onceVirtuals = new HashSet<>();
+        List<VirtualRoute> list = new ArrayList<>();
         for (String virtualNode : virtualRoutes) {
             String dataPath = storageRegionPath + Constants.SEPARATOR + virtualNode;
             byte[] data = client.getData().forPath(dataPath);
             VirtualRoute v = SingleRouteFactory.createVirtualRoute(data);
             if (v != null) {
-                result.add(v);
+                onceVirtuals.add(v.getVirtualID());
+                list.add(v);
+            } else {
+                LOG.debug("virtual [{}] is invalid virtual route", dataPath);
             }
         }
+        // 如果存在长度不一致的情况，说明存在冗余的路由规则，按照变更时间剔除最晚变更的路由
+        if (onceVirtuals.size() < list.size()) {
+            list.sort(new Comparator<VirtualRoute>() {
+                @Override
+                public int compare(VirtualRoute o1, VirtualRoute o2) {
+                    return o1.getChangeID().compareTo(o2.getChangeID());
+                }
+            });
+            for (VirtualRoute route : list) {
+                if (onceVirtuals.contains(route.getVirtualID())) {
+                    onceVirtuals.remove(route.getVirtualID());
+                    result.add(route);
+                }
+            }
+        } else {
+            result.addAll(list);
+        }
+
         return result.build();
     }
 

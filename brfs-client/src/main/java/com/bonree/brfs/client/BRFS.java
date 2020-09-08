@@ -56,6 +56,8 @@ public interface BRFS {
 
     BRFSObject getObject(GetObjectRequest request) throws Exception;
 
+    List<String> getFileListFromDir(String srName, BRFSPath dirPath) throws Exception;
+
     List<BRFSObject> getObjects(GetObjectsRequest request) throws Exception;
 
     void getObject(GetObjectRequest request, File outputFile) throws Exception;

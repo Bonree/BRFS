@@ -398,8 +398,12 @@ public class TaskDispatcher implements Closeable {
                                 ZKPaths.makePath(virtualRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
                                                                   bts.getInputServers().get(0), TaskVersion.V1);
-                            LOG.debug("add virtual route: {}", route);
-                            addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
+                            // 增加路由规则检查，若发现路由规则已发布，则取消此次发布
+                            BlockAnalyzer analyzer = routeCache.getBlockAnalyzer(route.getStorageIndex());
+                            if (!analyzer.isRoute(route.getVirtualID())) {
+                                LOG.debug("add virtual route: {}", route);
+                                addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
+                            }
                             // 删除virtual server ID
                             LOG.debug("delete the virtual server id: {}", bts.getServerId());
                             idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
@@ -457,8 +461,17 @@ public class TaskDispatcher implements Closeable {
             return;
         }
         BalanceTaskSummary bts = JsonUtils.toObjectQuietly(client.getData().forPath(parentPath), BalanceTaskSummary.class);
-
-        // 所有的服务都则发布迁移规则，并清理任务
+        // 若任务内容获取为空，则说明zk的任务已完成或者取消，内存不应该保留相关信息
+        if (bts == null) {
+            LOG.warn("task node is empty {}", parentPath);
+            // 删除zk上的任务节点
+            if (delBalanceTask(taskSummary)) {
+                // 清理task缓存
+                removeRunTask(taskSummary.getStorageIndex());
+            }
+            return;
+        }
+        // 所有的服务都完成，则发布迁移规则，并清理任务
         if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
             if (bts.getTaskType() == RecoverType.VIRTUAL) {
                 LOG.debug("one virtual task finish, detail: {}", taskSummary);

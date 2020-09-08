@@ -12,8 +12,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConnectionPool {
+    private static Logger LOG = LoggerFactory.getLogger(ConnectionPool.class);
     private TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group;
     private int connectionPerRoute;
     private ConcurrentHashMap<String, TcpClient<ReadObject, FileContentPart>[]> clientCache;
@@ -89,7 +92,7 @@ public class ConnectionPool {
                 clients[index] = client;
                 return client;
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.debug("get connection from {} happen error", service.getHost(), e);
             }
         }
 

@@ -119,7 +119,6 @@ public class StatReportor {
             }
         } catch (IOException e) {
             LOG.error("error when collect stat from data center!");
-            e.printStackTrace();
         }
     }
 

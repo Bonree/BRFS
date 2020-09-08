@@ -32,18 +32,22 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
     /**
      * 变更ID
      */
+    @JsonProperty("changeID")
     protected String changeID;
     /**
      * storageregion 的id
      */
+    @JsonProperty("storageIndex")
     protected int storageIndex;
     /**
      * 二级serverid
      */
+    @JsonProperty("secondID")
     protected String secondID;
     /**
      * 系统版本
      */
+    @JsonProperty("version")
     protected TaskVersion version;
 
     @JsonCreator
@@ -106,34 +110,42 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
         return selectors;
     }
 
+    @JsonProperty("changeID")
     public String getChangeID() {
         return changeID;
     }
 
+    @JsonProperty("changeID")
     public void setChangeID(String changeID) {
         this.changeID = changeID;
     }
 
+    @JsonProperty("storageIndex")
     public int getStorageIndex() {
         return storageIndex;
     }
 
+    @JsonProperty("storageIndex")
     public void setStorageIndex(int storageIndex) {
         this.storageIndex = storageIndex;
     }
 
+    @JsonProperty("secondID")
     public String getSecondID() {
         return secondID;
     }
 
+    @JsonProperty("secondID")
     public void setSecondID(String secondID) {
         this.secondID = secondID;
     }
 
+    @JsonProperty("version")
     public TaskVersion getVersion() {
         return version;
     }
 
+    @JsonProperty("version")
     public void setVersion(TaskVersion version) {
         this.version = version;
     }
