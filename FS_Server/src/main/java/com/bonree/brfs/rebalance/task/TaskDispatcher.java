@@ -461,10 +461,9 @@ public class TaskDispatcher implements Closeable {
             }
         }
         // 删除zk上的任务节点
-        if (gotoHistory(taskSummary)) {
-            // 清理task缓存
-            removeRunTask(taskSummary.getStorageIndex());
-        }
+        gotoHistory(taskSummary);
+        // 清理task缓存
+        removeRunTask(taskSummary.getStorageIndex());
         LOG.warn("rebalance task [{}] is invalid remove to history", taskSummary.getId());
         return true;
     }
@@ -480,16 +479,7 @@ public class TaskDispatcher implements Closeable {
             return;
         }
         BalanceTaskSummary bts = JsonUtils.toObjectQuietly(client.getData().forPath(parentPath), BalanceTaskSummary.class);
-        // 若任务内容获取为空，则说明zk的任务已完成或者取消，内存不应该保留相关信息
-        if (bts == null) {
-            LOG.warn("task node is empty {}", parentPath);
-            // 删除zk上的任务节点
-            if (gotoHistory(taskSummary)) {
-                // 清理task缓存
-                removeRunTask(taskSummary.getStorageIndex());
-            }
-            return;
-        }
+
         // 所有的服务都完成，则发布迁移规则，并清理任务
         if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
             if (bts.getTaskType() == RecoverType.VIRTUAL) {
