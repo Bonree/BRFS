@@ -465,7 +465,7 @@ public class TaskDispatcher implements Closeable {
         if (bts == null) {
             LOG.warn("task node is empty {}", parentPath);
             // 删除zk上的任务节点
-            if (delBalanceTask(taskSummary)) {
+            if (gotoHistory(taskSummary)) {
                 // 清理task缓存
                 removeRunTask(taskSummary.getStorageIndex());
             }
@@ -1148,6 +1148,25 @@ public class TaskDispatcher implements Closeable {
             if (client.checkExists().forPath(taskHistory) != null) {
                 client.delete().deletingChildrenIfNeeded().forPath(taskHistory);
             }
+            client.create().creatingParentsIfNeeded().forPath(taskHistory, data);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean gotoHistory(BalanceTaskSummary task) {
+        LOG.info("delete task: {}", task);
+        String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
+        String taskHistory = ZKPaths.makePath(tasksHistoryPath, String.valueOf(task.getStorageIndex()), task.getChangeID());
+        try {
+            if (client.checkExists().forPath(taskNode) != null) {
+                client.delete().deletingChildrenIfNeeded().forPath(taskNode);
+            }
+            if (client.checkExists().forPath(taskHistory) != null) {
+                client.delete().deletingChildrenIfNeeded().forPath(taskHistory);
+            }
+            byte[] data = JsonUtils.toJsonBytesQuietly(task);
             client.create().creatingParentsIfNeeded().forPath(taskHistory, data);
             return true;
         } catch (Exception e) {

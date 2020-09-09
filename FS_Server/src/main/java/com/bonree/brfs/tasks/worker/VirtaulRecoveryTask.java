@@ -255,18 +255,18 @@ public class VirtaulRecoveryTask implements Runnable {
                     return null;
                 }
                 worker.downloadFiles(virtualMap, local.getDataDir(), 100);
+                // 当任务执行完后，对虚拟serverid进行 二次检查 若已经发布则取消现有路由规则的发布
+                blockAnalyzer = routeCache.getBlockAnalyzer(region.getId());
+                if (blockAnalyzer.isRoute(virtual)) {
+                    result.setMessage("NO");
+                    result.setOperationFileCount(0);
+                    result.setSuccess(true);
+                    LOG.info("storageregion : {} virtual {} is deal by rebalance skip", region.getName(), virtual);
+                    return result;
+                }
             }
             if (taskMonitor.isExecute()) {
                 return null;
-            }
-            // 当任务执行完后，对虚拟serverid进行 二次检查 若已经发布则取消现有路由规则的发布
-            blockAnalyzer = routeCache.getBlockAnalyzer(region.getId());
-            if (blockAnalyzer.isRoute(virtual)) {
-                result.setMessage("NO");
-                result.setOperationFileCount(0);
-                result.setSuccess(true);
-                LOG.info("storageregion : {} virtual {} is deal by rebalance skip", region.getName(), virtual);
-                return result;
             }
             String path = ZKPaths.makePath(zkPaths.getBaseV2RoutePath(), Constants.VIRTUAL_ROUTE, region.getId() + "", uuid);
             client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, JsonUtils.toJsonBytes(route));

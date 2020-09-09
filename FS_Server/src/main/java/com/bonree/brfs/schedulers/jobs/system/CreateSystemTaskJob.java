@@ -114,11 +114,13 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
     public TaskModel createVirtualTask(MetaTaskManagerInterface release, VirtualServerID idsManager,
                                        StorageRegionManager regionManager, ServiceManager serviceManager,
                                        RebalanceTaskMonitor taskMonitor, String group) {
+        // 1.存在副本迁移任务则不创建任务
         if (taskMonitor.isExecute()) {
             return null;
         }
         List<StorageRegion> regions = regionManager.getStorageRegionList();
         List<Service> services = serviceManager.getServiceListByGroup(group);
+        // 2. datanode节点为空不创建任务
         if (services == null || services.isEmpty()) {
             return null;
         }
@@ -127,12 +129,14 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
             LOG.info("servers {} [{}]", servers, services);
             return null;
         }
+        // 3.storageregion 为空不创建任务
         if (regions == null || regions.isEmpty()) {
             return null;
         }
         Map<StorageRegion, List<String>> virtualMap = new HashMap<>();
         for (StorageRegion region : regions) {
             List<String> virtuals = idsManager.listVirtualIds(region.getId());
+            // 4.虚拟serverid为空的不创建
             if (virtuals == null || virtuals.isEmpty()) {
                 continue;
             }
@@ -153,6 +157,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
                 return true;
             }).collect(Collectors.toList());
             LOG.warn("recovery {} : virtuals {}", recoverys, virtuals);
+            // 5.
             if (recoverys.isEmpty()) {
                 continue;
             }
