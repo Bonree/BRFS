@@ -93,11 +93,15 @@ public class LocalDirMaintainer implements PartitionInterface {
 
     @Override
     public String getDataDirByPath(String filePath) {
-        String[] paths = FilePathBuilder.parsePath(filePath);
-        StorageRegion sr = storageRegionManager.findStorageRegionByName(paths[0]);
-        if (sr == null) {
-            throw new IllegalStateException(String.format("no storage region[%s] is found.", paths[0]));
+        try {
+            String[] paths = FilePathBuilder.parsePath(filePath);
+            StorageRegion sr = storageRegionManager.findStorageRegionByName(paths[0]);
+            if (sr == null) {
+                throw new IllegalStateException(String.format("no storage region[%s] is found.", paths[0]));
+            }
+            return getDataDirByFileName(filePath, sr.getId());
+        } catch (Exception e) {
+            throw new IllegalStateException("invalid path [" + filePath + "]", e);
         }
-        return getDataDirByFileName(filePath, sr.getId());
     }
 }
