@@ -450,6 +450,25 @@ public class TaskDispatcher implements Closeable {
         }
     }
 
+    public boolean isInvalidTask(BalanceTaskSummary taskSummary) throws Exception {
+        // task路径
+        String parentPath = ZKPaths.makePath(tasksPath, String.valueOf(taskSummary.getStorageIndex()), Constants.TASK_NODE);
+
+        if (client.checkExists().forPath(parentPath) != null) {
+            BalanceTaskSummary bts = JsonUtils.toObjectQuietly(client.getData().forPath(parentPath), BalanceTaskSummary.class);
+            if (bts != null) {
+                return false;
+            }
+        }
+        // 删除zk上的任务节点
+        if (gotoHistory(taskSummary)) {
+            // 清理task缓存
+            removeRunTask(taskSummary.getStorageIndex());
+        }
+        LOG.warn("rebalance task [{}] is invalid remove to history", taskSummary.getId());
+        return true;
+    }
+
     public void fixTaskMeta(BalanceTaskSummary taskSummary) throws Exception {
 
         // task路径
@@ -872,7 +891,9 @@ public class TaskDispatcher implements Closeable {
         // 获取当前任务信息
         BalanceTaskSummary currentTask = runTask.get(snIndex);
         String runChangeID = currentTask.getChangeID();
-
+        if (isInvalidTask(currentTask)) {
+            return;
+        }
         Map<String, List<DiskPartitionChangeSummary>> tempCsMap = Maps.newHashMap();
         // trim change cache 清除变更抵消,查看最终的状态即可
         for (DiskPartitionChangeSummary cs : changeSummaries) {
