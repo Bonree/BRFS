@@ -475,6 +475,7 @@ public class TaskDispatcher implements Closeable {
         // 节点已经删除，则忽略
         if (client.checkExists().forPath(parentPath) == null) {
             LOG.warn("task node is not exists {}", parentPath);
+            gotoHistory(taskSummary);
             runTask.remove(taskSummary.getStorageIndex());
             return;
         }
