@@ -49,7 +49,14 @@ public class TaskExecutorListener implements TreeCacheListener {
                         if (taskSummary.getVersion() == null) {
                             try {
                                 client.delete().deletingChildrenIfNeeded().forPath(taskPath);
-                                String historyPath = StringUtils.replace(taskPath, taskQueuePath, taskHistoryQueuePath);
+                                String parent = null;
+                                if (taskPath.contains(Constants.TASK_NODE)) {
+                                    parent = taskPath.substring(0, taskPath.indexOf(Constants.TASK_NODE));
+                                } else {
+                                    parent = taskPath;
+                                }
+                                String historyPath =
+                                    StringUtils.replace(parent, taskQueuePath, taskHistoryQueuePath) + taskSummary.getId();
                                 if (historyPath.indexOf(taskHistoryQueuePath) == 0) {
                                     if (client.checkExists().forPath(historyPath) == null) {
                                         client.create()

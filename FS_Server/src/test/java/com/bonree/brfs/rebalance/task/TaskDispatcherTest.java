@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.task;
 
+import com.bonree.brfs.common.rebalance.Constants;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
@@ -26,5 +27,12 @@ public class TaskDispatcherTest {
             }
         });
         return countMap.size() <= 1;
+    }
+
+    @Test
+    public void test() {
+        String path = "/brfs/rebalance/0/" + Constants.TASK_NODE;
+        String parent = path.contains(Constants.TASK_NODE) ? path.substring(0, path.indexOf(Constants.TASK_NODE)) : path;
+        System.out.println(parent);
     }
 }
