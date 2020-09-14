@@ -57,15 +57,14 @@ public class TaskExecutorListener implements TreeCacheListener {
                                 }
                                 String historyPath =
                                     StringUtils.replace(parent, taskQueuePath, taskHistoryQueuePath) + taskSummary.getId();
-                                if (historyPath.indexOf(taskHistoryQueuePath) == 0) {
-                                    if (client.checkExists().forPath(historyPath) == null) {
-                                        client.create()
-                                              .creatingParentsIfNeeded()
-                                              .withMode(CreateMode.PERSISTENT)
-                                              .forPath(historyPath, data);
-                                    } else {
-                                        client.setData().forPath(historyPath, data);
-                                    }
+
+                                if (client.checkExists().forPath(historyPath) == null) {
+                                    client.create()
+                                          .creatingParentsIfNeeded()
+                                          .withMode(CreateMode.PERSISTENT)
+                                          .forPath(historyPath, data);
+                                } else {
+                                    client.setData().forPath(historyPath, data);
                                 }
                                 LOG.warn("find v1 invalid task remove it {}", taskPath);
                             } catch (Exception e) {
