@@ -300,6 +300,9 @@ public class TaskDispatcher implements Closeable {
                         JsonUtils.toObjectQuietly(this.client.getData().forPath(taskNode), BalanceTaskSummary.class);
                     if (bts != null) {
                         runTask.put(Integer.valueOf(sn), bts);
+                    } else {
+                        this.client.delete().deletingChildrenIfNeeded().forPath(taskNode);
+                        LOG.info("find invalid run task delete it ");
                     }
                 }
             }
