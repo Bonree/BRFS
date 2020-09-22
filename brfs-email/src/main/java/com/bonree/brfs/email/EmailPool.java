@@ -48,15 +48,27 @@ public class EmailPool {
         String sendor = conf.getConfig(EmailConfigs.CONFIG_USER);
         String password = conf.getConfig(EmailConfigs.CONFIG_USER_PASSWORD);
         boolean sslFlag = conf.getConfig(EmailConfigs.CONFIG_USE_SSL);
+        boolean useAnonymous = conf.getConfig(EmailConfigs.CONFIG_USE_ANONYMOUS);
         String emailStr = conf.getConfig(EmailConfigs.CONFIG_EMAILS);
         String[] emails = StringUtils.split(emailStr, COMMA);
         String header = conf.getConfig(EmailConfigs.CONFIG_HEADER);
         String model = conf.getConfig(EmailConfigs.CONFIG_MODEL);
         String company = conf.getConfig(EmailConfigs.CONFIG_COMPANY);
         String copyright = conf.getConfig(EmailConfigs.CONFIG_COPY_RIGHT);
+        String userFrom = conf.getConfig(EmailConfigs.CONFIG_FROM_USER);
         this.programInfo = ProgramInfo.getInstance();
-        programInfo.setSmtp(stmp).setPort(port).setUsername(sendor).setPassword(password).setUseSsl(sslFlag).setEmails(emails)
-                   .setHeader(header).setCommonModel(model).setCompany(company).setCopyRight(copyright);
+        programInfo.setSmtp(stmp)
+                   .setPort(port)
+                   .setUsername(sendor)
+                   .setPassword(password)
+                   .setFrom(userFrom)
+                   .setNeedAuth(useAnonymous)
+                   .setUseSsl(sslFlag)
+                   .setEmails(emails)
+                   .setHeader(header)
+                   .setCommonModel(model)
+                   .setCompany(company)
+                   .setCopyRight(copyright);
         // 初始化线程池信息
         int poolSize = conf.getConfig(EmailConfigs.CONFIG_POOL_SIZE);
         this.pool = Executors.newFixedThreadPool(poolSize);
@@ -68,9 +80,13 @@ public class EmailPool {
         LOG.info("{}:{}", EmailConfigs.CONFIG_SMTP_PORT.name(),
                  Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_SMTP_PORT));
         LOG.info("{}:{}", EmailConfigs.CONFIG_USER.name(), Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_USER));
+        LOG.info("{}:{}", EmailConfigs.CONFIG_FROM_USER.name(),
+                 Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_FROM_USER));
         LOG.info("{}:{}", EmailConfigs.CONFIG_USER_PASSWORD.name(),
                  Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_USER_PASSWORD));
         LOG.info("{}:{}", EmailConfigs.CONFIG_USE_SSL.name(), Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_USE_SSL));
+        LOG.info("{}:{}", EmailConfigs.CONFIG_USE_ANONYMOUS.name(),
+                 Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_USE_ANONYMOUS));
         LOG.info("{}:{}", EmailConfigs.CONFIG_EMAILS.name(), Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_EMAILS));
         LOG.info("{}:{}", EmailConfigs.CONFIG_HEADER.name(), Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_HEADER));
         LOG.info("{}:{}", EmailConfigs.CONFIG_MODEL.name(), Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_MODEL));

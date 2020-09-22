@@ -31,6 +31,11 @@ public class EmailPoolTest {
         MailWorker.Builder builder =
             MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo()).setException(new NullPointerException("none"));
         EmailPool.getInstance().sendEmail(builder);
+        try {
+            Thread.sleep(100000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
