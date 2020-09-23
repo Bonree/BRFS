@@ -10,7 +10,7 @@
 
 	<groupId>com.bonree.fs</groupId>
 	<artifactId>BRFS</artifactId>
-	<version>2.0.4</version>
+	<version>2.0.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<repositories>
@@ -71,7 +71,7 @@
 		<connection>scm:git:http://brgit.ibr.cc/brfs/brfs.git</connection>
 		<developerConnection>scm:git:http://brgit.ibr.cc/brfs/brfs.git</developerConnection>
 		<url>http://brgit.ibr.cc/brfs/brfs.git</url>
-		<tag>2.0.4</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>
