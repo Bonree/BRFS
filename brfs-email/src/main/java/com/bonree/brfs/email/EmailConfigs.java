@@ -30,6 +30,10 @@ public class EmailConfigs {
      */
     public static final ConfigUnit<String> CONFIG_USER_PASSWORD =
         ConfigUnit.ofString("email.send.user.password", "alert!^*90");
+
+    public static final ConfigUnit<String> CONFIG_ENCRYPT_SEED =
+        ConfigUnit.ofString("email.encrypt.seed", "");
+
     /**
      * 是否ssl
      */

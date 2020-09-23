@@ -26,7 +26,7 @@ public class EmailPool {
     private ProgramInfo programInfo = null;
     private ExecutorService pool = null;
 
-    private EmailPool() {
+    private EmailPool() throws Exception {
         if (EMAIL_SWITCH) {
             initEmailBuilder();
         }
@@ -34,19 +34,24 @@ public class EmailPool {
 
     public static synchronized EmailPool getInstance() {
         if (instance == null) {
-            instance = new EmailPool();
+            try {
+                instance = new EmailPool();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return instance;
     }
 
-    private void initEmailBuilder() {
+    private void initEmailBuilder() throws Exception {
 
         ConfigObj conf = Configs.getConfiguration();
         // 初始化email对象信息
         String stmp = conf.getConfig(EmailConfigs.CONFIG_SMTP);
         int port = conf.getConfig(EmailConfigs.CONFIG_SMTP_PORT);
         String sendor = conf.getConfig(EmailConfigs.CONFIG_USER);
-        String password = conf.getConfig(EmailConfigs.CONFIG_USER_PASSWORD);
+        String encryptedText = conf.getConfig(EmailConfigs.CONFIG_USER_PASSWORD);
+        String secretKey = conf.getConfig(EmailConfigs.CONFIG_ENCRYPT_SEED);
         boolean sslFlag = conf.getConfig(EmailConfigs.CONFIG_USE_SSL);
         boolean useAnonymous = conf.getConfig(EmailConfigs.CONFIG_USE_ANONYMOUS);
         String emailStr = conf.getConfig(EmailConfigs.CONFIG_EMAILS);
@@ -60,7 +65,7 @@ public class EmailPool {
         programInfo.setSmtp(stmp)
                    .setPort(port)
                    .setUsername(sendor)
-                   .setPassword(password)
+                   .setPassword(new EncryptedPasswordProvider(secretKey, encryptedText).getPassword())
                    .setFrom(userFrom)
                    .setNeedAuth(useAnonymous)
                    .setUseSsl(sslFlag)
