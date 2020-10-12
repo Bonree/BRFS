@@ -288,10 +288,10 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                 return true;
             }
         } catch (ProcessingException e) {
-            LOG.error("get path [{}] Cache error[{}]", path, e);
+            LOG.error("get path [{}] of sr [{}]Cache error[{}]", path, srName, e);
             return true;
         } catch (Exception e) {
-            LOG.error("error when write path[{}] to rocksdb, Maybe its rocksDB can not write [{}]", path, e);
+            LOG.error("error when write path[{}] of sr [{}] to rocksdb, Maybe its rocksDB can not write [{}]", path, srName,e);
             return true;
         }
         return false;
