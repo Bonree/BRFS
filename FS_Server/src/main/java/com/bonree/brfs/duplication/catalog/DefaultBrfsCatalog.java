@@ -49,8 +49,8 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                                                                                    .write(pathKey.getSrName(), queryKey,
                                                                                           DIR_VALUE);
                                                                            } catch (Exception e) {
-                                                                               LOG.error("error when add path[{}] to rocksdb!",
-                                                                                         pathKey.getPath());
+                                                                               LOG.error("error when add path[{}] to rocksdb![{}]",
+                                                                                         pathKey.getPath(), e);
                                                                                throw new ProcessingException(
                                                                                    "error when add path");
                                                                            }
