@@ -137,7 +137,7 @@ public class BRFSClient implements BRFS {
         this.dataSplitter = new FixedSizeDataSplitter(config.getDataPackageSize());
 
         this.storageRegionCache = CacheBuilder.newBuilder()
-                                              .expireAfterWrite(Optional.ofNullable(config.getDiscoveryExpiredDuration())
+                                              .expireAfterWrite(Optional.ofNullable(config.getStorageRegionCacheExpireDuration())
                                                                         .orElse(DEFAULT_EXPIRE_DURATION))
                                               .refreshAfterWrite(
                                                   Optional.ofNullable(config.getStorageRegionCacheRefreshDuration())

@@ -19,17 +19,31 @@ public class EmailConfigs {
      */
     public static final ConfigUnit<String> CONFIG_USER =
         ConfigUnit.ofString("email.send.user", "redalert@bonree.com");
+    /**
+     * 邮件发送作者
+     */
+    public static final ConfigUnit<String> CONFIG_FROM_USER =
+        ConfigUnit.ofString("email.from.user", "redalert@bonree.com");
 
     /**
      * 邮件发送作者密码
      */
     public static final ConfigUnit<String> CONFIG_USER_PASSWORD =
         ConfigUnit.ofString("email.send.user.password", "alert!^*90");
+
+    public static final ConfigUnit<String> CONFIG_ENCRYPT_SEED =
+        ConfigUnit.ofString("email.encrypt.seed", "");
+
     /**
      * 是否ssl
      */
     public static final ConfigUnit<Boolean> CONFIG_USE_SSL =
         ConfigUnit.ofBoolean("email.use_ssl", false);
+    /**
+     * 是否ssl
+     */
+    public static final ConfigUnit<Boolean> CONFIG_USE_ANONYMOUS =
+        ConfigUnit.ofBoolean("email.use.anonymous", false);
 
     /**
      * 收件人地址

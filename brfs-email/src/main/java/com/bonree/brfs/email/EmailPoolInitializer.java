@@ -21,7 +21,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycleInit;
 public class EmailPoolInitializer {
 
     @LifecycleStart
-    public void start() {
+    public void start() throws Exception {
         EmailPool.getInstance();
     }
 }
