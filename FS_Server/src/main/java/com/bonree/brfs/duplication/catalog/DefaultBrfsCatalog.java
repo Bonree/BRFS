@@ -55,7 +55,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                                                                                    "error when add path");
                                                                            }
                                                                            if (write == WriteStatus.FAILED) {
-                                                                               LOG.error("error when write path[{}] to rocksdb!",
+                                                                               LOG.error("get false when write path[{}] to rocksdb!",
                                                                                          pathKey.getPath());
                                                                                return false;
                                                                            }
@@ -269,7 +269,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
      * @param path   绝对路径
      * @param fid    等待写入的fid
      *
-     * @return 成功返回true 失败返回false
+     * @return 成功返回false 失败返回true
      */
     @Override
     public boolean writeFid(String srName, String path, String fid) {
@@ -288,10 +288,10 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                 return true;
             }
         } catch (ProcessingException e) {
-            LOG.error("get path [{}] Cache error", path);
+            LOG.error("get path [{}] Cache error[{}]", path, e);
             return true;
         } catch (Exception e) {
-            LOG.error("Maybe its rocksDB can not write");
+            LOG.error("error when write path[{}] to rocksdb, Maybe its rocksDB can not write [{}]", path, e);
             return true;
         }
         return false;
@@ -318,7 +318,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         byte[] query = transferToKey(path);
         byte[] value = rocksDBManager.read(srName, query);
         if (null == value) {
-            String resp = "the path[" + path + "] is not not found";
+            String resp = "the path[" + path + "] of sr[" + srName + "]is not not found";
             LOG.info(resp);
             throw new NotFoundException();
         }
