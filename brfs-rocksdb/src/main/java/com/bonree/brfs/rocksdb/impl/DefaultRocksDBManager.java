@@ -360,11 +360,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return WriteStatus.FAILED;
         }
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        if (!rocksdbQueue.isEmpty() && rocksdbQueue.size() >= dataSynchronizeCountOnce) {
-            List<RocksDBDataUnit> datas = new ArrayList<>(dataSynchronizeCountOnce);
-            rocksdbQueue.drainTo(datas, dataSynchronizeCountOnce);
-            dataSynchronizer(datas);
+        try {
+            if (!rocksdbQueue.isEmpty() && rocksdbQueue.size() >= dataSynchronizeCountOnce) {
+                List<RocksDBDataUnit> datas = new ArrayList<>(dataSynchronizeCountOnce);
+                rocksdbQueue.drainTo(datas, dataSynchronizeCountOnce);
+                dataSynchronizer(datas);
+            }
+        } catch (Exception e) {
+            LOG.error("rocksdb data synchronize failed", e);
         }
+
         boolean offer = rocksdbQueue.offer(new RocksDBDataUnit(columnFamily, key, value));
         if (!offer) {
             LOG.warn("offer data ro queue failed, size:{}", rocksdbQueue.size());
