@@ -18,6 +18,7 @@ import com.bonree.brfs.resource.vo.ResourceModel;
 import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.OptionalDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,9 +60,16 @@ public class LocalResourceGather implements ResourceGatherInterface {
                 diskStats.add(stat);
             }
         }
-        long totalSize = diskStats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
-        long availSize = diskStats.stream().mapToLong(DiskPartitionStat::getFree).sum();
-        double serviceTime = diskStats.stream().mapToDouble(DiskPartitionStat::getDiskServiceTime).average().getAsDouble();
+        long totalSize = diskStats.stream().filter(x -> {
+            return x != null && x.getTotal() > 0;
+        }).mapToLong(DiskPartitionStat::getTotal).sum();
+        long availSize = diskStats.stream().filter(x -> {
+            return x != null && x.getFree() >= 0;
+        }).mapToLong(DiskPartitionStat::getFree).sum();
+        OptionalDouble average = diskStats.stream().filter(x -> {
+            return x != null && x.getDiskServiceTime() > 0;
+        }).mapToDouble(DiskPartitionStat::getDiskServiceTime).average();
+        double serviceTime = average.isPresent() ? average.getAsDouble() : 0.0D;
         model.setHost(local.getHost());
         model.setServerId(local.getServiceId());
         model.setCpuRate(cpuStat.getTotal());
