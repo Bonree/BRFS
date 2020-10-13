@@ -102,8 +102,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
-        Runtime.getRuntime().availableProcessors(),
-        Runtime.getRuntime().availableProcessors(),
+        Runtime.getRuntime().availableProcessors() * 2,
+        Runtime.getRuntime().availableProcessors() * 2,
         0L,
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(1000),
@@ -367,7 +367,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 dataSynchronizer(datas);
             }
         } catch (Exception e) {
-            LOG.error("rocksdb data synchronize failed", e);
+            LOG.warn("rocksdb data synchronize failed", e);
         }
 
         boolean offer = rocksdbQueue.offer(new RocksDBDataUnit(columnFamily, key, value));
