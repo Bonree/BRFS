@@ -13,16 +13,16 @@ import org.slf4j.LoggerFactory;
 public class DiskWriterCallback {
     private static final Logger LOG = LoggerFactory.getLogger(DiskWriterCallback.class);
 
-    private AtomicInteger count;
-    private AtomicReferenceArray<DataOut[]> results;
+    private final AtomicInteger count;
+    private final AtomicReferenceArray<DataOut[]> results;
 
-    private List<DataObject> dataCallbacks;
+    private final List<DataObject> dataCallbacks;
 
-    private WriteProgressListener callback;
+    private final WriteProgressListener callback;
 
     public DiskWriterCallback(int dupCount, List<DataObject> dataCallbacks, WriteProgressListener callback) {
         this.count = new AtomicInteger(dupCount);
-        this.results = new AtomicReferenceArray<DataOut[]>(dupCount);
+        this.results = new AtomicReferenceArray<>(dupCount);
         this.dataCallbacks = dataCallbacks;
         this.callback = callback;
     }
@@ -36,30 +36,46 @@ public class DiskWriterCallback {
     }
 
     private void handleResults(FileObject file) {
-        int maxValidIndex = -1;
-        DataOut[] maxResult = null;
-
         boolean writeError = false;
-        for (int i = 0; i < results.length(); i++) {
-            DataOut[] dupResult = results.get(i);
-            for (int j = dupResult.length - 1; j >= 0; j--) {
-                if (dupResult[j] == null) {
+        if (results.length() < 1) {
+            throw new IllegalStateException(String.format("No results for file[%s]", file.node().getName()));
+        }
+
+        DataOut[] maxResult = results.get(0);
+        for (int i = 1; i < results.length(); i++) {
+            DataOut[] otherDataOut = results.get(i);
+            for (int j = 0; j < maxResult.length; j++) {
+                if (otherDataOut[j] == null) {
+                    LOG.error("Error to write data in[{}, {}]", i, j);
                     writeError = true;
                     continue;
                 }
 
-                if (j != dupResult.length - 1) {
-                    LOG.error("data write error from index[{}] to index[{}] in file[{}]", j + 1, dupResult.length - 1,
-                              file.node().getName());
+                if (maxResult[j] == null) {
+                    LOG.error("Error to write data in[{}, {}]", 0, j);
+                    maxResult[j] = otherDataOut[j];
+                    writeError = true;
+                    continue;
                 }
 
-                if (maxValidIndex < j) {
-                    maxValidIndex = j;
-                    maxResult = dupResult;
+                if (maxResult[j].offset() != otherDataOut[j].offset()
+                    || maxResult[j].length() != otherDataOut[j].length()) {
+                    // WTF! It's impossiple!
+                    LOG.error("Error to handle data writing for file[{}] index[{}, {}], want[{}, {}], but[{}, {}]",
+                              file.node().getName(), maxResult.length, j,
+                              maxResult[j].offset(), maxResult[j].length(),
+                              otherDataOut[j].offset(), otherDataOut[j].length());
                 }
+            }
+        }
 
+        int maxValidIndex = -1;
+        for (int i = 0; i < maxResult.length; i++) {
+            if (maxResult[i] == null) {
                 break;
             }
+
+            maxValidIndex = i;
         }
 
         LOG.debug("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());

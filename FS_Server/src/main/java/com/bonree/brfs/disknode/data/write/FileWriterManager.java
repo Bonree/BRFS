@@ -376,6 +376,6 @@ public class FileWriterManager implements LifeCycle {
         timeoutWheel.remove(filePath);
         CloseUtils.closeQuietly(binding.first());
 
-        return length;
+        return crcCode;
     }
 }
