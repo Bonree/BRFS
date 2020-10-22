@@ -70,6 +70,10 @@ public class BufferedFileWriter implements FileWriter {
         }
 
         if (length > buffer.capacity()) {
+            if (buffer.readableSize() > 0) {
+                flush();
+            }
+
             //如果写入的数据超过了缓存大小，则直接写入文件，这种情况不需要对数据
             //进行缓存
             try {

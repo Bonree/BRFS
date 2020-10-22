@@ -14,9 +14,9 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataObject;
 import com.bonree.brfs.duplication.datastream.file.FileObject;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
+import com.google.common.collect.ImmutableList;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,17 +85,16 @@ public class DiskWriter implements Closeable {
 
         @Override
         public void run() {
+            ImmutableList.Builder<byte[]> dataBytes = ImmutableList.builder();
+            datas.forEach(obj -> dataBytes.add(obj.getBytes()));
+            List<byte[]> dataList = dataBytes.build();
+
             DataOut[] dataOuts = new DataOut[datas.size()];
 
             try {
                 DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
                 if (conn == null || conn.getClient() == null) {
                     return;
-                }
-
-                List<byte[]> dataList = new ArrayList<byte[]>();
-                for (DataObject data : datas) {
-                    dataList.add(data.getBytes());
                 }
 
                 WriteMetric writeMetric = new WriteMetric();
