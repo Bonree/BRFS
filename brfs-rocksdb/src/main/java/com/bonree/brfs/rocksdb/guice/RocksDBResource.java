@@ -128,6 +128,7 @@ public class RocksDBResource {
     public Response batchWriteInner(byte[] body) {
 
         try {
+            //批量同步fid到rocksdb
             List<RocksDBDataUnit> dataList = JsonUtils.toObject(body, new TypeReference<List<RocksDBDataUnit>>() {
             });
             watcher.getElapsedTimeAndRefresh();
