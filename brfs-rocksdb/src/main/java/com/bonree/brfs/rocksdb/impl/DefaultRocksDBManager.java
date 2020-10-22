@@ -111,6 +111,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         new ThreadPoolExecutor.AbortPolicy()
     );
 
+    private TimeWatcher timeWatcher = new TimeWatcher();
     private BlockingQueue<RocksDBDataUnit> rocksdbQueue = new ArrayBlockingQueue<>(1000);
     private ScheduledExecutorService
         queueChecker = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
@@ -367,7 +368,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 dataSynchronizer(datas);
             }
         } catch (Exception e) {
-            LOG.warn("rocksdb data synchronize failed", e);
+            LOG.error("rocksdb data synchronize failed", e);
         }
 
         boolean offer = rocksdbQueue.offer(new RocksDBDataUnit(columnFamily, key, value));
@@ -401,8 +402,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     public void dataSynchronizer(List<RocksDBDataUnit> datas) {
         produceExec.submit(() -> {
-            LOG.debug("current sync data size:{}", datas.size());
+            int size = datas.size();
             RegionNodeConnection connection;
+            timeWatcher.getElapsedTimeAndRefresh();
             for (Service service : serviceCache) {
                 connection =
                     DefaultRocksDBManager.this.regionNodeConnectionPool
@@ -417,6 +419,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     LOG.error("rocksdb data writer occur error", e);
                 }
             }
+            LOG.info("batch sync data size:{}, cost time:{}", size, timeWatcher.getElapsedTime());
         });
     }
 
