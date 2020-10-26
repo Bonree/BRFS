@@ -36,6 +36,7 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,6 +191,18 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         List<String> currentServers = getCurrentServers(serverManager);
 
         List<String> currentPartitionIds = partitionInfoManager.getCurrentPartitionIds();
+        Stat stat = null;
+        try {
+            stat = client.checkExists().forPath(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(),
+                                                                   partitionInfo.getPartitionGroup(),
+                                                                   partitionInfo.getPartitionId()));
+        } catch (Exception ignore) {
+            // nothing to do
+        }
+
+        if (stat != null) {
+            return;
+        }
 
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
