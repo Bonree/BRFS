@@ -68,7 +68,7 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
                 }
 
                 if (lastElement.getOffset() >= element.getOffset()) {
-                    LOG.error("get record element error",
+                    LOG.error("get record element error, [{}] is after [{}]", element.getOffset(), lastElement.getOffset(),
                               new IllegalStateException(String.format("offset of file[%s] is not incremental", filePath)));
                     lastElement = null;
                     break;
