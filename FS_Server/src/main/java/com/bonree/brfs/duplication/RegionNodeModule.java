@@ -98,6 +98,7 @@ public class RegionNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeModule.class);
     private long initTime = System.currentTimeMillis();
     private String serverId = UUID.randomUUID().toString();
+
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
