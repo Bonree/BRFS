@@ -120,7 +120,7 @@ public class DataResource {
                     String[] fileNames = datas.getFileNames();
                     for (int i = 0; i < fileNames.length; i++) {
                         String fileName = fileNames[i];
-                        if (fileName == null) {
+                        if (fileName == null || fids[i] == null) {
                             continue;
                         }
 
