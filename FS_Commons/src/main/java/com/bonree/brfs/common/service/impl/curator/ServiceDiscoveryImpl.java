@@ -55,7 +55,7 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
         public void stateChanged(CuratorFramework client, ConnectionState newState) {
             if ((newState == ConnectionState.RECONNECTED) || (newState == ConnectionState.CONNECTED)) {
                 try {
-                    log.debug("Re-registering due to reconnection");
+                    log.info("Re-registering due to reconnection");
                     reRegisterServices();
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
@@ -376,7 +376,7 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
                     .id(oldService.getId())
                     .address(oldService.getAddress())
                     .payload(oldService.getPayload())
-                    .registrationTimeUTC(System.currentTimeMillis())
+                    .registrationTimeUTC(oldService.getRegistrationTimeUTC())
                     .serviceType(oldService.getServiceType())
                     .uriSpec(oldService.getUriSpec())
                     .enabled(oldService.isEnabled());
