@@ -27,12 +27,21 @@ public class DiskWriterCallback {
         this.callback = callback;
     }
 
-    public void complete(FileObject file, int index, DataOut[] result) {
+    public void complete(FileObject file, int index, DataOut[] result, boolean isClosed) {
+        if (isClosed) {
+            handleClosedFile(file);
+            return;
+        }
+
         results.set(index, result);
 
         if (count.decrementAndGet() == 0) {
             handleResults(file);
         }
+    }
+
+    private void handleClosedFile(FileObject file) {
+        callback.writeCompleted(file, false, true);
     }
 
     private void handleResults(FileObject file) {
@@ -65,6 +74,8 @@ public class DiskWriterCallback {
                               file.node().getName(), maxResult.length, j,
                               maxResult[j].offset(), maxResult[j].length(),
                               otherDataOut[j].offset(), otherDataOut[j].length());
+                    handleClosedFile(file);
+                    return;
                 }
             }
         }
@@ -81,7 +92,7 @@ public class DiskWriterCallback {
         LOG.debug("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());
         file.setLength(
             maxValidIndex < 0 ? file.length() : (maxResult[maxValidIndex].offset() + maxResult[maxValidIndex].length()));
-        callback.writeCompleted(file, writeError);
+        callback.writeCompleted(file, writeError, false);
 
         String[] fids = new String[dataCallbacks.size()];
         for (int i = 0; i <= maxValidIndex; i++) {

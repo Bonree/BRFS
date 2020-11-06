@@ -185,6 +185,15 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
         }
     }
 
+    @Override
+    public void remove(FileObject file) {
+        busyFileList.remove(file);
+        idleFileList.remove(file);
+        exceptedFiles.remove(file);
+        exceptionFileList.remove(file);
+        recycledFiles.remove(file);
+    }
+
     private void recycleFileObjects() {
         synchronized (exceptedFiles) {
             Iterator<FileObject> iter = exceptedFiles.iterator();

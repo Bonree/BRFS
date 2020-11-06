@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.writer;
 
+import com.bonree.brfs.common.exception.FileAlreadyClosedException;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
@@ -64,7 +65,7 @@ public class DiskWriter implements Closeable {
     }
 
     public static interface WriteProgressListener {
-        void writeCompleted(FileObject file, boolean errorOccurred);
+        void writeCompleted(FileObject file, boolean errorOccurred, boolean isClosed);
     }
 
     private class DiskWriteTask implements Runnable {
@@ -73,6 +74,7 @@ public class DiskWriter implements Closeable {
         private DiskWriterCallback callback;
         private DuplicateNode node;
         private final int index;
+        boolean isClosed = false;
 
         public DiskWriteTask(FileObject file, List<DataObject> datas, DuplicateNode node, int index,
                              DiskWriterCallback callback) {
@@ -110,6 +112,8 @@ public class DiskWriter implements Closeable {
                 TimeWatcher timeWatcher = new TimeWatcher();
                 try {
                     results = conn.getClient().writeDatas(pathMaker.buildPath(file.node(), node), dataList);
+                } catch (FileAlreadyClosedException fvee) {
+                    isClosed = true;
                 } catch (IOException e) {
                     LOG.error("write file[{}] to disk error!", file.node().getName());
                 }
@@ -145,7 +149,7 @@ public class DiskWriter implements Closeable {
                 }
                 deliver.sendWriterMetric(writeMetric.toMap());
             } finally {
-                callback.complete(file, index, dataOuts);
+                callback.complete(file, index, dataOuts, isClosed);
             }
         }
 

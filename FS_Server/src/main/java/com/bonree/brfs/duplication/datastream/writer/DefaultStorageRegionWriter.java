@@ -67,6 +67,11 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
             callback.complete(storeToken);
         }
 
+        @Override
+        public void error(Exception e) {
+            callback.error(e.getCause());
+        }
+
     }
 
     private static class DataCallback implements DataStoreCallback {
@@ -95,6 +100,11 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 
                 callback.complete(results);
             }
+        }
+
+        @Override
+        public void error(Exception e) {
+            callback.error(e.getCause());
         }
 
     }

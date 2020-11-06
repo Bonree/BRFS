@@ -49,8 +49,8 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
             Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, false);
             if (binding == null) {
                 //运行到这，可能时打开文件时失败，导致写数据节点找不到writer
-                LOG.warn("no file writer is found, maybe the file[{}] is not opened.", realPath);
-                writer.write(new BaseResponse(ResponseCode.ERROR));
+                LOG.warn("no file writer is found, maybe the file[{}] is closed.", realPath);
+                writer.write(new BaseResponse(ResponseCode.ALREADY_CLOSE));
                 return;
             }
 

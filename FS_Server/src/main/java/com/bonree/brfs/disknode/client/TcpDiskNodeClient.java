@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode.client;
 
 import ch.qos.logback.core.util.CloseUtil;
+import com.bonree.brfs.common.exception.FileAlreadyClosedException;
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
@@ -244,6 +245,10 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 
             BaseResponse response = future.get();
 
+            if (response.getCode() == ResponseCode.ALREADY_CLOSE) {
+                LOG.warn("filenode[{}] is already closed !", path);
+                throw new FileAlreadyClosedException("file[" + "path" + "] is already closed!");
+            }
 
             if (response != null && response.getCode() == ResponseCode.OK) {
                 WriteResultList resultList = ProtoStuffUtils.deserialize(response.getBody(), WriteResultList.class);
