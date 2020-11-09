@@ -83,7 +83,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
         protected WriteResult[] execute() throws Exception {
             RecordFileWriter writer = binding.first();
 
-            LOG.info("write [{}] datas to file[{}]", datas.length, writer.getPath());
+            LOG.debug("write [{}] datas to file[{}]", datas.length, writer.getPath());
             for (int i = 0; i < datas.length; i++) {
                 byte[] contentData = fileFormater.formatData(datas[i].getData());
                 datas[i] = null;
@@ -91,7 +91,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
                 LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), contentData.length);
 
                 WriteResult result = new WriteResult(fileFormater.relativeOffset(writer.position()), contentData.length);
-                LOG.info("write file[{}] in result[{}, {}]", writer.getPath(), result.getOffset(), result.getSize());
+                LOG.debug("write file[{}] in result[{}, {}]", writer.getPath(), result.getOffset(), result.getSize());
                 writer.write(contentData);
 
                 writerManager.flushIfNeeded(writer.getPath());

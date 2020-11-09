@@ -419,7 +419,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     LOG.error("rocksdb data writer occur error", e);
                 }
             }
-            LOG.info("batch sync data size:{}, cost time:{}", size, timeWatcher.getElapsedTime());
+            LOG.debug("batch sync data size:{}, cost time:{}", size, timeWatcher.getElapsedTime());
         });
     }
 
