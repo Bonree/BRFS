@@ -94,6 +94,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         if (lessFlag) {
             // 控制邮件发送的间隔，减少不必要的
             if (currentTime - preTime > 360000) {
+                preTime = currentTime;
                 sendSelectEmail(resources, num);
             }
             return resources;

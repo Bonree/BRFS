@@ -133,6 +133,9 @@ public class MultiRecover implements DataRecover {
         try {
             for (int i = 0; i < delayTime; i++) {
                 if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
+                    log.info("change id [{}] with task path [{}] is cancel ",
+                            balanceSummary.getChangeID(),
+                            taskNode);
                     return;
                 }
                 // 暂时用循环控制，后期重构改成wait notify机制

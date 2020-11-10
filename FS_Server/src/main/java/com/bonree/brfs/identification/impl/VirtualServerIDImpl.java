@@ -99,6 +99,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
         try {
             for (String diskFirstID : diskFirstIDs) {
                 for (String vid : resultVirtualIds) {
+                    // virtualIdContainer/0/xxx/10,20
                     String registerNode = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), vid, diskFirstID);
                     if (client.checkExists().forPath(registerNode) == null) {
                         client.create()
