@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *
  * @Date 2020/4/1 11:36
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
- * @Description: 监听磁盘信息变更,add remove 并发布在Rebalance/change/region...下
+ * @Description: 监听磁盘信息变更, add remove 并发布在Rebalance/change/region...下
  ******************************************************************************/
 public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
@@ -191,6 +191,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
     /**
      * 磁盘变更的时候，在zk的../rebalance/changes/0,1,2/ 下记录变更信息
+     *
      * @param partitionInfo
      * @param type
      */
@@ -202,13 +203,13 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         Stat stat = null;
         try {
             stat = client.checkExists().forPath(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(),
-                                                                   partitionInfo.getPartitionGroup(),
-                                                                   partitionInfo.getPartitionId()));
+                                                                 partitionInfo.getPartitionGroup(),
+                                                                 partitionInfo.getPartitionId()));
         } catch (Exception ignore) {
             // nothing to do
         }
 
-        if (stat != null) {
+        if (stat != null && ChangeType.REMOVE.equals(type)) {
             return;
         }
 
