@@ -5,4 +5,5 @@ public final class ResponseCode {
     public static final int ERROR = 2;
 
     public static final int ERROR_PROTOCOL = 3;
+    public static final int ALREADY_CLOSE = 4;
 }

@@ -815,6 +815,7 @@ public class TaskDispatcher implements Closeable {
                                 }
                                 if (selectSecondID == null) {
                                     LOG.error("no second id to used ids: {}", chosenFirstIds);
+                                    return false;
                                 }
                             }
                             Collection<String> outDataServerSecondIds = new ArrayList<>();
@@ -1111,12 +1112,8 @@ public class TaskDispatcher implements Closeable {
                          + " will wait it for {} times, changeID:[{}], storageRegion:[{}],Type:[{}]",
                      DEFAULT_INTERVAL, currentTask.getChangeID(), currentTask.getStorageIndex(), currentTask.getTaskType());
         }
-        if (delay <= 600) {
-            run = true;
-        } else {
-            currentTask.setInterval(currentTask.getInterval() - 1);
-            run = currentTask.getInterval() == 0;
-        }
+        currentTask.setInterval(currentTask.getInterval() - 1);
+        run = currentTask.getInterval() == 0;
         if (run) {
             LOG.warn("current run task have trouble !"
                          + " now run it , changeID:[{}], storageRegion:[{}],Type:[{}]",
@@ -1125,6 +1122,10 @@ public class TaskDispatcher implements Closeable {
         return run;
     }
 
+    /**
+     * 移动之前的变更到changes_history
+     * @param summary 待移动的变更
+     */
     public void delChangeSummaryNode(DiskPartitionChangeSummary summary) {
         LOG.info("delete change summary: {}", summary);
         String path = ZKPaths.makePath(changesPath, String.valueOf(summary.getStorageIndex()), summary.getChangeID());

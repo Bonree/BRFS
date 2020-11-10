@@ -136,9 +136,13 @@ public class DefaultDataEngine implements DataEngine {
                     }
 
                     log.debug("out => {}", file.node().getName());
-                    diskWriter.write(file, dataList, (file1, errorOccurred) -> {
+                    diskWriter.write(file, dataList, (file1, errorOccurred, isClosed) -> {
                         log.debug("in => {}, sync => {}", file1.node().getName(), errorOccurred);
-                        fileSupplier.recycle(file1, errorOccurred);
+                        if (!isClosed) {
+                            fileSupplier.recycle(file1, errorOccurred);
+                        } else {
+                            fileSupplier.remove(file1);
+                        }
                     });
                 } catch (InterruptedException e) {
                     if (quit) {

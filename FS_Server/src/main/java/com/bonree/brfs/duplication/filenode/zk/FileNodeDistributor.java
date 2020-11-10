@@ -180,45 +180,13 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 
     private boolean handleFileNode(FileNode fileNode) {
         LOG.info("handling wild FileNode[{}]", JsonUtils.toJsonStringQuietly(fileNode));
-        List<Service> serviceList = getServiceWithStorageRegionName(fileNode.getStorageName());
-        Service target = serviceSelector.selectWith(fileNode, serviceList);
-        if (target == null) {
-            LOG.info("no service to accept filenode[{}], add it to wild list", fileNode.getName());
-            return false;
-        }
-
-        LOG.info("transfer fileNode[{}] to service[{}]", fileNode.getName(), target.getServiceId());
-
-        FileNode newFileNode = FileNode.newBuilder(fileNode)
-                                       .setServiceId(target.getServiceId())
-                                       .setServiceTime(target.getRegisterTime())
-                                       .build();
-
         try {
-            fileStorer.update(newFileNode);
+            fileStorer.delete(fileNode.getName());
         } catch (Exception e) {
-            LOG.error("update file node[{}] info error", fileNode.getName(), e);
-            return false;
+            LOG.error("close file[{}] in distributor is failed caused by", e);
         }
-
-        try {
-            // 在Sink中放入分配的文件名
-            String path = client.create()
-                                .forPath(ZkFileCoordinatorPaths.buildSinkFileNodePath(newFileNode),
-                                         JsonUtils.toJsonBytes(newFileNode));
-            LOG.info("filenode[{}] add to sink[{}]", newFileNode.getName(), path);
-
-            return true;
-        } catch (Exception e) {
-            LOG.error("add filenode[{}] to sink error", newFileNode.getName(), e);
-            try {
-                fileStorer.update(fileNode);
-            } catch (Exception e1) {
-                LOG.error("roll back to original info of filenode[{}] error", fileNode.getName(), e1);
-            }
-
-            return false;
-        }
+        fileCloser.close(new FileObject(fileNode), true);
+        return true;
     }
 
     private void dispatchWildFileNode() {

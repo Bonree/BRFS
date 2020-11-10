@@ -102,8 +102,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
-        Runtime.getRuntime().availableProcessors(),
-        Runtime.getRuntime().availableProcessors(),
+        Runtime.getRuntime().availableProcessors() * 2,
+        Runtime.getRuntime().availableProcessors() * 2,
         0L,
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(1000),
@@ -111,6 +111,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         new ThreadPoolExecutor.AbortPolicy()
     );
 
+    private TimeWatcher timeWatcher = new TimeWatcher();
     private BlockingQueue<RocksDBDataUnit> rocksdbQueue = new ArrayBlockingQueue<>(1000);
     private ScheduledExecutorService
         queueChecker = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
@@ -360,11 +361,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return WriteStatus.FAILED;
         }
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        if (!rocksdbQueue.isEmpty() && rocksdbQueue.size() >= dataSynchronizeCountOnce) {
-            List<RocksDBDataUnit> datas = new ArrayList<>(dataSynchronizeCountOnce);
-            rocksdbQueue.drainTo(datas, dataSynchronizeCountOnce);
-            dataSynchronizer(datas);
+        try {
+            if (!rocksdbQueue.isEmpty() && rocksdbQueue.size() >= dataSynchronizeCountOnce) {
+                List<RocksDBDataUnit> datas = new ArrayList<>(dataSynchronizeCountOnce);
+                rocksdbQueue.drainTo(datas, dataSynchronizeCountOnce);
+                dataSynchronizer(datas);
+            }
+        } catch (Exception e) {
+            LOG.error("rocksdb data synchronize failed", e);
         }
+
         boolean offer = rocksdbQueue.offer(new RocksDBDataUnit(columnFamily, key, value));
         if (!offer) {
             LOG.warn("offer data ro queue failed, size:{}", rocksdbQueue.size());
@@ -396,8 +402,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     public void dataSynchronizer(List<RocksDBDataUnit> datas) {
         produceExec.submit(() -> {
-            LOG.debug("current sync data size:{}", datas.size());
+            int size = datas.size();
             RegionNodeConnection connection;
+            timeWatcher.getElapsedTimeAndRefresh();
             for (Service service : serviceCache) {
                 connection =
                     DefaultRocksDBManager.this.regionNodeConnectionPool
@@ -412,6 +419,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     LOG.error("rocksdb data writer occur error", e);
                 }
             }
+            LOG.debug("batch sync data size:{}, cost time:{}", size, timeWatcher.getElapsedTime());
         });
     }
 

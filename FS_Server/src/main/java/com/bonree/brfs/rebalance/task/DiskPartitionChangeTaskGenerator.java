@@ -36,6 +36,7 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *
  * @Date 2020/4/1 11:36
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
- * @Description: 监听磁盘信息变更并发布
+ * @Description: 监听磁盘信息变更,add remove 并发布在Rebalance/change/region...下
  ******************************************************************************/
 public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
@@ -89,6 +90,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         leaderLath.addListener(new DiskPartitionChangeLeaderLatchListener());
         this.leaderLath.start();
         this.childCache = CuratorCacheFactory.getPathCache();
+        // partition 变更监听
         this.listener = new DiskPartitionChangeListener("disk_partition_change");
         this.childCache
             .addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), partitionConfig.getPartitionGroupName()), this.listener);
@@ -110,18 +112,20 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-            // 无效虚拟serverid
+            // 无效虚拟serverid,对磁盘add事件之前的vid做标记。
             if (leaderLath.hasLeadership()) {
                 invalidVirtuals(event.getType());
             }
             // 该sleep的作用有2
             // 1. 防止监听事件已经发生但此时leader还未切换完成导致REMOVE事件丢失
             // 2. 目前datanode启动顺序无法人为控制，为防止二级server监听器还没有同步完数据，导致获取的二级serverid为空，造成变更创建失败
+            // dn启动的时候要去zk上那自己的二级server id
             try {
                 TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException ignore) {
                 ;
             }
+            // 磁盘add
             if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED)) {
                 if (leaderLath.hasLeadership()) {
                     if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
@@ -185,11 +189,28 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         });
     }
 
+    /**
+     * 磁盘变更的时候，在zk的../rebalance/changes/0,1,2/ 下记录变更信息
+     * @param partitionInfo
+     * @param type
+     */
     private void generateChangeSummary(PartitionInfo partitionInfo, ChangeType type) {
         List<StorageRegion> snList = snManager.getStorageRegionList();
         List<String> currentServers = getCurrentServers(serverManager);
 
         List<String> currentPartitionIds = partitionInfoManager.getCurrentPartitionIds();
+        Stat stat = null;
+        try {
+            stat = client.checkExists().forPath(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(),
+                                                                   partitionInfo.getPartitionGroup(),
+                                                                   partitionInfo.getPartitionId()));
+        } catch (Exception ignore) {
+            // nothing to do
+        }
+
+        if (stat != null) {
+            return;
+        }
 
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复

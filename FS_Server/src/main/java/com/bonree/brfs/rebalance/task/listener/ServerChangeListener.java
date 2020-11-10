@@ -40,7 +40,7 @@ public class ServerChangeListener implements TreeCacheListener {
                 if (event.getData() != null && event.getData().getData() != null) {
                     // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
                     if (!dispatcher.isLoad().get()) {
-                        // 此处加载缓存
+                        // 此处加载缓存,所有的changes
                         LOG.info("load all changes to summary cache.");
                         dispatcher.loadCache();
                         dispatcher.isLoad().set(true);

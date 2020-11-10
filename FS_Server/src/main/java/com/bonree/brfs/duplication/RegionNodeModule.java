@@ -96,6 +96,8 @@ import org.slf4j.LoggerFactory;
 
 public class RegionNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeModule.class);
+    private long initTime = System.currentTimeMillis();
+    private String serverId = UUID.randomUUID().toString();
 
     @Override
     public void configure(Binder binder) {
@@ -185,11 +187,11 @@ public class RegionNodeModule implements Module {
         }
 
         Service service = new Service(
-            UUID.randomUUID().toString(),
+            serverId,
             clusterConfig.getRegionNodeGroup(),
             host,
             serverConfig.getPort());
-
+        service.setRegisterTime(initTime);
         String payload = localStore.load();
         if (payload != null) {
             service.setPayload(payload);

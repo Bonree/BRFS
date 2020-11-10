@@ -90,8 +90,7 @@ public class StatReportor {
     }
 
     private void captureFromFile(File tmp, String srName, boolean isWrite, boolean usePrefix) {
-        try {
-            RandomAccessFile rf = new RandomAccessFile(tmp, "r");
+        try (RandomAccessFile rf = new RandomAccessFile(tmp, "r")) {
             long start; // 返回此文件中的当前偏移量
             long fileLength = rf.length();
             if (fileLength <= 0) {

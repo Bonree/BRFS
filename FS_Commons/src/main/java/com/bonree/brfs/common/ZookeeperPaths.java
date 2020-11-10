@@ -76,6 +76,9 @@ public class ZookeeperPaths {
 
     private String baseRocksDBPath;
 
+    /**
+     * discovery
+     */
     private String baseDiscoveryPath;
 
     private String baseV2SecondIDPath;

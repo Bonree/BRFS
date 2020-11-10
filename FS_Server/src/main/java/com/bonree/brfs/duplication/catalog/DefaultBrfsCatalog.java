@@ -49,13 +49,15 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                                                                                    .write(pathKey.getSrName(), queryKey,
                                                                                           DIR_VALUE);
                                                                            } catch (Exception e) {
-                                                                               LOG.error("error when add path[{}] to rocksdb![{}]",
+                                                                               LOG.error("error when add path[{}]"
+                                                                                               + " to rocksdb![{}]",
                                                                                          pathKey.getPath(), e);
                                                                                throw new ProcessingException(
                                                                                    "error when add path");
                                                                            }
                                                                            if (write == WriteStatus.FAILED) {
-                                                                               LOG.error("get false when write path[{}] to rocksdb!",
+                                                                               LOG.error("get false when write path[{}] "
+                                                                                               + "to rocksdb!",
                                                                                          pathKey.getPath());
                                                                                return false;
                                                                            }
@@ -283,15 +285,16 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             //写文件
             key = transferToKey(path);
             LOG.debug("write fid[{}] of path[{}] of [{}]to rocksdb", fid, path, srName);
-            WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes(), true);
+            WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes());
             if (write != WriteStatus.SUCCESS) {
                 return true;
             }
         } catch (ProcessingException e) {
-            LOG.error("get path [{}] Cache error[{}]", path, e);
+            LOG.error("get path [{}] of sr [{}]Cache error[{}]", path, srName, e);
             return true;
         } catch (Exception e) {
-            LOG.error("error when write path[{}] to rocksdb, Maybe its rocksDB can not write [{}]", path, e);
+            LOG.error("error when write path[{}] of sr [{}] to rocksdb, Maybe its rocksDB can not write [{}]",
+                    path, srName, e);
             return true;
         }
         return false;
