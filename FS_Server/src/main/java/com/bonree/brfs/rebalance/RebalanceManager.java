@@ -13,6 +13,7 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.route.RouteCache;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
@@ -37,7 +38,7 @@ public class RebalanceManager implements Closeable {
     public RebalanceManager(ZookeeperPaths zkPaths, IDSManager idManager, StorageRegionManager snManager,
                             ServiceManager serviceManager, LocalPartitionInterface partitionInterface,
                             DiskPartitionInfoManager partitionInfoManager, RouteCache routeCache, CuratorFramework client,
-                            ClusterConfig clusterConfig) {
+                            ClusterConfig clusterConfig, RouteLoader routeLoader) {
         dispatch = new TaskDispatcher(routeCache, client, zkPaths.getBaseRebalancePath(),
                                       zkPaths.getBaseV2RoutePath(), idManager,
                                       serviceManager, snManager,
@@ -46,7 +47,7 @@ public class RebalanceManager implements Closeable {
                                       partitionInfoManager, clusterConfig);
 
         opt = new TaskOperation(client, zkPaths.getBaseRebalancePath(), clusterConfig, idManager, snManager, serviceManager,
-                                partitionInterface, routeCache);
+                                partitionInterface, routeLoader);
 
         int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
         try {

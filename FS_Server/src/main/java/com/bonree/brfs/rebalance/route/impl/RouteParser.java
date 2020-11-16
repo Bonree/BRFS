@@ -46,7 +46,6 @@ public class RouteParser implements BlockAnalyzer {
      * 返回fileBocker 块可用的Ids，注意其与旧版本有区别
      *
      * @param fileBocker
-     *
      * @return serverids
      */
     public String[] searchVaildIdsbak(String fileBocker) {
@@ -156,7 +155,6 @@ public class RouteParser implements BlockAnalyzer {
      * @param fileCode
      * @param secondId
      * @param excludeSecondIds
-     *
      * @return
      */
     private String search(int fileCode, String secondId, Collection<String> excludeSecondIds) {
@@ -185,7 +183,6 @@ public class RouteParser implements BlockAnalyzer {
      * @param fileCode
      * @param secondId
      * @param excludes
-     *
      * @return
      */
     private String searchNormalRouteTree(int fileCode, String secondId, Collection<String> excludes) {
@@ -217,5 +214,29 @@ public class RouteParser implements BlockAnalyzer {
         return secondIds.stream().filter(id -> {
             return this.normalRouteTree.get(id) != null;
         }).collect(Collectors.toList()).size() > 0;
+    }
+
+    public Map<String, NormalRouteInterface> getNormalRouteTree() {
+        return normalRouteTree;
+    }
+
+    public void setNormalRouteTree(Map<String, NormalRouteInterface> normalRouteTree) {
+        this.normalRouteTree = normalRouteTree;
+    }
+
+    public Map<String, VirtualRoute> getVirtualRouteRelationship() {
+        return virtualRouteRelationship;
+    }
+
+    public void setVirtualRouteRelationship(Map<String, VirtualRoute> virtualRouteRelationship) {
+        this.virtualRouteRelationship = virtualRouteRelationship;
+    }
+
+    @Override
+    public RouteParser clone() {
+        RouteParser clone = new RouteParser(this.storageRegionID, this.loader, false);
+        clone.setNormalRouteTree(new HashMap<>(this.normalRouteTree));
+        clone.setVirtualRouteRelationship(new HashMap<>(this.virtualRouteRelationship));
+        return clone;
     }
 }

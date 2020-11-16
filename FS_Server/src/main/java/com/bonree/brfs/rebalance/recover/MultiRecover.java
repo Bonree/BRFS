@@ -19,7 +19,8 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
-import com.bonree.brfs.rebalance.route.RouteCache;
+import com.bonree.brfs.rebalance.route.RouteLoader;
+import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
@@ -72,15 +73,15 @@ public class MultiRecover implements DataRecover {
     private TaskDetail detail;
     private int currentCount = 0;
     private LocalPartitionInterface localPartitionInterface;
-    private RouteCache routeCache;
     private TaskNodeCache cache;
     private String baseBalancePath;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
     private ClusterConfig config;
+    private RouteLoader routeLoader;
 
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public MultiRecover(ClusterConfig config, LocalPartitionInterface localPartitionInterface, RouteCache routeCache,
+    public MultiRecover(ClusterConfig config, LocalPartitionInterface localPartitionInterface, RouteLoader routeLoader,
                         BalanceTaskSummary summary,
                         IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorFramework curatorFramework,
                         StorageRegion storageRegion, String baseBalancePath) {
@@ -99,7 +100,7 @@ public class MultiRecover implements DataRecover {
         nodeCache.addListener(taskNode, cache);
         this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
-        this.routeCache = routeCache;
+        this.routeLoader = routeLoader;
         this.baseBalancePath = baseBalancePath;
     }
 
@@ -192,13 +193,16 @@ public class MultiRecover implements DataRecover {
                 updateDetail(selfNode, detail);
 
                 log.info("deal the local server: {}",
-                         idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex()));
+                        idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex()));
 
                 NormalRouteV2 normalRoute =
-                    new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(),
-                                      balanceSummary.getServerId(),
-                                      balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
-
+                        new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(),
+                                balanceSummary.getServerId(),
+                                balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
+                RouteParser parser = new RouteParser(balanceSummary.getStorageIndex(), this.routeLoader);
+                RouteParser oldParser = parser.clone();
+                parser.putNormalRoute(normalRoute);
+                String localSecond = idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex());
                 // 遍历副本文件
                 for (BRFSPath brfsPath : allPaths) {
                     if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
@@ -207,7 +211,8 @@ public class MultiRecover implements DataRecover {
                     String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
                     if (!perFile.endsWith(".rd") && !FileUtils.isExist(perFile + ".rd")) {
                         log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
-                        dealFileV2(brfsPath, partitionPath, routeCache.getBlockAnalyzer(storageRegion.getId()), normalRoute);
+                        // dealFileV2(brfsPath, partitionPath, parser, normalRoute);
+                        dealFileV3(brfsPath, partitionPath, oldParser, parser, localSecond);
                     }
                 }
 
@@ -266,7 +271,7 @@ public class MultiRecover implements DataRecover {
         for (String id : analysisSecondIds) {
             if (BlockAnalyzer.isVirtualID(id)) {
                 log.warn("current id is virtual id, {}, will return {}", brfsPath.getFileName(),
-                         Arrays.asList(analysisSecondIds));
+                        Arrays.asList(analysisSecondIds));
                 return;
             }
             validSecondIds.add(id);
@@ -274,12 +279,12 @@ public class MultiRecover implements DataRecover {
 
         List<String> aliveMultiIds = getAliveMultiIds();
         log.debug("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
-                  validSecondIds,
-                  aliveMultiIds);
+                validSecondIds,
+                aliveMultiIds);
 
         // 3.收集已经不可用的服务集合，若集合为空，则文件不需要恢复
         List<String> deadSecondIds =
-            validSecondIds.stream().filter(x -> !aliveMultiIds.contains(x)).collect(Collectors.toList());
+                validSecondIds.stream().filter(x -> !aliveMultiIds.contains(x)).collect(Collectors.toList());
         if (deadSecondIds.isEmpty()) {
             log.warn("dead second ids is empty!");
             return;
@@ -299,7 +304,7 @@ public class MultiRecover implements DataRecover {
             // 5-1.若发现不可用的secondid，则可能发生新的变更，将由下次任务执行，本次不进行操作
             if (!deadServer.equals(normal.getBaseSecondId())) {
                 log.warn("recovery find unable file:[{}],analysis:{} second {} route:[{}]", brfsPath.getFileName(),
-                         validSecondIds, deadServer, normal);
+                        validSecondIds, deadServer, normal);
                 continue;
             }
             // 5-2.根据预发布的路由规则进行解析，
@@ -310,16 +315,16 @@ public class MultiRecover implements DataRecover {
             // 5-3.判断选取的新节点是否存活
             if (isAlive(aliveMultiIds, selectMultiId)) {
                 String secondServerIDSelected =
-                    idManager.getSecondId(balanceSummary.getPartitionId(), balanceSummary.getStorageIndex());
+                        idManager.getSecondId(balanceSummary.getPartitionId(), balanceSummary.getStorageIndex());
                 // 5-4.判断要恢复的secondId 与选中的secondid是否一致，一致，则表明该节点已经启动，则不做处理，不一致则需要作恢复
                 log.debug("select second server id:{}, select multi id:{}", secondServerIDSelected, selectMultiId);
 
                 if (!secondServerIDSelected.equals(selectMultiId)) {
                     String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());
                     FileRecoverMeta fileMeta =
-                        new FileRecoverMeta(partitionPath + File.separator + brfsPath.toString(), brfsPath.getFileName(),
-                                            selectMultiId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), pot,
-                                            firstID, partitionPath);
+                            new FileRecoverMeta(partitionPath + File.separator + brfsPath.toString(), brfsPath.getFileName(),
+                                    selectMultiId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), pot,
+                                    firstID, partitionPath);
                     try {
                         fileRecoverQueue.put(fileMeta);
                     } catch (InterruptedException e) {
@@ -331,16 +336,82 @@ public class MultiRecover implements DataRecover {
     }
 
     /**
+     * @param brfsPath      本机文件块信息
+     * @param partitionPath 本机磁盘id根目录
+     * @param parser        路由规则解析
+     */
+    private void dealFileV3(BRFSPath brfsPath,
+                            String partitionPath,
+                            BlockAnalyzer oldParser,
+                            BlockAnalyzer parser,
+                            String localSecond) {
+        // 1.由路由规则解析出来的服务
+        String fileName = brfsPath.getFileName();
+        // 2. 通过未添加任务路由规则协议解析文件块
+        String[] oldServices = oldParser.searchVaildIds(fileName);
+        // 2-1 根据之前的路由判断文件块是不是脏数据，若是脏数据则不进行恢复工作
+        List<String> oldRouteService = (List<String>) Arrays.asList(oldServices);
+        if (!oldRouteService.contains(localSecond)) {
+            log.info("发现脏数据 {}，文件应该存在的节点[{}]，当前节点{} 跳过恢复", brfsPath.toString(), oldRouteService, localSecond);
+            return;
+        }
+        // 3. 通过任务路由规则协议解析文件块
+        String[] newServices = parser.searchVaildIds(fileName);
+        List<String> newServicesList = Arrays.asList(newServices);
+        boolean allMatch = true;
+        for (int i = 0; i < newServices.length; i++) {
+            allMatch = allMatch && oldServices[i].equals(newServices[i]);
+        }
+        // 4.若新的解析与旧解析的文件块顺序及内容完全一样则说明副本数是完整的不需要迁移
+        if (allMatch) {
+            log.info("文件 {} 不需要恢复", brfsPath.toString());
+            return;
+        }
+        // 5. 本文件块在新旧协议中的位置，若存在不一致，则copy一份到对应的目标目录下，---再确认
+
+        // 6. 判定要迁移到的服务及远程路径
+        // 6-1 获取存活的secondId
+        List<String> aliveMultiIds = getAliveMultiIds();
+        int storageIndex = balanceSummary.getStorageIndex();
+
+        for (int i = 0; i < newServices.length; i++) {
+            String newSecondId = newServices[i];
+            // 6-2 若二级serverid与本节点二级serverid一致跳过
+            if (localSecond.equals(newSecondId)) {
+                continue;
+            }
+            // 6-3 若二级serverid 存活
+            if (isAlive(aliveMultiIds, newSecondId)) {
+                // 6-3-1 获取选中的二级serverid的磁盘id
+                String partitionId = idManager.getPartitionId(newSecondId, storageIndex);
+                // 6-3-2 获取选中的二级serverid的一级serverid
+                String firstId = idManager.getFirstId(newSecondId, storageIndex);
+                // 6-3-3 生成remote host的文件相对路径。
+                FileRecoverMeta fileMeta =
+                        new FileRecoverMeta(partitionPath + File.separator + brfsPath.toString(), fileName,
+                                newSecondId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), i + 1,
+                                firstId, partitionPath);
+                try {
+                    fileRecoverQueue.put(fileMeta);
+                } catch (InterruptedException e) {
+                    log.error("put file [{}] err", fileMeta, e);
+                }
+            }
+        }
+
+
+    }
+
+    /**
      * 获取BRFS文件块的时间目录
      *
      * @param brfsPath
-     *
      * @return
      */
     private String getTimeDir(BRFSPath brfsPath) {
         return brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
-            .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-            .getHourMinSecond();
+                .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
+                .getHourMinSecond();
     }
 
     private Runnable consumerQueue() {
@@ -361,12 +432,12 @@ public class MultiRecover implements DataRecover {
                             log.info("fileRecover:{}", fileRecover);
                             if (fileRecover != null) {
                                 String localDir = storageRegion.getName() + FileUtils.FILE_SEPARATOR + fileRecover
-                                    .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                                        .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 String remoteDir = storageRegion.getName() + FileUtils.FILE_SEPARATOR + fileRecover
-                                    .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                                        .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 String localFilePath = fileRecover.getPartitionPath() + FileUtils.FILE_SEPARATOR + localDir
-                                    + FileUtils.FILE_SEPARATOR + fileRecover
-                                    .getFileName();
+                                        + FileUtils.FILE_SEPARATOR + fileRecover
+                                        .getFileName();
                                 boolean success;
                                 int retryTimes = 0;
                                 while (true) {
@@ -379,16 +450,16 @@ public class MultiRecover implements DataRecover {
                                         break;
                                     }
                                     Service service = serviceManager.getServiceById(
-                                        config.getDataNodeGroup(), fileRecover.getFirstServerID());
+                                            config.getDataNodeGroup(), fileRecover.getFirstServerID());
                                     if (service == null) {
                                         log.warn("get service by first server id [{}] is null, maybe wait and try again!",
-                                                 fileRecover.getFirstServerID());
+                                                fileRecover.getFirstServerID());
                                         Thread.sleep(1000);
                                         continue;
                                     }
 
                                     String selectedPartitionId = idManager
-                                        .getPartitionId(fileRecover.getSelectedSecondId(), balanceSummary.getStorageIndex());
+                                            .getPartitionId(fileRecover.getSelectedSecondId(), balanceSummary.getStorageIndex());
                                     String partitionIdRecoverFileName = selectedPartitionId + ":" + fileRecover.getFileName();
                                     success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                     if (success) {
@@ -400,25 +471,25 @@ public class MultiRecover implements DataRecover {
                                             // 当文件超过重试次数传输失败时，取消任务
                                             balanceSummary.setTaskStatus(TaskStatus.CANCEL);
                                             String taskPath = ZKPaths
-                                                .makePath(taskNode, String.valueOf(balanceSummary.getStorageIndex()),
-                                                          Constants.TASK_NODE);
+                                                    .makePath(taskNode, String.valueOf(balanceSummary.getStorageIndex()),
+                                                            Constants.TASK_NODE);
                                             log.info("replica file transfer failed, will cancel the normal task [{}]", taskPath);
 
                                             // 删除在zk上的task任务
                                             String taskHistoryPath =
-                                                ZKPaths.makePath(baseBalancePath, Constants.TASKS_HISTORY_NODE);
+                                                    ZKPaths.makePath(baseBalancePath, Constants.TASKS_HISTORY_NODE);
                                             String taskHistory = ZKPaths
-                                                .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
-                                                          balanceSummary.getChangeID());
+                                                    .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
+                                                            balanceSummary.getChangeID());
                                             try {
                                                 curatorFramework.setData()
-                                                                .forPath(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
+                                                        .forPath(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
                                                 byte[] data = curatorFramework.getData().forPath(taskPath);
                                                 if (curatorFramework.checkExists().forPath(taskPath) != null) {
                                                     curatorFramework.delete().deletingChildrenIfNeeded().forPath(taskPath);
                                                 }
                                                 curatorFramework.create().creatingParentsIfNeeded()
-                                                                .forPath(taskHistory, data);
+                                                        .forPath(taskHistory, data);
                                             } catch (Exception e) {
                                                 log.error("clear normal task [{}] failed", taskPath, e);
                                             }
@@ -455,7 +526,6 @@ public class MultiRecover implements DataRecover {
      * 概述：更新任务信息
      *
      * @param node
-     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void updateDetail(String node, TaskDetail detail) {
@@ -473,7 +543,6 @@ public class MultiRecover implements DataRecover {
      * 概述：注册节点
      *
      * @param node
-     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public TaskDetail registerNodeDetail(String node) throws Exception {
@@ -481,9 +550,9 @@ public class MultiRecover implements DataRecover {
         if (curatorFramework.checkExists().forPath(node) == null) {
             detail = new TaskDetail(idManager.getFirstSever(), ExecutionStatus.INIT, 0, 0, 0);
             curatorFramework.create()
-                            .creatingParentsIfNeeded()
-                            .withMode(CreateMode.PERSISTENT)
-                            .forPath(node, JsonUtils.toJsonBytesQuietly(detail));
+                    .creatingParentsIfNeeded()
+                    .withMode(CreateMode.PERSISTENT)
+                    .forPath(node, JsonUtils.toJsonBytesQuietly(detail));
         } else {
             byte[] data = curatorFramework.getData().forPath(node);
             detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);

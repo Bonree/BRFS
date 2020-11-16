@@ -66,6 +66,7 @@ import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.route.RouteCache;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -177,16 +178,17 @@ public class DataNodeModule implements Module {
     @Provides
     @Singleton
     public RebalanceManager rebalanceManagerV2(
-        ZookeeperPaths zkPaths,
-        IDSManager idsManager,
-        StorageRegionManager storageRegionManager,
-        ServiceManager serviceManager,
-        LocalPartitionInterface localPartitionInterface,
-        DiskPartitionInfoManager diskPartitionInfoManager,
-        RouteCache routeCache,
-        CuratorFramework client,
-        ClusterConfig clusterConfig,
-        Lifecycle lifecycle) {
+            ZookeeperPaths zkPaths,
+            IDSManager idsManager,
+            StorageRegionManager storageRegionManager,
+            ServiceManager serviceManager,
+            LocalPartitionInterface localPartitionInterface,
+            DiskPartitionInfoManager diskPartitionInfoManager,
+            RouteCache routeCache,
+            CuratorFramework client,
+            ClusterConfig clusterConfig,
+            Lifecycle lifecycle,
+            RouteLoader routeLoader) {
         RebalanceManager rebalanceManager =
             new RebalanceManager(zkPaths,
                                  idsManager,
@@ -196,7 +198,8 @@ public class DataNodeModule implements Module {
                                  diskPartitionInfoManager,
                                  routeCache,
                                  client,
-                                 clusterConfig);
+                                 clusterConfig,
+                                 routeLoader);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             @Override
             public void start() throws Exception {
