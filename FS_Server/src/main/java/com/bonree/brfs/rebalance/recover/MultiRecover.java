@@ -368,6 +368,10 @@ public class MultiRecover implements DataRecover {
             return;
         }
         // 5. 本文件块在新旧协议中的位置，若存在不一致，则copy一份到对应的目标目录下，---再确认
+        int index = newServicesList.indexOf(localSecond);
+        if (index != Integer.parseInt(brfsPath.getIndex())) {
+            copy(partitionPath, brfsPath, index + "");
+        }
 
         // 6. 判定要迁移到的服务及远程路径
         // 6-1 获取存活的secondId
@@ -400,6 +404,23 @@ public class MultiRecover implements DataRecover {
         }
 
 
+    }
+
+    /**
+     * 本文件块在新旧协议中的位置，若存在不一致，则copy一份到对应的目标目录下
+     */
+    private void copy(String partitionPath, BRFSPath brfsPath, String index) {
+        String oldPath = partitionPath + File.separator + brfsPath.toString();
+        brfsPath.setIndex(index);
+        String newPath = partitionPath + File.separator + brfsPath.toString();
+        log.info("file placement is different between old route protocol and new route protocol, "
+                        + "new path is [{}], old path is [{}]",
+                oldPath, newPath);
+        try {
+            org.apache.commons.io.FileUtils.copyFile(new File(oldPath), new File(newPath));
+        } catch (IOException e) {
+            log.error("copy file failed because of [{}].", e);
+        }
     }
 
     /**
