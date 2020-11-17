@@ -205,6 +205,7 @@ public class MultiRecover implements DataRecover {
                 String localSecond = idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex());
                 // 遍历副本文件
                 for (BRFSPath brfsPath : allPaths) {
+                    log.info("scaning  local file [{}]", brfsPath.getFileName());
                     if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                         return;
                     }
@@ -264,7 +265,7 @@ public class MultiRecover implements DataRecover {
      */
     private void dealFileV2(BRFSPath brfsPath, String partitionPath, BlockAnalyzer parser, NormalRouteInterface normal) {
 
-        // 1.由路由规则解析出来的服务
+        // 1.由路由规则解析出来副本原来应该在的节点集合A
         String[] analysisSecondIds = parser.searchVaildIds(brfsPath.getFileName());
         List<String> validSecondIds = new ArrayList<>();
         // 2.检查元素，若存在虚拟id，则不进行恢复
@@ -278,11 +279,11 @@ public class MultiRecover implements DataRecover {
         }
 
         List<String> aliveMultiIds = getAliveMultiIds();
-        log.debug("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
-                validSecondIds,
-                aliveMultiIds);
+        log.info("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
+                  validSecondIds,
+                  aliveMultiIds);
 
-        // 3.收集已经不可用的服务集合，若集合为空，则文件不需要恢复
+        // 3.收集A中已经不可用的服务集合B，若果A中的节点都是可用的，不用恢复
         List<String> deadSecondIds =
                 validSecondIds.stream().filter(x -> !aliveMultiIds.contains(x)).collect(Collectors.toList());
         if (deadSecondIds.isEmpty()) {
@@ -303,8 +304,11 @@ public class MultiRecover implements DataRecover {
             int pot = validSecondIds.indexOf(deadServer) + 1;
             // 5-1.若发现不可用的secondid，则可能发生新的变更，将由下次任务执行，本次不进行操作
             if (!deadServer.equals(normal.getBaseSecondId())) {
-                log.warn("recovery find unable file:[{}],analysis:{} second {} route:[{}]", brfsPath.getFileName(),
-                        validSecondIds, deadServer, normal);
+                log.warn("recovery find unable file:[{}],analysis:{} second {} route:[{}]",
+                        brfsPath.getFileName(),
+                        validSecondIds,
+                        deadServer,
+                        normal);
                 continue;
             }
             // 5-2.根据预发布的路由规则进行解析，
@@ -317,7 +321,7 @@ public class MultiRecover implements DataRecover {
                 String secondServerIDSelected =
                         idManager.getSecondId(balanceSummary.getPartitionId(), balanceSummary.getStorageIndex());
                 // 5-4.判断要恢复的secondId 与选中的secondid是否一致，一致，则表明该节点已经启动，则不做处理，不一致则需要作恢复
-                log.debug("select second server id:{}, select multi id:{}", secondServerIDSelected, selectMultiId);
+                log.info("select second server id:{}, select multi id:{}", secondServerIDSelected, selectMultiId);
 
                 if (!secondServerIDSelected.equals(selectMultiId)) {
                     String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());
@@ -326,6 +330,7 @@ public class MultiRecover implements DataRecover {
                                     selectMultiId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), pot,
                                     firstID, partitionPath);
                     try {
+                        log.info("put fileMeta[{}] to queue", fileMeta);
                         fileRecoverQueue.put(fileMeta);
                     } catch (InterruptedException e) {
                         log.error("put file [{}] err", fileMeta, e);
@@ -349,15 +354,15 @@ public class MultiRecover implements DataRecover {
         String fileName = brfsPath.getFileName();
         // 2. 通过未添加任务路由规则协议解析文件块
         String[] oldServices = oldParser.searchVaildIds(fileName);
-        // 2-1 根据之前的路由判断文件块是不是脏数据，若是脏数据则不进行恢复工作
+        // 3. 通过任务路由规则协议解析文件块
+        String[] newServices = parser.searchVaildIds(fileName);
+        List<String> newServicesList = Arrays.asList(newServices);
+        // 3-1 根据之前的路由判断文件块是不是脏数据，若是脏数据则不进行恢复工作
         List<String> oldRouteService = (List<String>) Arrays.asList(oldServices);
         if (!oldRouteService.contains(localSecond)) {
             log.info("发现脏数据 {}，文件应该存在的节点[{}]，当前节点{} 跳过恢复", brfsPath.toString(), oldRouteService, localSecond);
             return;
         }
-        // 3. 通过任务路由规则协议解析文件块
-        String[] newServices = parser.searchVaildIds(fileName);
-        List<String> newServicesList = Arrays.asList(newServices);
         boolean allMatch = true;
         for (int i = 0; i < newServices.length; i++) {
             allMatch = allMatch && oldServices[i].equals(newServices[i]);
@@ -368,7 +373,7 @@ public class MultiRecover implements DataRecover {
             return;
         }
         // 5. 本文件块在新旧协议中的位置，若存在不一致，则copy一份到对应的目标目录下，---再确认
-        int index = newServicesList.indexOf(localSecond);
+        int index = newServicesList.indexOf(localSecond) + 1;
         if (index != Integer.parseInt(brfsPath.getIndex())) {
             copy(partitionPath, brfsPath, index + "");
         }
@@ -414,10 +419,10 @@ public class MultiRecover implements DataRecover {
         brfsPath.setIndex(index);
         String newPath = partitionPath + File.separator + brfsPath.toString();
         log.info("file placement is different between old route protocol and new route protocol, "
-                        + "new path is [{}], old path is [{}]",
+                        + "old path is [{}], new path is [{}]",
                 oldPath, newPath);
         try {
-            org.apache.commons.io.FileUtils.copyFile(new File(oldPath), new File(newPath));
+            org.apache.commons.io.FileUtils.moveFile(new File(oldPath), new File(newPath));
         } catch (IOException e) {
             log.error("copy file failed because of [{}].", e);
         }
@@ -427,6 +432,7 @@ public class MultiRecover implements DataRecover {
      * 获取BRFS文件块的时间目录
      *
      * @param brfsPath
+     *
      * @return
      */
     private String getTimeDir(BRFSPath brfsPath) {
