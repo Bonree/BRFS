@@ -6,7 +6,7 @@ package com.bonree.brfs.rebalance.task;
  *
  * @date 2018年3月27日 下午6:28:33
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description:服务变更
+ * @Description: service 节点拓扑变更, service节点有可能是partition或者dn
  ******************************************************************************/
 public enum ChangeType {
     ADD, REMOVE

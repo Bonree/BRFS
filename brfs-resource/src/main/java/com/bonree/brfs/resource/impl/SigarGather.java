@@ -36,6 +36,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * System Information Gatherer And Reporter
+ */
 public class SigarGather implements ResourceCollectionInterface {
     private static final Logger LOG = LoggerFactory.getLogger(SigarGather.class);
     private String libPath = null;
@@ -160,6 +163,7 @@ public class SigarGather implements ResourceCollectionInterface {
 
     public void start() throws Exception {
         if (start) {
+            LOG.warn("sigar should not start more than once");
             return;
         }
         cpuGather = new SigarCpuGather();

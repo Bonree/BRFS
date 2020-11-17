@@ -36,22 +36,22 @@ public class PartitionCheckingRoutine {
     private static final Logger LOG = LoggerFactory.getLogger(PartitionCheckingRoutine.class);
     private LevelServerIDGen idGen;
     private ResourceCollectionInterface gather;
-    private List<String> dataConfig;
+    private List<String> storageDirs;
     private String partitionGroup;
     private DataNodeMetaMaintainerInterface maintainer;
 
     @Inject
-    public PartitionCheckingRoutine(LevelServerIDGen idGen, ResourceCollectionInterface gather, List<String> dataConfig,
+    public PartitionCheckingRoutine(LevelServerIDGen idGen, ResourceCollectionInterface gather, List<String> storageDirs,
                                     DataNodeMetaMaintainerInterface maintainer, String partitionGroup) {
         this.idGen = idGen;
-        this.dataConfig = dataConfig;
+        this.storageDirs = storageDirs;
         this.partitionGroup = partitionGroup;
         this.gather = gather;
         this.maintainer = maintainer;
     }
 
-    public Collection<LocalPartitionInfo> checkVaildPartition() {
-        String[] dirs = dataConfig.toArray(new String[dataConfig.size()]);
+    public Collection<LocalPartitionInfo> checkValidPartition() {
+        String[] dirs = storageDirs.toArray(new String[storageDirs.size()]);
         try {
             // 获取已注册过的磁盘分区节点信息
             Map<String, LocalPartitionInfo> innerMap = readIds();

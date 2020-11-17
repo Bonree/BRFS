@@ -27,9 +27,10 @@ public class DataNodeMetaMaintainer implements DataNodeMetaMaintainerInterface {
     private String mac;
     private int port;
 
-    public DataNodeMetaMaintainer(CuratorFramework client, ResourceCollectionInterface gather, ZookeeperPaths zkPath, String host,
-                                  int port)
-        throws Exception {
+    public DataNodeMetaMaintainer(CuratorFramework client,
+                                  ResourceCollectionInterface gather,
+                                  ZookeeperPaths zkPath, String host,
+                                  int port) throws Exception {
         this.client = client;
         this.host = host;
         this.port = port;
