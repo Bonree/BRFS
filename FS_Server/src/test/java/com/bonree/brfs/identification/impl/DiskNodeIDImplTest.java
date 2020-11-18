@@ -1,8 +1,12 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import java.util.List;
+import javax.validation.constraints.AssertTrue;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.utils.ZKPaths;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,7 +22,7 @@ import org.junit.Test;
 public class DiskNodeIDImplTest {
     private static String ID_BAS_PATH = "/brfs/data1/disk";
     private static String ID_SECOND_PATH = "/brfs/data1/secondIDSet";
-    private static String ZKADDRES = "192.168.150.236:2181";
+    private static String ZKADDRES = "localhost:2181";
     private CuratorFramework framework = null;
 
     @Before
@@ -37,7 +41,8 @@ public class DiskNodeIDImplTest {
      */
     @Test
     public void newConstructorTest() {
-        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework, ID_BAS_PATH, ID_SECOND_PATH);
+        ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath("brfs7", framework);
+        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework, zkPaths);
     }
 
     /**
@@ -45,19 +50,28 @@ public class DiskNodeIDImplTest {
      */
     @Test
     public void getLevelTest() {
-        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework, ID_BAS_PATH, ID_SECOND_PATH);
+        ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath("data1", framework);
+        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework, zkPaths);
         try {
-            if (framework.checkExists().forPath(ID_BAS_PATH) != null) {
-                framework.delete().deletingChildrenIfNeeded().forPath(ID_BAS_PATH);
+            List<String> children = framework.getChildren().forPath(zkPaths.getBaseV2SecondIDPath());
+            int theLastPartition = 0;
+            int curPartition;
+            for (String child : children) {
+                curPartition = Integer.parseInt(child);
+                if (Integer.parseInt(child) > theLastPartition) {
+                    theLastPartition = curPartition;
+                }
             }
-            if (framework.checkExists().forPath(ID_SECOND_PATH + "/40") == null) {
-                framework.create().creatingParentsIfNeeded().forPath(ID_SECOND_PATH + "/40");
-            }
+            String nextID = impl.genLevelID();
+            framework.create().forPath(ZKPaths.makePath(zkPaths.getBaseV2SecondIDPath(), nextID));
+            nextID = nextID.substring(1, nextID.length() - 2);
+            String idWithLevel = String.valueOf(theLastPartition);
+            idWithLevel = idWithLevel.substring(1, idWithLevel.length() - 2);
+            int expectID = Integer.parseInt(idWithLevel);
+            Assert.assertEquals(theLastPartition + 1, Integer.parseInt(nextID));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(impl.genLevelID());
-
     }
 
     @After

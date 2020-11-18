@@ -1,5 +1,6 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.identification.LevelServerIDGen;
@@ -27,10 +28,12 @@ public class DiskNodeIDImpl implements LevelServerIDGen {
     private String secondIdSetPath = null;
 
     @Inject
-    public DiskNodeIDImpl(CuratorFramework client, String basePath, String secondIdSetPath) {
+    public DiskNodeIDImpl(CuratorFramework client, ZookeeperPaths zkPaths) {
         this.client = client;
-        this.firstServerIDCreator = new ZkSequenceNumberBuilder(this.client, ZKPaths.makePath(basePath, PARTITION_ID));
-        this.secondIdSetPath = secondIdSetPath;
+        this.firstServerIDCreator = new ZkSequenceNumberBuilder(this.client,
+                                                                ZKPaths.makePath(zkPaths.getBaseServerIdSeqPath(),
+                                                                                 PARTITION_ID));
+        this.secondIdSetPath = zkPaths.getBaseV2SecondIDPath();
     }
 
     @Override

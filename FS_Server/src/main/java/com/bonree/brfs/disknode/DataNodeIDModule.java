@@ -82,7 +82,7 @@ public class DataNodeIDModule implements Module {
                                     SecondMaintainerInterface maintainer, DataNodeMetaMaintainerInterface metaMaintainer) {
 
         // 1.生成注册id实例
-        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath(), zkpath.getBaseV2SecondIDPath());
+        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath);
         // 2.生成磁盘分区id检查类
         PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID,
                                                                         resourceGather,
