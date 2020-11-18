@@ -25,7 +25,6 @@ public class SigarNetGather implements NetGather {
             if (NetFlags.isAnyAddress(address) || NetFlags.isLoopback(address) || !address.equals(ip)) {
                 continue;
             }
-
             return this.convertor.convertNetInfo(config);
         }
         return null;

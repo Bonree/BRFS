@@ -144,9 +144,9 @@ public class SigarGather implements ResourceCollectionInterface {
     }
 
     @Override
-    public NetInfo collectSingleNetInfo(String ipAddress) throws Exception {
+    public NetInfo collectSingleNetInfo(String ip) throws Exception {
         checkStatus();
-        return this.netGather.gatherNetInfo(ipAddress);
+        return this.netGather.gatherNetInfo(ip);
     }
 
     @Override
