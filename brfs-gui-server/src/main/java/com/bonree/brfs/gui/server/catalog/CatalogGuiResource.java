@@ -90,9 +90,11 @@ public class CatalogGuiResource {
                     }
                     return responseBody.string();
                 } else if (response.code() == HttpStatus.CODE_NOT_FOUND) {
+                    LOG.error("cannot get file [{}]", nodePath);
                     throw new NotFoundException();
                 }
             } catch (IOException e) {
+                LOG.error("error when list files ", e);
                 throw new WebApplicationException(777);
             }
 
