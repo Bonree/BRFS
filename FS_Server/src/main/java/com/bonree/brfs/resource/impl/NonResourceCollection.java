@@ -76,12 +76,12 @@ public class NonResourceCollection implements ResourceCollectionInterface {
     }
 
     @Override
-    public NetInfo collectSingleNetInfo(String ipAddress) throws Exception {
+    public NetInfo collectSingleNetInfo(String ip) throws Exception {
         return null;
     }
 
     @Override
-    public NetStat collectSingleNetStat(String ipAddress) throws Exception {
+    public NetStat collectSingleNetStat(String ip) throws Exception {
         return null;
     }
 

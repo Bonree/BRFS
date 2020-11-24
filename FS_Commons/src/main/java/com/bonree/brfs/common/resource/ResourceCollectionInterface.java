@@ -128,14 +128,9 @@ public interface ResourceCollectionInterface {
 
     /**
      * 根据ip获取网络设备基本信息
-     *
-     * @param ipAddress
-     *
-     * @return
-     *
      * @throws Exception
      */
-    NetInfo collectSingleNetInfo(String ipAddress) throws Exception;
+    NetInfo collectSingleNetInfo(String ip) throws Exception;
 
     /***
      * 根据ip获取网络设备使用信息

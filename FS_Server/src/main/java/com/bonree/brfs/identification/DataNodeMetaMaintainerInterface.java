@@ -21,5 +21,10 @@ public interface DataNodeMetaMaintainerInterface {
      */
     void updateDataNodeMeta(DataNodeMetaModel metaData) throws Exception;
 
+    /**
+     * 获取所有已存在的datanode server id(first id)
+     * @return
+     * @throws Exception
+     */
     Collection<String> getExistFirst() throws Exception;
 }
