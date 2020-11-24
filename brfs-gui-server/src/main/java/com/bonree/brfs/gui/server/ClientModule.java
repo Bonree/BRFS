@@ -35,8 +35,6 @@ public class ClientModule implements Module {
     @Provides
     public OkHttpClient getHttpClient(BrfsConfig brfsConfig, HttpConfig httpConfig) {
         OkHttpClient httpClient = new OkHttpClient.Builder()
-            .addNetworkInterceptor(
-                new BRFSClientBuilder.AuthorizationIterceptor(brfsConfig.getUsername(), brfsConfig.getPassword()))
             .socketFactory(new SocketChannelSocketFactory())
             .callTimeout(Duration.ofSeconds(httpConfig.getRequestTimeout()))
             .connectTimeout(Duration.ofSeconds(httpConfig.getConnectTimeout()))
