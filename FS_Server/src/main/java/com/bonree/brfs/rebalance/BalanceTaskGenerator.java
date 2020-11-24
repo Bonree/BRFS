@@ -15,9 +15,16 @@ public interface BalanceTaskGenerator {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
-                                      List<String> selectIDs, List<String> participators, Map<String, Integer> newSecondIds,
-                                      String virtualTarget, String version, long delayTime);
+    BalanceTaskSummary genVirtualTask(String changeID,
+                                      int storageIndex,
+                                      String partitionId,
+                                      String virtualId,
+                                      List<String> selectIDs,
+                                      List<String> participators,
+                                      Map<String, Integer> newSecondIds,
+                                      String virtualTarget,
+                                      String version,
+                                      long delayTime);
 
     /**
      * 概述：生成普通的SID迁移任务
@@ -26,8 +33,14 @@ public interface BalanceTaskGenerator {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
-                                      List<String> selectIDs, List<String> participators, Map<String, Integer> newSecondIds,
-                                      Map<String, String> secondFirstShip, String version, long delayTime);
+    BalanceTaskSummary genBalanceTask(String changeID,
+                                      int storageIndex,
+                                      String partitionId,
+                                      String secondServerID,
+                                      List<String> selectIDs,
+                                      List<String> participators,
+                                      Map<String, Integer> newSecondIds,
+                                      Map<String, String> secondFirstShip,
+                                      String version, long delayTime);
 
 }

@@ -4,7 +4,7 @@ import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
 import java.util.Collection;
 
 /**
- * datanode 元数据维护接口，负责获取元数据信息，将元数据信息更新到存储截介质
+ * datanode 元数据维护接口，负责获取元数据信息，将元数据信息更新到存储介质
  */
 public interface DataNodeMetaMaintainerInterface {
     /**
@@ -21,5 +21,10 @@ public interface DataNodeMetaMaintainerInterface {
      */
     void updateDataNodeMeta(DataNodeMetaModel metaData) throws Exception;
 
+    /**
+     * 获取所有已存在的datanode server id(first id)
+     * @return
+     * @throws Exception
+     */
     Collection<String> getExistFirst() throws Exception;
 }

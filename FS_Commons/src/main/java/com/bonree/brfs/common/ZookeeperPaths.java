@@ -23,6 +23,9 @@ public class ZookeeperPaths {
 
     public static final String ROOT = "brfs";
 
+    /**
+     * 用来生成自增的service identification
+     */
     public static final String SERVER_ID_SEQUENCES = "server_id_sequences";
 
     public static final String SEQUENCES = "sequences";

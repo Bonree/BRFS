@@ -52,7 +52,9 @@ public class PartitionGather implements LifeCycle {
 
     private LocalPartitionListener listener = null;
 
-    public PartitionGather(ResourceCollectionInterface gather, PartitionInfoRegister register, Service localInfo,
+    public PartitionGather(ResourceCollectionInterface gather,
+                           PartitionInfoRegister register,
+                           Service localInfo,
                            Collection<LocalPartitionInfo> validPartions,
                            int intervalTimes) {
         this.intervalTimes = intervalTimes;

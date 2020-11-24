@@ -82,17 +82,18 @@ public class DataNodeIDModule implements Module {
                                     SecondMaintainerInterface maintainer, DataNodeMetaMaintainerInterface metaMaintainer) {
 
         // 1.生成注册id实例
-        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath(), zkpath.getBaseV2SecondIDPath());
+        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath);
         // 2.生成磁盘分区id检查类
-        PartitionCheckingRoutine routine =
-            new PartitionCheckingRoutine(diskNodeID, resourceGather, storageConfig.getStorageDirs(),
-                                         metaMaintainer, partitionConfig.getPartitionGroupName());
-        Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID,
+                                                                        resourceGather,
+                                                                        storageConfig.getStorageDirs(),
+                                                                        metaMaintainer, partitionConfig.getPartitionGroupName());
+        Collection<LocalPartitionInfo> parts = routine.checkValidPartition();
         // 3.生成注册管理实例
         PartitionInfoRegister register = new PartitionInfoRegister(client, zkpath.getBaseDiscoveryPath());
         // 4.生成采集线程池
         PartitionGather gather =
-            new PartitionGather(resourceGather, register, local, routine.checkVaildPartition(),
+            new PartitionGather(resourceGather, register, local, routine.checkValidPartition(),
                                 partitionConfig.getIntervalTime());
         DiskDaemon daemon = new DiskDaemon(gather, parts);
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {

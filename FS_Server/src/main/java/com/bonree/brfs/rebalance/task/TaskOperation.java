@@ -16,6 +16,7 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.recover.MultiRecover;
 import com.bonree.brfs.rebalance.recover.VirtualRecover;
 import com.bonree.brfs.rebalance.route.RouteCache;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.task.listener.TaskExecutorListener;
 import java.io.Closeable;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class TaskOperation implements Closeable {
     private StorageRegionManager snManager;
     private ServiceManager serviceManager;
     private LocalPartitionInterface partitionInterface;
-    private RouteCache routeCache;
+    private RouteLoader routeLoader;
     private String baseBalancePath;
     private ClusterConfig config;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
@@ -55,7 +56,7 @@ public class TaskOperation implements Closeable {
     public TaskOperation(CuratorFramework curatorFramework, final String baseBalancePath,
                          ClusterConfig config, IDSManager idManager,
                          StorageRegionManager snManager, ServiceManager serviceManager,
-                         LocalPartitionInterface partitionInterface, RouteCache routeCache) {
+                         LocalPartitionInterface partitionInterface, RouteLoader routeLoader) {
         this.config = config;
         this.curatorFramework = curatorFramework;
         this.idManager = idManager;
@@ -65,7 +66,7 @@ public class TaskOperation implements Closeable {
         this.snManager = snManager;
         this.serviceManager = serviceManager;
         this.partitionInterface = partitionInterface;
-        this.routeCache = routeCache;
+        this.routeLoader = routeLoader;
     }
 
     public void start() {
@@ -90,7 +91,7 @@ public class TaskOperation implements Closeable {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                recover = new MultiRecover(config, partitionInterface, routeCache, taskSummary,
+                recover = new MultiRecover(config, partitionInterface, routeLoader, taskSummary,
                                            idManager, serviceManager, taskPath,
                                            curatorFramework, node, baseBalancePath);
 
