@@ -305,11 +305,17 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
         Map<byte[], byte[]> result = new LinkedHashMap<>();
         try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
+            long beforeReadRocksDb = System.currentTimeMillis();
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
                     result.put(iterator.key(), iterator.value());
+                } else {
+                    break;
                 }
             }
+            long afterReadRocksDb = System.currentTimeMillis();
+            LOG.info("before traverse directory  [{}], after tarverse directory [{}]"
+                         + "total time is [{}]", beforeReadRocksDb, afterReadRocksDb, afterReadRocksDb - beforeReadRocksDb);
         } catch (Exception e) {
             LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey), e);
             return null;
@@ -328,6 +334,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         int counter = 0;
         Map<byte[], byte[]> result = new LinkedHashMap<>(count);
         try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
+            long beforeReadRocksDb = System.currentTimeMillis();
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
                     // 大于起始位置时才put
@@ -338,9 +345,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     if (result.size() >= count) {
                         return result;
                     }
+                } else {
+                    break;
                 }
                 counter++;
             }
+            long afterReadRocksDb = System.currentTimeMillis();
+            LOG.info("before traverse directory  [{}], after tarverse directory [{}]"
+                         + "total time is [{}]", beforeReadRocksDb, afterReadRocksDb, afterReadRocksDb - beforeReadRocksDb);
         } catch (Exception e) {
             LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey), e);
             return null;
