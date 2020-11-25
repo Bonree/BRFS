@@ -310,6 +310,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
                     result.put(iterator.key(), iterator.value());
+                } else {
+                    break;
                 }
                 count++;
             }
@@ -348,15 +350,20 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     }
                     // 满员后返回
                     if (result.size() >= count) {
-                        LOG.info("get count [{}]", counter);
                         return result;
                     }
+                } else {
+                    break;
                 }
                 counter++;
             }
             long afterReadRocksDb = System.currentTimeMillis();
-            LOG.info("before traverse directory  [{}], after tarverse directory [{}]"
-                         + "total time is [{}]", beforeReadRocksDb, afterReadRocksDb, afterReadRocksDb - beforeReadRocksDb);
+            LOG.info("[GUI] before traverse directory  [{}], after tarverse directory [{}]"
+                         + "total time is [{}], get count [{}]",
+                     beforeReadRocksDb,
+                     afterReadRocksDb,
+                     afterReadRocksDb - beforeReadRocksDb,
+                     counter);
         } catch (Exception e) {
             LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey), e);
             return null;
