@@ -203,7 +203,7 @@ public class CatalogGuiResource {
             result = client.listStorageRegions();
         } catch (Exception e) {
             result = ImmutableList.of();
-            LOG.warn("can not get srs");
+            LOG.warn("can not get srs", e);
         }
         return result;
     }

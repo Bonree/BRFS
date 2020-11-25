@@ -72,7 +72,7 @@ public class BRFSClientBuilder {
         Closer closer = Closer.create();
 
         OkHttpClient httpClient = new OkHttpClient.Builder()
-            .addNetworkInterceptor(new AuthorizationIterceptor(user, passwd))
+            //.addNetworkInterceptor(new AuthorizationIterceptor(user, passwd))
             .socketFactory(new SocketChannelSocketFactory())
             .callTimeout(configuration.getRequestTimeout())
             .connectTimeout(configuration.getConnectTimeout())
