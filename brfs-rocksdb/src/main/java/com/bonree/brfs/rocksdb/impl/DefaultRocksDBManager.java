@@ -307,10 +307,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
         try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
             long beforeReadRocksDb = System.currentTimeMillis();
             int count = 0;
+            String prefix = new String(prefixKey);
+            String curKey = "";
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
-                if (new String(iterator.key()).startsWith(new String(prefixKey))) {
+                curKey = new String(iterator.key());
+                if (curKey.startsWith(prefix)) {
                     result.put(iterator.key(), iterator.value());
                 } else {
+                    LOG.info("get an unexpect key [{}] with out prefix[{}]",
+                             curKey,
+                             prefix);
                     break;
                 }
                 count++;
@@ -342,8 +348,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
         Map<byte[], byte[]> result = new LinkedHashMap<>(count);
         try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
             long beforeReadRocksDb = System.currentTimeMillis();
+            String prefix = new String(prefixKey);
+            String curKey = "";
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
-                if (new String(iterator.key()).startsWith(new String(prefixKey))) {
+                curKey = new String(iterator.key());
+                if (curKey.startsWith(prefix)) {
                     // 大于起始位置时才put
                     if (counter >= start) {
                         result.put(iterator.key(), iterator.value());
