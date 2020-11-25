@@ -306,16 +306,21 @@ public class DefaultRocksDBManager implements RocksDBManager {
         Map<byte[], byte[]> result = new LinkedHashMap<>();
         try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
             long beforeReadRocksDb = System.currentTimeMillis();
+            int count = 0;
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
                     result.put(iterator.key(), iterator.value());
-                } else {
-                    break;
                 }
+                count++;
             }
+
             long afterReadRocksDb = System.currentTimeMillis();
             LOG.info("before traverse directory  [{}], after tarverse directory [{}]"
-                         + "total time is [{}]", beforeReadRocksDb, afterReadRocksDb, afterReadRocksDb - beforeReadRocksDb);
+                         + "total time is [{}], count[{}]",
+                     beforeReadRocksDb,
+                     afterReadRocksDb,
+                     afterReadRocksDb - beforeReadRocksDb,
+                     count);
         } catch (Exception e) {
             LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey), e);
             return null;
@@ -343,10 +348,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     }
                     // 满员后返回
                     if (result.size() >= count) {
+                        LOG.info("get count [{}]", counter);
                         return result;
                     }
-                } else {
-                    break;
                 }
                 counter++;
             }
