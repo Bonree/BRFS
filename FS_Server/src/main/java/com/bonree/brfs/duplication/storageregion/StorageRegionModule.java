@@ -17,6 +17,8 @@ package com.bonree.brfs.duplication.storageregion;
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.duplication.storageregion.checker.BRProductSRChecker;
+import com.bonree.brfs.duplication.storageregion.checker.SRChecker;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionExistedExceptionMapper;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentExceptionMapper;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionStateExceptionMapper;
@@ -33,6 +35,7 @@ public class StorageRegionModule implements Module {
         JsonConfigProvider.bind(binder, "storage", StorageRegionConfig.class);
 
         binder.bind(StorageRegionManager.class).to(DefaultStorageRegionManager.class);
+        binder.bind(SRChecker.class).to(BRProductSRChecker.class).in(Scopes.SINGLETON);
         binder.bind(StorageRegionIdBuilder.class).to(ZkStorageRegionIdBuilder.class).in(Scopes.SINGLETON);
 
         binder.requestStaticInjection(StorageRegionProperties.class);

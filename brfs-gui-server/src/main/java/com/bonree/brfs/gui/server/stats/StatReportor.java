@@ -164,10 +164,10 @@ public class StatReportor {
         if (base.equals(req)) {
             return true;
         }
-        return getBusinessByRlue(base).equals(req);
+        return getBusinessByRule(base).equals(req);
     }
 
-    private String getBusinessByRlue(String region) {
+    private String getBusinessByRule(String region) {
         String[] array = StringUtils.split(region, "_");
         if (array == null || array.length < 2) {
             return region;

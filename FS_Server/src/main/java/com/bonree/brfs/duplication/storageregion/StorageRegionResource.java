@@ -27,6 +27,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.duplication.storageregion.checker.SRChecker;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.base.Throwables;
@@ -62,6 +63,7 @@ public class StorageRegionResource {
     private final ZookeeperPaths zkPaths;
     private final RocksDBManager rocksDBManager;
     private final CuratorFramework client;
+    private final SRChecker srChecker;
 
     @Inject
     public StorageRegionResource(
@@ -70,13 +72,15 @@ public class StorageRegionResource {
         ServiceManager serviceManager,
         ZookeeperPaths zkPaths,
         RocksDBManager rocksDBManager,
-        CuratorFramework client) {
+        CuratorFramework client,
+        SRChecker srChecker) {
         this.clusterConfig = clusterConfig;
         this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
         this.zkPaths = zkPaths;
         this.rocksDBManager = rocksDBManager;
         this.client = client;
+        this.srChecker = srChecker;
     }
 
     @PUT
@@ -86,6 +90,11 @@ public class StorageRegionResource {
     public Response create(
         @PathParam("srName") String name,
         Properties attributes) {
+        if (!srChecker.check(name)) {
+            return Response.status(Status.BAD_REQUEST)
+                           .entity(StringUtils.format("Storage Region[%s] should like T_<Product>_xxx", name))
+                           .build();
+        }
         if (storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)
                            .entity(StringUtils.format("Storage Region[%s] has been existed", name))
@@ -96,7 +105,8 @@ public class StorageRegionResource {
             StorageRegion storageRegion = storageRegionManager.createStorageRegion(
                 name,
                 StorageRegionProperties.withDefault().override(attributes));
-            rocksDBManager.createColumnFamilyWithTtl(name, -1);
+            rocksDBManager.createColumnFamilyWithTtl(name, (int) Duration
+                .parse(StorageRegionProperties.withDefault().override(attributes).getDataTtl()).getSeconds());
             return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not create storage region[%s]", name), e);
