@@ -31,7 +31,6 @@ public class StatReportor {
     private final ThreadLocal<Instant> importantMoment = new ThreadLocal<>();
     // sr=>[ts=>count]
     private final ThreadLocal<Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>>> result = new ThreadLocal();
-    private List<String> writeFiles = new ArrayList<>();
 
     @Inject
     public StatReportor(StatConfigs configs) {
@@ -79,7 +78,6 @@ public class StatReportor {
         Instant fileInstant;
         List<File> fileList = new ArrayList<>();
         for (File file : allFiles) {
-            writeFiles.add(file.getAbsolutePath());
             fileInstant = parseFromDay(getDayFromFileName(file.getName()));
             if (fileInstant.compareTo(now.truncatedTo(ChronoUnit.DAYS)) >= 0) {
                 fileList.add(file);
