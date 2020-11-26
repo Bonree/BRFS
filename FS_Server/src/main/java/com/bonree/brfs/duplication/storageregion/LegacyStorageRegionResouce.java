@@ -14,6 +14,7 @@ import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.Ints;
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import javax.inject.Inject;
@@ -86,7 +87,8 @@ public class LegacyStorageRegionResouce {
             StorageRegion storageRegion = storageRegionManager.createStorageRegion(
                 name,
                 StorageRegionProperties.withDefault().override(properties));
-            rocksDBManager.createColumnFamilyWithTtl(name, -1);
+            rocksDBManager.createColumnFamilyWithTtl(name, (int) Duration
+                .parse(StorageRegionProperties.withDefault().override(properties).getDataTtl()).getSeconds());
             return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not create storage region[%s]", name), e);

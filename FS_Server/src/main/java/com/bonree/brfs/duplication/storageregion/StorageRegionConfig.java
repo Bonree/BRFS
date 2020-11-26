@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class StorageRegionConfig {
     @JsonProperty("data.ttl")
-    private String ttl = "P30D";
+    private String ttl = "P100D";
 
     @JsonProperty("replicate.count")
     private int replicateNum = 2;
