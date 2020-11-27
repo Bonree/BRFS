@@ -73,6 +73,9 @@ public class TaskExecutorListener implements TreeCacheListener {
                             return;
                         }
                         opt.launchDelayTaskExecutor(taskSummary, taskPath);
+                    } else {
+                        client.delete().deletingChildrenIfNeeded().forPath(taskPath);
+                        LOG.info("delete a empty task! task path is [{}]!", taskPath);
                     }
                 }
             }
