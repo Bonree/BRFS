@@ -8,6 +8,7 @@ import io.netty.handler.timeout.IdleStateEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,16 +40,21 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
 
         LOG.debug("handle base message[{}, {}]", token, baseMessage.getType());
 
-        executor.execute(() -> {
-            try {
-                handler.handleMessage(baseMessage, response ->
-                    ctx.writeAndFlush(new TokenMessage<BaseResponse>(token, response)));
-            } catch (Throwable e) {
-                LOG.error("handle message error", e);
-                ctx.writeAndFlush(new TokenMessage<>(token,
-                                                     new BaseResponse(ResponseCode.ERROR)));
-            }
-        });
+        try {
+            executor.execute(() -> {
+                try {
+                    handler.handleMessage(baseMessage, response ->
+                        ctx.writeAndFlush(new TokenMessage<BaseResponse>(token, response)));
+                } catch (Throwable e) {
+                    LOG.error("handle message error", e);
+                    ctx.writeAndFlush(new TokenMessage<>(token,
+                                                         new BaseResponse(ResponseCode.ERROR)));
+                }
+            });
+        } catch (RejectedExecutionException rejectedExecutionException) {
+            ctx.writeAndFlush(new TokenMessage<>(token,
+                                                 new BaseResponse(ResponseCode.ERROR)));
+        }
     }
 
     @Override

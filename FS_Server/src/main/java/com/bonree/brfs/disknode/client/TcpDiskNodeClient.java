@@ -25,6 +25,7 @@ import com.google.common.primitives.Longs;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
                 }
             });
 
-            BaseResponse response = future.get();
+            BaseResponse response = future.get(3, TimeUnit.SECONDS);
             if (response != null && response.getCode() == ResponseCode.OK) {
                 return Longs.fromByteArray(response.getBody());
             }
