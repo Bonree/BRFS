@@ -177,7 +177,7 @@ public class FileWriterManager implements LifeCycle {
                 FileNode fileNode = fileNodeStorer.getFileNode(dataFile.getName());
                 if (fileNode == null) {
                     log.info("file node of [{}] has been removed, close it", dataFile.getAbsolutePath());
-                    closeUnexpected(dataFile.getAbsolutePath());
+                    close(dataFile.getAbsolutePath());
                 }
             } catch (Throwable e) {
                 log.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
