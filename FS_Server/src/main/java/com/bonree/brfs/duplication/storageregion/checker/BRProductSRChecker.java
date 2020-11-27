@@ -9,6 +9,6 @@ public class BRProductSRChecker implements SRChecker {
         if (!srName.startsWith("T")) {
             return false;
         }
-        return srName.split("_").length >= 2 ? true : false;
+        return srName.split("_").length > 2 ? true : false;
     }
 }
