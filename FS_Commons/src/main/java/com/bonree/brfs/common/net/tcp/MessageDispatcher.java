@@ -31,30 +31,26 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
     protected void channelRead0(ChannelHandlerContext ctx, TokenMessage<BaseMessage> msg) {
         BaseMessage baseMessage = msg.message();
         int token = msg.messageToken();
-        MessageHandler<BaseResponse> handler = handlers.get(baseMessage.getType());
-        if (handler == null) {
-            LOG.error("unknown type[{}] of message!", baseMessage.getType());
-            ctx.writeAndFlush(new TokenMessage<>(token, new BaseResponse(ResponseCode.ERROR_PROTOCOL)));
-            return;
-        }
-
-        LOG.debug("handle base message[{}, {}]", token, baseMessage.getType());
-
         try {
+            MessageHandler<BaseResponse> handler = handlers.get(baseMessage.getType());
+            if (handler == null) {
+                LOG.error("unknown type[{}] of message!", baseMessage.getType());
+                ctx.writeAndFlush(new TokenMessage<>(token, new BaseResponse(ResponseCode.ERROR_PROTOCOL)));
+                return;
+            }
+
+            LOG.debug("handle base message[{}, {}]", token, baseMessage.getType());
+
             executor.execute(() -> {
-                try {
-                    handler.handleMessage(baseMessage, response ->
-                        ctx.writeAndFlush(new TokenMessage<BaseResponse>(token, response)));
-                } catch (Throwable e) {
-                    LOG.error("handle message error", e);
-                    ctx.writeAndFlush(new TokenMessage<>(token,
-                                                         new BaseResponse(ResponseCode.ERROR)));
-                }
+                handler.handleMessage(baseMessage, response ->
+                    ctx.writeAndFlush(new TokenMessage<BaseResponse>(token, response)));
             });
-        } catch (RejectedExecutionException rejectedExecutionException) {
+        } catch (Throwable e) {
+            LOG.error("handle message error", e);
             ctx.writeAndFlush(new TokenMessage<>(token,
                                                  new BaseResponse(ResponseCode.ERROR)));
         }
+
     }
 
     @Override
