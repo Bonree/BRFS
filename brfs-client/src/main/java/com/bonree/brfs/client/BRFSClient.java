@@ -942,6 +942,13 @@ public class BRFSClient implements BRFS {
                     return;
                 }
 
+                if (response.code() == HttpStatus.CODE_STORAGE_INVALID) {
+                    resultFuture.setException(new IllegalArgumentException(
+                        Strings.format("the Storage should like T_<product>_xxx!"))
+                    );
+                    return;
+                }
+
                 resultFuture.setException(new IllegalStateException(
                     Strings.format("Unexpected response code is returned[%d]", response.code())));
             } finally {
