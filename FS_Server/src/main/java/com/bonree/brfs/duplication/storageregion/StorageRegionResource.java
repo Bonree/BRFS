@@ -20,6 +20,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import com.bonree.brfs.client.storageregion.StorageRegionAttributes;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
+import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
@@ -46,6 +47,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.apache.curator.framework.CuratorFramework;
@@ -91,9 +93,8 @@ public class StorageRegionResource {
         @PathParam("srName") String name,
         Properties attributes) {
         if (!srChecker.check(name)) {
-            return Response.status(Status.BAD_REQUEST)
-                           .entity(StringUtils.format("Storage Region[%s] should like T_<Product>_xxx", name))
-                           .build();
+            log.warn("storage [{}] is invalid", name);
+            throw new WebApplicationException("storage [" + name + "] is invalid", HttpStatus.CODE_STORAGE_INVALID);
         }
         if (storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)

@@ -590,9 +590,12 @@ public class BRFSClient implements BRFS {
 
     @Override
     public List<String> getFileListFromDir(String srName, BRFSPath dirPath) throws Exception {
+        ArrayList<URI> uris = new ArrayList<>();
+        uris.add(URI.create("http://192.168.4.147:8100"));
         return Retrys.execute(new URIRetryable<>(
             format("get file names from dir[%s] in [%s]", dirPath, srName),
-            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            //nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            uris.iterator(),
             uri -> {
                 Request httpRequest = new Request.Builder()
                     .url(HttpUrl.get(uri)
@@ -630,9 +633,12 @@ public class BRFSClient implements BRFS {
     }
 
     private List<String> getFidListFromDir(String srName, BRFSPath dirPath) {
+        ArrayList<URI> uris = new ArrayList<>();
+        uris.add(URI.create("http://192.168.4.147:17400"));
         return Retrys.execute(new URIRetryable<List<String>>(
             format("get fids from dir[%s] in [%s]", dirPath, srName),
-            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            //nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            uris.iterator(),
             uri -> {
                 Request httpRequest = new Request.Builder()
                     .url(HttpUrl.get(uri)
@@ -932,6 +938,13 @@ public class BRFSClient implements BRFS {
                 if (response.code() == HttpStatus.CODE_STORAGE_NOT_EXIST) {
                     resultFuture.setException(new IllegalArgumentException(
                         Strings.format("the Storage is not exist!"))
+                    );
+                    return;
+                }
+
+                if (response.code() == HttpStatus.CODE_STORAGE_INVALID) {
+                    resultFuture.setException(new IllegalArgumentException(
+                        Strings.format("the Storage should like T_<product>_xxx!"))
                     );
                     return;
                 }
