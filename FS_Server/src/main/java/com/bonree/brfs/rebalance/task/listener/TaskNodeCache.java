@@ -17,7 +17,7 @@ public class TaskNodeCache implements NodeCacheListener {
     private AtomicReference<TaskStatus> status;
 
     public TaskNodeCache(BalanceTaskSummary currentTask, CuratorFramework client, String taskNode) {
-        this.log = LoggerFactory.getLogger(currentTask.getTaskType().name());
+        this.log = LoggerFactory.getLogger(currentTask.getTaskType().name() + "_" + currentTask.getStorageIndex());
         this.client = client;
         this.taskNode = taskNode;
         this.currentTask = currentTask;
