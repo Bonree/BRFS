@@ -32,6 +32,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
         try {
             // 获取资源信息
             Collection<ResourceModel> resources = daemon.getClusterResources();
+            log.info("service num in the cache: [{}].", resources.size());
             // 采集资源未上传则使用备用选择器
             if (resources == null || resources.isEmpty()) {
                 log.warn("[{}] select resource list is empty !!!! use bak selector", groupName);
@@ -39,6 +40,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
             }
             // 过滤资源异常服务
             Collection<ResourceModel> selectors = this.resourceSelector.filterService(resources, null);
+            log.info("service num after filter: [{}]", selectors.size());
             if (selectors == null || selectors.isEmpty()) {
                 log.error("[{}] none avaible server to selector !!!", groupName);
                 return new DuplicateNode[0];
@@ -61,7 +63,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
                 duplicateNodes[i] = new DuplicateNode(groupName, next.getServerId(), null);
                 i++;
             }
-
+            log.info("service num finally choosed: [{}]", duplicateNodes.length);
             return duplicateNodes;
         } finally {
             long stop = System.currentTimeMillis();

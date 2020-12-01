@@ -34,7 +34,7 @@ public class TasksUtils {
     private static final Logger LOG = LoggerFactory.getLogger(TasksUtils.class);
 
     /**
-     * 概述：
+     * 概述：在zookeeper路径 [ROOT]/tasks/queue/USER_DELETE 路径下创建删除sr任务。当这个路径不存在时，删除任务失败
      *
      * @param services
      * @param zkPaths
@@ -58,7 +58,13 @@ public class TasksUtils {
 
         MetaTaskManagerInterface release = new DefaultReleaseTask(client, zkPaths);
         TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
-        if (!tmodel.isSwitchFlag()) {
+        try {
+            if (!tmodel.isSwitchFlag()) {
+                return ReturnCode.FORBID_DELETE_DATA_ERROR;
+            }
+        } catch (NullPointerException e) {
+            LOG.error("TaskTypeModel is null, please check whether the "
+                          + "USER_DELELET task is open or not in the datanode's config file");
             return ReturnCode.FORBID_DELETE_DATA_ERROR;
         }
         TaskModel task = TasksUtils
