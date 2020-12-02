@@ -71,7 +71,7 @@
 		<connection>scm:git:http://brgit.ibr.cc/brfs/brfs.git</connection>
 		<developerConnection>scm:git:http://brgit.ibr.cc/brfs/brfs.git</developerConnection>
 		<url>http://brgit.ibr.cc/brfs/brfs.git</url>
-		<tag>2.0.7</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>
