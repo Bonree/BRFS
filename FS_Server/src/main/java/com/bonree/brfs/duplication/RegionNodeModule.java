@@ -73,10 +73,10 @@ import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
-import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
+import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStore;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.metadata.MetadataBackupServer;
 import com.google.inject.Binder;
@@ -115,7 +115,7 @@ public class RegionNodeModule implements Module {
         binder.bind(FileObjectSyncProcessor.class).to(DefaultFileObjectSyncProcessor.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectSynchronizer.class).to(DefaultFileObjectSynchronier.class);
 
-        binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
+        binder.bind(FileNodeStore.class).to(ZkFileNodeStore.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectFactory.class).to(DefaultFileObjectFactory.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectCloser.class).to(DefaultFileObjectCloser.class);
         binder.bind(FileNodeSinkManager.class).to(ZkFileNodeSinkManager.class);

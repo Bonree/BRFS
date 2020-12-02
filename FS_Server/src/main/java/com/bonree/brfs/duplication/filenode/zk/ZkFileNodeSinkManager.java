@@ -14,7 +14,7 @@ import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeSink;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -56,7 +56,7 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
         Service service,
         ServiceManager serviceManager,
         TimeExchangeEventEmitter timeEventEmitter,
-        FileNodeStorer storer,
+        FileNodeStore storer,
         FileNodeSinkSelector selector,
         FileObjectCloser fileCloser) {
         this.client = client.usingNamespace(paths.getBaseClusterName().substring(1));

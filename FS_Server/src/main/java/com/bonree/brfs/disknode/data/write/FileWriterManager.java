@@ -26,7 +26,7 @@ import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.utils.BRFSRdFileFilter;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.bonree.brfs.duplication.filenode.FileNode;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Bytes;
 import java.io.File;
@@ -49,7 +49,7 @@ public class FileWriterManager implements LifeCycle {
     private final WriteWorkerGroup workerGroup;
     private final WriteWorkerSelector workerSelector;
     private final RecordCollectionManager recorderManager;
-    private final FileNodeStorer fileNodeStorer;
+    private final FileNodeStore fileNodeStore;
 
     private static int recordCacheSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
     private static int dataCacheSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
@@ -63,33 +63,33 @@ public class FileWriterManager implements LifeCycle {
     private final FileFormater fileFormater;
 
     public FileWriterManager(RecordCollectionManager recorderManager,
-                             FileNodeStorer fileNodeStorer,
+                             FileNodeStore fileNodeStore,
                              FileFormater fileFormater) {
         this(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM),
              recorderManager,
-             fileNodeStorer,
+             fileNodeStore,
              fileFormater);
     }
 
     public FileWriterManager(int workerNum,
                              RecordCollectionManager recorderManager,
-                             FileNodeStorer fileNodeStorer,
+                             FileNodeStore fileNodeStore,
                              FileFormater fileFormater) {
         this(workerNum,
              new RandomWriteWorkerSelector(),
              recorderManager,
-             fileNodeStorer,
+             fileNodeStore,
              fileFormater);
     }
 
     public FileWriterManager(int workerNum, WriteWorkerSelector selector,
                              RecordCollectionManager recorderManager,
-                             FileNodeStorer fileNodeStorer,
+                             FileNodeStore fileNodeStore,
                              FileFormater fileFormater) {
         this.workerGroup = new WriteWorkerGroup(workerNum);
         this.workerSelector = selector;
         this.recorderManager = recorderManager;
-        this.fileNodeStorer = fileNodeStorer;
+        this.fileNodeStore = fileNodeStore;
         this.fileFormater = fileFormater;
     }
 
@@ -174,7 +174,7 @@ public class FileWriterManager implements LifeCycle {
             try {
                 rebuildFileWriter(dataFile);
 
-                FileNode fileNode = fileNodeStorer.getFileNode(dataFile.getName());
+                FileNode fileNode = fileNodeStore.getFileNode(dataFile.getName());
                 if (fileNode == null) {
                     log.info("file node of [{}] has been removed, close it", dataFile.getAbsolutePath());
                     close(dataFile.getAbsolutePath());
@@ -191,6 +191,7 @@ public class FileWriterManager implements LifeCycle {
         for (Entry<String, Pair<RecordFileWriter, WriteWorker>> entry : runningWriters.entrySet()) {
             try {
                 entry.getValue().first().flush();
+                // todo 这里应该写入crc 对应的重启之后不需要rebuild这个文件?
             } catch (IOException e) {
                 log.error("stop to flush file[{}] error", entry.getKey(), e);
             }
@@ -369,7 +370,7 @@ public class FileWriterManager implements LifeCycle {
         byte[] fileBytes = DataFileReader.readFile(filePath, fileFormater.fileHeader().length());
         long length = fileBytes.length;
         long crcCode = ByteUtils.crc(fileBytes);
-        log.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
+        log.info("final crc code[{}] with length [{}] of file[{}]", crcCode, fileBytes.length, filePath);
 
         binding.first().write(Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail()));
         binding.first().flush();

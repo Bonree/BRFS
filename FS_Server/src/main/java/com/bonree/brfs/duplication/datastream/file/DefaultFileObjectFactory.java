@@ -5,7 +5,7 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNameBuilder;
 import com.bonree.brfs.duplication.filenode.FileNode;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.bonree.brfs.duplication.filenode.FilePathBuilder;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
@@ -20,7 +20,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectFactory.class);
 
     private final Service service;
-    private final FileNodeStorer fileNodeStorer;
+    private final FileNodeStore fileNodeStore;
     private final DuplicateNodeSelector duplicationNodeSelector;
     private final VirtualServerID idManager;
     private final DiskNodeConnectionPool connectionPool;
@@ -29,13 +29,13 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 
     @Inject
     public DefaultFileObjectFactory(Service service,
-                                    FileNodeStorer fileNodeStorer,
+                                    FileNodeStore fileNodeStore,
                                     DuplicateNodeSelector duplicationNodeSelector,
                                     VirtualServerID serverIDManager,
                                     DiskNodeConnectionPool connectionPool,
                                     DuplicateNodeChecker nodeChecker) {
         this.service = service;
-        this.fileNodeStorer = fileNodeStorer;
+        this.fileNodeStore = fileNodeStore;
         this.duplicationNodeSelector = duplicationNodeSelector;
         this.idManager = serverIDManager;
         this.connectionPool = connectionPool;
@@ -105,7 +105,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 
         FileNode fileNode = fileNodeBuilder.setCapacity(capacity).build();
         try {
-            fileNodeStorer.save(fileNode);
+            fileNodeStore.save(fileNode);
 
             return new FileObject(fileNode);
         } catch (Exception e) {

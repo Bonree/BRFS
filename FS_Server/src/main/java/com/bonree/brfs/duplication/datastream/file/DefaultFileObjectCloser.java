@@ -12,7 +12,7 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncCallback;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.filenode.FileNode;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import java.io.Closeable;
 import java.io.IOException;
@@ -30,31 +30,31 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 
     private FileObjectSynchronizer fileSynchronizer;
     private DiskNodeConnectionPool connectionPool;
-    private FileNodeStorer fileNodeStorer;
+    private FileNodeStore fileNodeStore;
 
     private FilePathMaker pathMaker;
 
     @Inject
     public DefaultFileObjectCloser(
         FileObjectSynchronizer fileSynchronizer,
-        FileNodeStorer fileNodeStorer,
+        FileNodeStore fileNodeStore,
         DiskNodeConnectionPool connectionPool,
         FilePathMaker pathMaker) {
         this(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_CLOSER_THREAD_NUM),
              fileSynchronizer,
-             fileNodeStorer,
+             fileNodeStore,
              connectionPool,
              pathMaker);
     }
 
     public DefaultFileObjectCloser(int threadNum,
                                    FileObjectSynchronizer fileSynchronizer,
-                                   FileNodeStorer fileNodeStorer,
+                                   FileNodeStore fileNodeStore,
                                    DiskNodeConnectionPool connectionPool,
                                    FilePathMaker pathMaker) {
         this.closeThreads = Executors.newFixedThreadPool(threadNum, new PooledThreadFactory("file_closer"));
         this.fileSynchronizer = fileSynchronizer;
-        this.fileNodeStorer = fileNodeStorer;
+        this.fileNodeStore = fileNodeStore;
         this.connectionPool = connectionPool;
         this.pathMaker = pathMaker;
     }
@@ -140,7 +140,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
             }
 
             try {
-                fileNodeStorer.delete(file.node().getName());
+                fileNodeStore.delete(file.node().getName());
             } catch (Exception e) {
                 log.error("delete file[{}] from file coordinator failed", file.node().getName());
             }

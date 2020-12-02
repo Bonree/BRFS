@@ -31,11 +31,10 @@ public class ClusterResource implements Closeable {
         this.exector = exector;
     }
 
-    public ClusterResource start() throws Exception {
+    public void start() throws Exception {
         this.pathChildrenCache.start();
-        this.pathChildrenCache.getListenable().addListener(new ZkResource(), this.exector);
-        LOG.info("daemon resource service work !!");
-        return this;
+        this.pathChildrenCache.getListenable().addListener(new ResourceListener(), this.exector);
+        LOG.info("resourceListener is listening resource changes from zk!!");
     }
 
     /**
@@ -62,9 +61,9 @@ public class ClusterResource implements Closeable {
     }
 
     /**
-     * 更新资源监听
+     * 集群资源监听器
      */
-    private class ZkResource implements PathChildrenCacheListener {
+    private class ResourceListener implements PathChildrenCacheListener {
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
@@ -105,7 +104,7 @@ public class ClusterResource implements Closeable {
      */
     public static class Builder {
         /**
-         * client客户端
+         * zk客户端
          */
         private CuratorFramework client = null;
         /**

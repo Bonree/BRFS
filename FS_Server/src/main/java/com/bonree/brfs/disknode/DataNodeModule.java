@@ -51,9 +51,8 @@ import com.bonree.brfs.disknode.server.tcp.handler.MetadataFetchMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.OpenFileMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
-import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
-import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
+import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStore;
 import com.bonree.brfs.duplication.storageregion.StorageRegionBackgroundWorker;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
@@ -61,7 +60,6 @@ import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManage
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
-import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.RebalanceManager;
@@ -99,7 +97,7 @@ public class DataNodeModule implements Module {
 
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
 
-        binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
+        binder.bind(FileNodeStore.class).to(ZkFileNodeStore.class).in(Scopes.SINGLETON);
 
         binder.requestStaticInjection(CuratorCacheFactory.class);
 
@@ -142,18 +140,22 @@ public class DataNodeModule implements Module {
 
     @Provides
     @Singleton
-    public Service getService(
-        ClusterConfig clusterConfig,
-        ServiceManager serviceManager,
-        FirstLevelServerIDImpl idManager,
-        Lifecycle lifecycle) {
-        Service service = new Service(
-            idManager.initOrLoadServerID(),
-            clusterConfig.getDataNodeGroup(),
-            Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST),
-            Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT));
+    public Service getService(ClusterConfig clusterConfig,
+                              ServiceManager serviceManager,
+                              FirstLevelServerIDImpl idManager,
+                              Lifecycle lifecycle) {
+        // 启动datanode服务流程
+        // 1. 查询zk上的datanode元数据,获得一个集群内唯一的datanode id
+        String dataNodeId = idManager.initOrLoadServerID();
+        // 2. 用这个id初始化service
+        Service service = new Service(dataNodeId,
+                                      clusterConfig.getDataNodeGroup(),
+                                      Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST),
+                                      Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT));
         service.setExtraPort(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_PORT));
 
+        // 3. 在server阶段将注册服务,
+        // todo rn和dn的注册代码重复
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
 
             @Override
@@ -223,11 +225,11 @@ public class DataNodeModule implements Module {
     @Provides
     @Singleton
     public FileWriterManager getFileWriterManager(DiskContext diskContext,
-                                                  FileNodeStorer fileNodeStorer,
+                                                  FileNodeStore fileNodeStore,
                                                   FileFormater fileFormater,
                                                   Lifecycle lifecycle) {
         FileWriterManager writerManager = new FileWriterManager(new RecordCollectionManager(),
-                                                                fileNodeStorer,
+                                                                fileNodeStore,
                                                                 fileFormater);
 
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
@@ -281,6 +283,7 @@ public class DataNodeModule implements Module {
             new PooledThreadFactory("message_handler"),
             (r, e) -> {
                 log.warn("executor rejected task, that's  terrible!");
+                //todo 在这里对task返回
                 throw new RejectedExecutionException("Task " + r.toString() + " rejected from " + e.toString());
             });
 
