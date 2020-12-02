@@ -4,7 +4,7 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeFilter;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -14,19 +14,19 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZkFileNodeStorer implements FileNodeStorer {
-    private static final Logger LOG = LoggerFactory.getLogger(ZkFileNodeStorer.class);
+public class ZkFileNodeStore implements FileNodeStore {
+    private static final Logger LOG = LoggerFactory.getLogger(ZkFileNodeStore.class);
 
     private CuratorFramework client;
     private String storePath;
 
     @Inject
-    public ZkFileNodeStorer(CuratorFramework client, ZookeeperPaths paths) throws Exception {
+    public ZkFileNodeStore(CuratorFramework client, ZookeeperPaths paths) throws Exception {
         this(client.usingNamespace(paths.getBaseClusterName().substring(1)),
              ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
     }
 
-    public ZkFileNodeStorer(CuratorFramework client, String nodePath) throws Exception {
+    public ZkFileNodeStore(CuratorFramework client, String nodePath) throws Exception {
         this.client = client;
         this.storePath = ZKPaths.makePath(ZkFileCoordinatorPaths.COORDINATOR_ROOT, nodePath);
         this.client.createContainers(storePath);

@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @author yupeng
  */
-public interface FileNodeStorer {
+public interface FileNodeStore {
     /**
      * 保存文件节点到仓库
      *
@@ -48,9 +48,6 @@ public interface FileNodeStorer {
 
     /**
      * 列举当前仓库中所有的文件节点
-     *
-     * @param filter 文件节点过滤器；如果不需要过滤，可以为null
-     *
      * @return
      */
     List<FileNode> listFileNodes();

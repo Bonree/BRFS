@@ -1,7 +1,7 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resource.vo.LimitServerResource;
@@ -28,11 +28,11 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     //记录重复数值的
     private int centSize;
     private LimitServerResource limit;
-    private FileNodeStorer storer;
+    private FileNodeStore fileNodeStore;
     private long fileSize = 0;
 
-    public MachineResourceWriterSelector(FileNodeStorer storer, LimitServerResource limit) {
-        this.storer = storer;
+    public MachineResourceWriterSelector(FileNodeStore fileNodeStore, LimitServerResource limit) {
+        this.fileNodeStore = fileNodeStore;
         this.centSize = limit.getCentSize();
         this.limit = limit;
         this.fileSize = limit.getFileSize();
@@ -47,7 +47,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         }
         Set<ResourceModel> wins = new HashSet<>();
         long diskRemainSize;
-        int numSize = this.storer == null ? 0 : this.storer.fileNodeSize();
+        int numSize = this.fileNodeStore == null ? 0 : this.fileNodeStore.fileNodeSize();
 
         List<ResourceModel> washroom = new ArrayList<>();
         // 将已经满足条件的服务过滤
@@ -231,7 +231,9 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         List<String> uneedServices = new ArrayList<>();
         int size = map.size();
         // 按资源选择
-        while (resourceModels.size() != num && resourceModels.size() != size && uneedServices.size() != size) {
+        while (resourceModels.size() != num
+            && resourceModels.size() != size
+            && uneedServices.size() != size) {
             key = WeightRandomPattern.getWeightRandom(intValues, new Random(), uneedServices);
             tmp = map.get(key);
             uneedServices.add(tmp.getServerId());

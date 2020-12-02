@@ -10,11 +10,11 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.RandomSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelector;
-import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
+import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStore;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.Initialization;
 import com.bonree.brfs.identification.SecondIdsInterface;
@@ -118,7 +118,7 @@ public class RegionIDModuleTest {
         public void configure(Binder binder) {
             binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
             binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
-            binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
+            binder.bind(FileNodeStore.class).to(ZkFileNodeStore.class).in(Scopes.SINGLETON);
         }
 
         @Provides

@@ -15,7 +15,7 @@ import com.bonree.brfs.duplication.datastream.file.FileObject;
 import com.bonree.brfs.duplication.datastream.file.FileObjectCloser;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import java.io.Closeable;
@@ -58,7 +58,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
     private FileNodeSinkSelector serviceSelector;
 
     private CuratorFramework client;
-    private FileNodeStorer fileStorer;
+    private FileNodeStore fileStorer;
     private ServiceManager serviceManager;
     private FileObjectCloser fileCloser;
 
@@ -69,7 +69,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 
     private AtomicBoolean running = new AtomicBoolean(false);
 
-    public FileNodeDistributor(CuratorFramework client, FileNodeStorer fileStorer,
+    public FileNodeDistributor(CuratorFramework client, FileNodeStore fileStorer,
                                ServiceManager serviceManager,
                                FileNodeSinkSelector serviceSelector,
                                TimeExchangeEventEmitter timeEventEmitter,
@@ -181,11 +181,11 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
     private boolean handleFileNode(FileNode fileNode) {
         LOG.info("handling wild FileNode[{}]", JsonUtils.toJsonStringQuietly(fileNode));
         try {
+            fileCloser.close(new FileObject(fileNode), true);
             fileStorer.delete(fileNode.getName());
         } catch (Exception e) {
             LOG.error("close file[{}] in distributor is failed caused by", e);
         }
-        fileCloser.close(new FileObject(fileNode), true);
         return true;
     }
 

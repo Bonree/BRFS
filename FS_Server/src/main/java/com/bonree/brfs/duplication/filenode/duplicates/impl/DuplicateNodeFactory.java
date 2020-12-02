@@ -4,7 +4,7 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.FileNodeStore;
 import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
@@ -28,7 +28,7 @@ public class DuplicateNodeFactory {
     private static final Logger LOG = LoggerFactory.getLogger(DuplicateNodeFactory.class);
 
     public static DuplicateNodeSelector create(
-        ServiceManager serviceManager, FileNodeStorer storer, PartitionNodeSelector nodeSelector,
+        ServiceManager serviceManager, FileNodeStore storer, PartitionNodeSelector nodeSelector,
         SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
         CuratorFramework client, String dataGroup) throws Exception {
         int type = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DUPLICATION_SELECT_TYPE);
@@ -52,21 +52,25 @@ public class DuplicateNodeFactory {
         return new RandomSelector(serviceManager, nodeSelector, secondIds, dataGroup);
     }
 
-    private static DuplicateNodeSelector createResource(
-        ServiceManager serviceManager, PartitionNodeSelector nodeSelector,
-        SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths, CuratorFramework client,
-        FileNodeStorer storer, String dataGroup) throws Exception {
+    private static DuplicateNodeSelector createResource(ServiceManager serviceManager,
+                                                        PartitionNodeSelector nodeSelector,
+                                                        SecondIdsInterface secondIds,
+                                                        ZookeeperPaths zookeeperPaths,
+                                                        CuratorFramework client,
+                                                        FileNodeStore fileNodeStore,
+                                                        String dataGroup) throws Exception {
         LimitServerResource limitServerResource = new LimitServerResource();
-        String rpath = ZKPaths.makePath(zookeeperPaths.getBaseResourcesPath(), "stat");
+        // todo 把stat写死到ZookeeperPaths中
+        String statPath = ZKPaths.makePath(zookeeperPaths.getBaseResourcesPath(), "stat");
         ClusterResource clusterResource = ClusterResource.newBuilder()
                                                          .setCache(true)
                                                          .setClient(client)
-                                                         .setListenPath(rpath)
+                                                         .setListenPath(statPath)
                                                          .setPool(Executors.newSingleThreadExecutor())
-                                                         .build()
-                                                         .start();
+                                                         .build();
+        clusterResource.start();
         MachineResourceWriterSelector serviceSelector =
-            new MachineResourceWriterSelector(storer, limitServerResource);
+            new MachineResourceWriterSelector(fileNodeStore, limitServerResource);
         // 生成备用选择器
         DuplicateNodeSelector bakSelect =
             new MinimalDuplicateNodeSelector(serviceManager, ResourceSelector.LOG, dataGroup);
