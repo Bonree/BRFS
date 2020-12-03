@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
+import com.bonree.brfs.duplication.datastream.file.DuplicateNodeChecker;
 import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
@@ -26,9 +27,14 @@ public class ResourceSelector extends ResourceWriteSelector {
     private PartitionNodeSelector nodeSelector;
     private SecondIdsInterface secondIds;
 
-    public ResourceSelector(ClusterResource daemon, ServiceSelector resourceSelector, DuplicateNodeSelector bakSelector,
-                            String groupName, PartitionNodeSelector nodeSelector, SecondIdsInterface secondIds) {
-        super(daemon, resourceSelector, bakSelector, groupName, LOG);
+    public ResourceSelector(ClusterResource daemon,
+                            ServiceSelector resourceSelector,
+                            DuplicateNodeSelector bakSelector,
+                            String groupName,
+                            PartitionNodeSelector nodeSelector,
+                            SecondIdsInterface secondIds,
+                            DuplicateNodeChecker checker) {
+        super(daemon, resourceSelector, bakSelector, groupName, LOG, checker);
         this.nodeSelector = nodeSelector;
         this.secondIds = secondIds;
     }

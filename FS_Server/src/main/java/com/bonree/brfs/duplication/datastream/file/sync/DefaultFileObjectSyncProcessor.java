@@ -77,6 +77,7 @@ public class DefaultFileObjectSyncProcessor implements FileObjectSyncProcessor {
                 return true;
             } else {
                 LOG.info("file[{}] is lack of some duplicate node!", file.node().getName());
+                // todo 查看过期条件
                 if (task.isExpired()) {
                     LOG.info("file[{}] sync is expired!", file.node().getName());
                     task.callback().timeout(file);

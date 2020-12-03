@@ -65,6 +65,7 @@ public class DataNodeMetaMaintainer implements DataNodeMetaMaintainerInterface {
     @Override
     public synchronized DataNodeMetaModel getDataNodeMeta() throws Exception {
         if (client.checkExists().forPath(nodePath) == null) {
+            // 注册一个新的dn时 会走到这里
             return getEmptyMeta();
         }
         byte[] data = client.getData().forPath(nodePath);

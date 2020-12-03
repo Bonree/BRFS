@@ -1,9 +1,11 @@
 package com.bonree.brfs.resource.vo;
 
+import com.bonree.brfs.duplication.filenode.duplicates.impl.Weightable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ResourceModel {
+public class ResourceModel implements Weightable {
     /**
      * 本机cpu使用率，
      */
@@ -112,4 +114,25 @@ public class ResourceModel {
         this.diskServiceTime = diskServiceTime;
     }
 
+    @Override
+    public long weight() {
+        return getFreeSize();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ResourceModel that = (ResourceModel) o;
+        return serverId.equals(that.serverId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serverId);
+    }
 }

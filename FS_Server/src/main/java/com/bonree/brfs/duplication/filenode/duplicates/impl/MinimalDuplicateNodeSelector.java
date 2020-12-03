@@ -3,23 +3,25 @@ package com.bonree.brfs.duplication.filenode.duplicates.impl;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.ListUtils;
+import com.bonree.brfs.duplication.datastream.file.DuplicateNodeChecker;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
+    public static final Logger log = LoggerFactory.getLogger(MinimalDuplicateNodeSelector.class);
     private ServiceManager serviceManager;
-    private Logger log = null;
     private String dataGroup = null;
+    private DuplicateNodeChecker checker;
 
-    public MinimalDuplicateNodeSelector(
-        ServiceManager serviceManager, Logger log, String dataGroup) {
+    public MinimalDuplicateNodeSelector(ServiceManager serviceManager, String dataGroup, DuplicateNodeChecker checker) {
         this.serviceManager = serviceManager;
-        this.log = log;
         this.dataGroup = dataGroup;
+        this.checker = checker;
     }
 
     @Override

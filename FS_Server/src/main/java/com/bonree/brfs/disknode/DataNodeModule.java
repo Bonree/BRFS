@@ -117,7 +117,6 @@ public class DataNodeModule implements Module {
     public ZookeeperPaths getPaths(ClusterConfig clusterConfig, CuratorFramework zkClient, Lifecycle lifecycle) {
         ZookeeperPaths paths = ZookeeperPaths.create(clusterConfig.getName(), zkClient);
         lifecycle.addAnnotatedInstance(paths);
-
         return paths;
     }
 

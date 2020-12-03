@@ -5,7 +5,7 @@ import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.disknode.PartitionConfig;
-import com.bonree.brfs.duplication.filenode.FileNodeStore;
+import com.bonree.brfs.duplication.datastream.file.DuplicateNodeChecker;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.DuplicateNodeFactory;
@@ -66,13 +66,13 @@ public class RegionIDModule implements Module {
 
     @Provides
     public DuplicateNodeSelector getDuplicateNodeSelector(
-            ServiceManager serviceManager, FileNodeStore storer,
+            ServiceManager serviceManager, DuplicateNodeChecker checker,
             PartitionNodeSelector partitionNodeSelector,
             SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
             CuratorFramework client, ClusterConfig config) {
         try {
             return DuplicateNodeFactory
-                    .create(serviceManager, storer, partitionNodeSelector, secondIds, zookeeperPaths, client,
+                    .create(serviceManager, checker, partitionNodeSelector, secondIds, zookeeperPaths, client,
                             config.getDataNodeGroup());
         } catch (Exception e) {
             throw new RuntimeException("create duplicateNodeSelector happen error ", e);

@@ -51,10 +51,13 @@ public class FirstLevelServerIDImpl {
     }
 
     /**
-     * 概述：加载一级ServerID
-     * 一级ServerID是用于标识每个服务的，不同的服务的一级ServerID一定是不同的，
-     * 所以不会出现线程安全的问题
+     * 一个服务是使用mac地址的hash + 服务端口来标识的
+     * 具有相同的mac地址和端口的服务我们认为是同一个服务
+     * datanode服务保存这个信息在{@link ZookeeperPaths#getBaseDataNodeMetaPath()}
      *
+     * 根据mac地址 + 端口 拼出服务在zk上的node名, 如果在{@link ZookeeperPaths#getBaseDataNodeMetaPath()}
+     * 已存在这个节点:则load
+     * 不存在:
      * @return
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
@@ -73,7 +76,10 @@ public class FirstLevelServerIDImpl {
             return firstServerID;
         }
         try {
+            // todo 在getFirstID中已经访问过一次该zknode,
+            //  是否可以复用getExistFirst或者getFirst中的信息呢?
             Collection<String> first = maintainer.getExistFirst();
+            // 从zk上获得一个没有被占用id
             do {
                 firstServerID = firstServerIDGen.genLevelID();
             } while (first.contains(firstServerID));
@@ -135,6 +141,8 @@ public class FirstLevelServerIDImpl {
                 return;
             }
         }
+        // todo 更新完zk上的信息后,是否要检查node状态? 上面的switch中,是否有些状态变更过早,比如是否
+        // todo 应该在创建服务的时候,等真正update后在变更为onlyServer
         this.maintainer.updateDataNodeMeta(model);
     }
 }

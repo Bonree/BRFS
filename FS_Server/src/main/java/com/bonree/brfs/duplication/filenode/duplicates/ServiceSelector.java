@@ -4,19 +4,10 @@ import com.bonree.brfs.resource.vo.ResourceModel;
 import java.util.Collection;
 
 public interface ServiceSelector {
-    /**
-     * 过滤限制的服务的serviceids
-     */
-    Collection<ResourceModel> filterService(Collection<ResourceModel> resourceModels, String path);
 
     /**
-     * 选择服务
-     *
-     * @param resources
-     * @param path
-     * @param num
-     *
+     * 从 resources 中选择n个节点放入result中
      * @return
      */
-    Collection<ResourceModel> selector(Collection<ResourceModel> resources, String path, int num);
+    public Collection<ResourceModel> selector(Collection<ResourceModel> resources, int n);
 }

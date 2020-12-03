@@ -1,7 +1,7 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.duplication.filenode.FileNodeStore;
+import com.bonree.brfs.duplication.datastream.file.DuplicateNodeChecker;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resource.vo.LimitServerResource;
@@ -24,103 +24,89 @@ import org.slf4j.LoggerFactory;
 public class MachineResourceWriterSelector implements ServiceSelector {
     private static final Logger LOG = LoggerFactory.getLogger(MachineResourceWriterSelector.class);
     //记录少于服务时
-    private static long preTime = 0L;
+    private static long lastSendWarningEmailTime = 0L;
     //记录重复数值的
     private int centSize;
     private LimitServerResource limit;
-    private FileNodeStore fileNodeStore;
+    private DuplicateNodeChecker checker;
     private long fileSize = 0;
 
-    public MachineResourceWriterSelector(FileNodeStore fileNodeStore, LimitServerResource limit) {
-        this.fileNodeStore = fileNodeStore;
+    public MachineResourceWriterSelector(LimitServerResource limit, DuplicateNodeChecker checker) {
         this.centSize = limit.getCentSize();
         this.limit = limit;
+        this.checker = checker;
         this.fileSize = limit.getFileSize();
     }
 
-    @Override
-    public Collection<ResourceModel> filterService(Collection<ResourceModel> resourceModels, String sn) {
+    /**
+     * 先排除不可用(如磁盘紧张)的节点
+     * @param resources
+     */
+    private void filterService(Collection<ResourceModel> resources) {
         // 无资源
-        if (resourceModels == null || resourceModels.isEmpty()) {
+        if (resources == null || resources.isEmpty()) {
             LOG.warn("no resource to selector");
-            return null;
+            return;
         }
-        Set<ResourceModel> wins = new HashSet<>();
         long diskRemainSize;
-        int numSize = this.fileNodeStore == null ? 0 : this.fileNodeStore.fileNodeSize();
-
-        List<ResourceModel> washroom = new ArrayList<>();
-        // 将已经满足条件的服务过滤
-        for (ResourceModel wash : resourceModels) {
-            diskRemainSize = wash.getFreeSize();
+        // 将剩余容量不多的节点过滤掉
+        for (ResourceModel resource : resources) {
+            diskRemainSize = resource.getFreeSize();
             if (diskRemainSize < this.limit.getRemainForceSize()) {
-                LOG.warn("First: {}({}), remainsize: {}, force:{} !! will refused",
-                         wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
-                continue;
-            }
-            washroom.add(wash);
-        }
-        if (washroom.isEmpty()) {
-            return null;
-        }
-        int size = washroom.size();
-        // 预测值，假设现在所有正在写的文件大小为0，并且每个磁盘节点都写入。通过现有写入的文件的数×配置的文件大小即可得单个数据节点写入数据的大小
-        long writeSize = numSize * fileSize / size;
-        for (ResourceModel resourceModel : washroom) {
-            diskRemainSize = resourceModel.getFreeSize() - writeSize;
-            if (diskRemainSize < this.limit.getRemainForceSize()) {
-                LOG.warn("Second : {}({}),  remainsize: {}, force:{} !! will refused", resourceModel.getServerId(),
-                         resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
-                continue;
+                LOG.warn("node: {}({}) now remain size is : {}, it is lower than config force size:{} !!",
+                         resource.getServerId(),
+                         resource.getHost(),
+                         diskRemainSize,
+                         this.limit.getRemainForceSize());
+                resources.remove(resource);
             }
             if (diskRemainSize < this.limit.getRemainWarnSize()) {
-                LOG.warn("sn: {}({}), remainsize: {}, force:{} !! will full", resourceModel.getServerId(),
-                         resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
+                LOG.warn("node: {}({}), remain size is: {}, the warn size is:{} !! ",
+                         resource.getServerId(),
+                         resource.getHost(),
+                         diskRemainSize,
+                         this.limit.getRemainWarnSize());
             }
-            wins.add(resourceModel);
         }
-        return wins;
     }
 
     @Override
-    public Collection<ResourceModel> selector(Collection<ResourceModel> resources, String sn, int num) {
+    public Collection<ResourceModel> selector(Collection<ResourceModel> resources, int n) {
+        // 按过滤策略来过滤节点
+        filterService(resources);
+        LOG.info("service num after filter: [{}]", resources.size());
         if (resources == null || resources.isEmpty()) {
-            return null;
+            LOG.error("[{}] there is not available node to selector !!!");
+            resources = new HashSet<>();
         }
+
         // 如果可选服务少于需要的，发送报警邮件
-        int resourceSize = resources.size();
-        boolean lessFlag = resourceSize < num;
         long currentTime = System.currentTimeMillis();
-        if (lessFlag) {
+        if (resources.size() < n) {
             // 控制邮件发送的间隔，减少不必要的
-            if (currentTime - preTime > 360000) {
-                preTime = currentTime;
-                sendSelectEmail(resources, num);
+            if (currentTime - lastSendWarningEmailTime > 360000) {
+                lastSendWarningEmailTime = currentTime;
+                sendSelectEmail(resources, n);
             }
             return resources;
         }
-        // 转换为Map
-        Map<String, ResourceModel> map = convertResourceMap(resources);
-        // 转换为权重值
-        List<Pair<String, Integer>> intValues = covertValues(resources, centSize);
-        List<ResourceModel> wins = selectNode(map, intValues, num);
-        int winSize = wins.size();
-        // 若根据ip分配的个数满足要求，则返回该集合，不满足则看是否为
-        if (winSize == num) {
-            return wins;
+        Collection<ResourceModel> result;
+        // 到此,可选节点数大于等于n
+        result = selectNodes(resources, n);
+        if (result.size() == n) {
+            return result;
         }
-        LOG.warn("will select service in same ip !!!");
-        Set<String> sids = selectWins(wins);
-        // 二次选择服务
-        int ssize = resourceSize > num ? num - winSize : resourceSize - winSize;
-        Collection<ResourceModel> resourceModels = selectRandom(map, sids, intValues, ssize);
-        wins.addAll(resourceModels);
+        LOG.warn("resource selector cannot select all nodes, expect size[{}], actual size[{}] !!!", n, result.size());
+        // 随机选择
+        int patchSize = resources.size() > n ? n - result.size() : resources.size() - result.size();
+        // 此时传入的resources是已经删除掉已选元素的集合
+        Collection<ResourceModel> patches = selectRandom(resources, patchSize);
+        result.addAll(patches);
         // 若依旧不满足则发送邮件
-        if (wins.size() < num && currentTime - preTime > 360000) {
-            sendSelectEmail(wins, num);
+        if (result.size() < n && currentTime - lastSendWarningEmailTime > 360000) {
+            sendSelectEmail(result, n);
         }
-        return wins;
-
+        return result;
     }
 
     /**
@@ -154,30 +140,28 @@ public class MachineResourceWriterSelector implements ServiceSelector {
 
     /**
      * 随机选择
-     *
-     * @param map
-     * @param sids
-     * @param intValues
      * @param num
      *
      * @return
      */
-    public Collection<ResourceModel> selectRandom(Map<String, ResourceModel> map, Set<String> sids,
-                                                  List<Pair<String, Integer>> intValues, int num) {
-        List<ResourceModel> resourceModels = new ArrayList<>();
-        String key;
-        ResourceModel tmp;
-        //ip选中优先选择
-        int size = map.size();
-        // 按资源选择
-        Random random = new Random();
-        while (resourceModels.size() != num && resourceModels.size() != size && sids.size() != size) {
-            key = WeightRandomPattern.getWeightRandom(intValues, random, sids);
-            tmp = map.get(key);
-            resourceModels.add(tmp);
-            sids.add(tmp.getServerId());
+    public Collection<ResourceModel> selectRandom(Collection<ResourceModel> resources, int num) {
+        if (resources.size() <= num) {
+            return resources;
         }
-        return resourceModels;
+        ArrayList<ResourceModel> result = new ArrayList<>();
+        int index = 0;
+        // 按资源选择
+        while (result.size() < num) {
+            if (resources.size() == 0) {
+                break;
+            }
+            ResourceModel resource = RandomPattern.random(resources);
+            if (resource != null) {
+                result.add(resource);
+                resources.remove(resource);
+            }
+        }
+        return result;
     }
 
     /**
@@ -187,7 +171,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      *
      * @return
      */
-    public Set<String> selectWins(List<ResourceModel> wins) {
+    public Set<String> selectWins(Collection<ResourceModel> wins) {
         Set<String> set = new HashSet<>();
         for (ResourceModel resourceModel : wins) {
             set.add(resourceModel.getServerId());
@@ -215,30 +199,29 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     }
 
     /**
-     * 服务选择
-     *
-     * @param intValues
-     * @param num
-     *
-     * @return
+     * 选择指定个数的节点
+     * 副作用: 会将已选择到的节点从resource集合中删除
+     * @param num 目标数
+     * @return 可能返回个数小于目标数
      */
-    public List<ResourceModel> selectNode(Map<String, ResourceModel> map,
-                                          List<Pair<String, Integer>> intValues, int num) {
-        List<ResourceModel> resourceModels = new ArrayList<>();
-        String key;
-        ResourceModel tmp;
-        //ip选中优先选择
-        List<String> uneedServices = new ArrayList<>();
-        int size = map.size();
-        // 按资源选择
-        while (resourceModels.size() != num
-            && resourceModels.size() != size
-            && uneedServices.size() != size) {
-            key = WeightRandomPattern.getWeightRandom(intValues, new Random(), uneedServices);
-            tmp = map.get(key);
-            uneedServices.add(tmp.getServerId());
+    public Collection<ResourceModel> selectNodes(Collection<ResourceModel> resources, int num) {
+        if (resources.size() <= num) {
+            return resources;
         }
-        return resourceModels;
+        ArrayList<ResourceModel> result = new ArrayList<>();
+        int index = 0;
+        // 按资源选择
+        while (result.size() < num) {
+            if (resources.size() == 0) {
+                break;
+            }
+            ResourceModel resource = RandomPattern.randomWithWeight(resources, ResourceModel.class, centSize);
+            if (resource != null) {
+                result.add(resource);
+                resources.remove(resource);
+            }
+        }
+        return result;
     }
 
     /**

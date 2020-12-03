@@ -80,8 +80,9 @@ public class RegionIDModuleTest {
         List<Module> modules = new ArrayList<>();
         modules.add(new ZKPathModel());
         modules.add(new RegionIDModule());
-        Injector injector =
-            Initialization.makeInjectorWithModules(NodeType.REGION_NODE, Initialization.makeSetupInjector(), modules);
+        Injector injector = Initialization.makeInjectorWithModules(NodeType.REGION_NODE,
+                                                                   Initialization.makeSetupInjector(),
+                                                                   modules);
         CuratorFramework client = injector.getInstance(CuratorFramework.class);
         CuratorCacheFactory.init(client);
         VirtualServerID virtualServerID = injector.getInstance(VirtualServerID.class);

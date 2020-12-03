@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
-public class WeightRandomPattern {
+public class RandomPattern {
     /**
      * 概述：权重随机数
      *
@@ -33,7 +33,7 @@ public class WeightRandomPattern {
         if (total == 0) {
             return null;
         }
-        int randomNum = Math.abs(random.nextInt() % total);
+        int randomNum = Math.abs(random.nextInt(total));
         int current = 0;
         for (Pair<String, Integer> ele : source) {
             current += ele.getSecond();
@@ -42,6 +42,40 @@ public class WeightRandomPattern {
             }
             if (randomNum <= current) {
                 return ele.getFirst();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据权重在candidates中随机选择一个weightable
+     * @param candidates 待选择的数组,其中的元素必须实现weigthtable接口以供计算权重
+     * @param T 选中元素的实际类型
+     * @param amplifier 放大倍数,辅助计算随机数的
+     * @return 选中元素 未选中返回null
+     */
+    public static <T> T randomWithWeight(Collection<? extends Weightable> candidates, Class<T> clazz, int amplifier) {
+        amplifier = amplifier < 100 ? 100 : amplifier;
+        int random = new Random().nextInt(amplifier);
+        long sum = candidates.stream()
+                          .mapToLong(Weightable::weight)
+                          .sum();
+        int bound = 0;
+        for (Weightable candidate :candidates) {
+            bound += candidate.weight() * amplifier / sum;
+            if (random < bound) {
+                return (T) candidate;
+            }
+        }
+        return null;
+    }
+
+    public static <T> T random(Collection<T> candidates) {
+        int bound = new Random().nextInt(candidates.size());
+        int count = 0;
+        for (T candidate : candidates) {
+            if (count++ >= bound) {
+                return candidate;
             }
         }
         return null;
