@@ -62,7 +62,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
                 }
             }
             if (reSelect) {
-                result = this.resourceSelector.selector(resources, nums);
+                result = this.resourceSelector.selector(reSelectResources, nums);
                 if (result == null || result.isEmpty()) {
                     log.error("[{}] no service can write when reselect!!!", groupName);
                     return new DuplicateNode[0];
