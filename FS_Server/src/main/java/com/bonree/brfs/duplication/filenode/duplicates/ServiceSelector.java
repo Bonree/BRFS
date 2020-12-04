@@ -6,7 +6,7 @@ import java.util.Collection;
 public interface ServiceSelector {
 
     /**
-     * 从 resources 中选择n个节点放入result中
+     * 从 resources 中选择n个节点
      * @return
      */
     public Collection<ResourceModel> selector(Collection<ResourceModel> resources, int n);

@@ -4,6 +4,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.resource.vo.ResourceModel;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -50,7 +51,11 @@ public class ClusterResource implements Closeable {
      * @return
      */
     public Collection<ResourceModel> getClusterResources() {
-        return clusterResources.values();
+        Collection<ResourceModel>  result = new ArrayList<>();
+        for (ResourceModel value : clusterResources.values()) {
+            result.add(value);
+        }
+        return result;
     }
 
     @Override
