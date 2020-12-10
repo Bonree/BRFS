@@ -53,7 +53,8 @@
 		<module>brfs-rocksdb</module>
 		<module>brfs-gui-server</module>
 		<module>brfs-distribution</module>
-	</modules>
+        <module>FS_Monitor</module>
+    </modules>
 
 	<name>${project.artifactId}</name>
 	<description>BRFS is a fast high-performance file system stored large small file by Bonree</description>
@@ -498,7 +499,7 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpcore</artifactId>
-				<version>4.4.6</version>
+				<version>4.4.13</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
