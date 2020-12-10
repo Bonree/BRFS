@@ -138,8 +138,8 @@ public class ResourceModel implements Weightable {
 
     @Override
     public String toString() {
-        return "ResourceModel{" +
-            "host='" + host + '\'' +
-            '}';
+        return "ResourceModel{"
+            + "host='" + host + '\''
+            + '}';
     }
 }
