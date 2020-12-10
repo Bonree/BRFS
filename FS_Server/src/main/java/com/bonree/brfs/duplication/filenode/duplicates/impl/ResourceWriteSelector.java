@@ -61,6 +61,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
                      Lists.newArrayList(reSelectResources));
             for (ResourceModel resource : result) {
                 if (checker.isChecking(new DuplicateNode(groupName, resource.getServerId(), null))) {
+                    log.info("resource [{}] is being checked.", resource.getHost());
                     reSelectResources.remove(resource);
                     reSelect = true;
                 }
