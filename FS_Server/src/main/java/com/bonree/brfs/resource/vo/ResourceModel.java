@@ -135,4 +135,11 @@ public class ResourceModel implements Weightable {
     public int hashCode() {
         return Objects.hash(serverId);
     }
+
+    @Override
+    public String toString() {
+        return "ResourceModel{" +
+            "host='" + host + '\'' +
+            '}';
+    }
 }

@@ -46,7 +46,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
     public FileObject createFile(StorageRegion storageRegion) {
         DuplicateNode[] nodes = nodeChecker.filterCorruptNode(
             duplicationNodeSelector.getDuplicationNodes(storageRegion.getId(), storageRegion.getReplicateNum()));
-
+        LOG.info("finally choosen node size is [{}].", nodes.length);
         if (nodes.length == 0) {
             LOG.error("No available duplication node to build FileNode");
             //没有磁盘节点可用

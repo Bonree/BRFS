@@ -6,6 +6,7 @@ import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.resource.vo.ResourceModel;
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import org.slf4j.Logger;
 
@@ -38,8 +39,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
         try {
             // 获取资源信息
             Collection<ResourceModel> resources = daemon.getClusterResources();
-            Collection<ResourceModel> reSelectResources = daemon.getClusterResources();
-            log.info("service num in the cache: [{}].", resources.size());
+            log.info("service num in the cache: [{}], ip is [{}].", resources.size(), Lists.newArrayList(resources));
             // 采集资源未上传则使用备用选择器
             if (resources == null || resources.isEmpty()) {
                 log.warn("[{}] select resource list is empty !!!! use bak selector", groupName);
@@ -55,6 +55,10 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
                 log.warn("[{}] service can write !!!need {} but give {} ", groupName, nums, result.size());
             }
             boolean reSelect = false;
+            Collection<ResourceModel> reSelectResources = daemon.getClusterResources();
+            log.info("second choose service num in the cache: [{}], ip is [{}].",
+                     reSelectResources.size(),
+                     Lists.newArrayList(reSelectResources));
             for (ResourceModel resource : result) {
                 if (checker.isChecking(new DuplicateNode(groupName, resource.getServerId(), null))) {
                     reSelectResources.remove(resource);
