@@ -116,6 +116,9 @@ public class DuplicateNodeChecker {
     }
 
     public boolean isChecking(DuplicateNode node) {
+        if (checkingNodes.contains(node)) {
+            checkNode(node);
+        }
         return checkingNodes.contains(node);
     }
 }
