@@ -1,3 +1,12 @@
+# BRFS客户端maven地址：
+```xml
+<dependency>
+    <groupId>com.bonree.fs</groupId>
+    <artifactId>brfs-client</artifactId>
+    <version>2.0.8</version>
+</dependency>
+```
+
 # 客户端创建
 
 ```java
