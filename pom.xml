@@ -53,7 +53,7 @@
 		<module>brfs-rocksdb</module>
 		<module>brfs-gui-server</module>
 		<module>brfs-distribution</module>
-	</modules>
+    </modules>
 
 	<name>${project.artifactId}</name>
 	<description>BRFS is a fast high-performance file system stored large small file by Bonree</description>

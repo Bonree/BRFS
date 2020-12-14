@@ -72,7 +72,7 @@ public class BalanceTaskSummary {
     /**
      * 装载二级serverId以及对应的磁盘剩余空间容量
      */
-    private Map<String, Integer> newSecondIds;
+    private Map<String, Long> newSecondIds;
 
     /**
      * 二级serverid与一级server的对应关系
@@ -175,11 +175,11 @@ public class BalanceTaskSummary {
         this.inputServers = inputServers;
     }
 
-    public Map<String, Integer> getNewSecondIds() {
+    public Map<String, Long> getNewSecondIds() {
         return newSecondIds;
     }
 
-    public void setNewSecondIds(Map<String, Integer> newSecondIds) {
+    public void setNewSecondIds(Map<String, Long> newSecondIds) {
         this.newSecondIds = newSecondIds;
     }
 

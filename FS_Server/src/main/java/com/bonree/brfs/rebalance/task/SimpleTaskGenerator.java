@@ -18,7 +18,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
     @Override
     public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
                                              List<String> selectIDs, List<String> participators,
-                                             Map<String, Integer> newSecondIds, String virtualTarget, String version,
+                                             Map<String, Long> newSecondIds, String virtualTarget, String version,
                                              long delayTime) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
@@ -51,7 +51,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
     @Override
     public BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
                                              List<String> selectIDs, List<String> participators,
-                                             Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip,
+                                             Map<String, Long> newSecondIds, Map<String, String> secondFirstShip,
                                              String version, long delayTime) {
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
 

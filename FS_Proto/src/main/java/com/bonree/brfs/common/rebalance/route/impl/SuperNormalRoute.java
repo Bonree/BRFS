@@ -69,8 +69,8 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
      *
      * @return
      */
-    protected int hashFileName(int fileCode, int size) {
-        int matchSm = fileCode % size;
+    protected int hashFileName(int fileCode, long size) {
+        int matchSm = (int) (fileCode % size);
         return matchSm;
     }
 
