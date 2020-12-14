@@ -6,8 +6,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.rocksdb.impl.RocksDBDataUnit;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -15,6 +15,11 @@ import com.google.common.base.Throwables;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -43,6 +48,15 @@ public class RocksDBResource {
     private RocksDBManager rocksDBManager;
     private RocksDBConfig rocksDBConfig;
     private TimeWatcher watcher = new TimeWatcher();
+    private ExecutorService workers = new ThreadPoolExecutor(
+        Runtime.getRuntime().availableProcessors() * 2,
+        Runtime.getRuntime().availableProcessors() * 2,
+        0L,
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(10000),
+        new PooledThreadFactory("rocksdb_handler"),
+        new ThreadPoolExecutor.AbortPolicy()
+    );
 
     @Inject
     public RocksDBResource(RocksDBConfig rocksDBConfig,
@@ -108,17 +122,22 @@ public class RocksDBResource {
         @QueryParam("cf") String columnFamily,
         @QueryParam("key") String key,
         @QueryParam("value") String value) {
-
         try {
-            watcher.getElapsedTimeAndRefresh();
-            WriteStatus status = this.rocksDBManager.syncData(columnFamily, key.getBytes(), value.getBytes());
-            LOG.info("receive sync data request, cf:{}, key:{}, value:{}, write cost time:{}", columnFamily, key, value,
-                     watcher.getElapsedTime());
-            return Response.ok().entity(BrStringUtils.toUtf8Bytes(status.name())).build();
-        } catch (Exception e) {
-            LOG.error(StringUtils.format("write data failed, cf:{}, key:{}, value:{}", columnFamily, key, value), e);
+            workers.submit(() -> {
+                try {
+                    watcher.getElapsedTimeAndRefresh();
+                    WriteStatus status = this.rocksDBManager.syncData(columnFamily, key.getBytes(), value.getBytes());
+                    LOG.info("receive sync data request, cf:{}, key:{}, value:{}, write cost time:{}", columnFamily, key, value,
+                             watcher.getElapsedTime());
+                } catch (Exception e) {
+                    LOG.error(StringUtils.format("write data failed, cf:{}, key:{}, value:{}", columnFamily, key, value), e);
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            LOG.warn("sync queue now is exceed cannot accept new data");
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
         }
+        return Response.ok().build();
     }
 
     @POST
@@ -126,20 +145,26 @@ public class RocksDBResource {
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     public Response batchWriteInner(byte[] body) {
-
         try {
-            //批量同步fid到rocksdb
-            List<RocksDBDataUnit> dataList = JsonUtils.toObject(body, new TypeReference<List<RocksDBDataUnit>>() {
+            workers.submit(() -> {
+                try {
+                    //批量同步fid到rocksdb
+                    List<RocksDBDataUnit> dataList = JsonUtils.toObject(body, new TypeReference<List<RocksDBDataUnit>>() {
+                    });
+                    watcher.getElapsedTimeAndRefresh();
+                    for (RocksDBDataUnit unit : dataList) {
+                        rocksDBManager.syncData(unit.getColumnFamily(), unit.getKey(), unit.getValue());
+                    }
+                    LOG.debug("receive sync data request, size:{}, write cost time:{}",
+                              dataList.size(), watcher.getElapsedTime());
+                } catch (Exception e) {
+                    LOG.error("batch write data failed", e);
+                }
             });
-            watcher.getElapsedTimeAndRefresh();
-            for (RocksDBDataUnit unit : dataList) {
-                rocksDBManager.syncData(unit.getColumnFamily(), unit.getKey(), unit.getValue());
-            }
-            LOG.debug("receive sync data request, size:{}, write cost time:{}", dataList.size(), watcher.getElapsedTime());
-            return Response.ok().build();
-        } catch (Exception e) {
-            LOG.error("batch write data failed", e);
+        } catch (RejectedExecutionException e) {
+            LOG.warn("sync queue now is exceed cannot accept new data");
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
         }
+        return Response.ok().build();
     }
 }
