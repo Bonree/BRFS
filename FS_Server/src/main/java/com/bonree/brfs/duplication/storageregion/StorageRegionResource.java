@@ -237,4 +237,40 @@ public class StorageRegionResource {
                        .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
                        .build();
     }
+
+    @GET
+    @Path("create/{srName}")
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response tmpCreate(
+        @PathParam("srName") String name,
+        @DefaultValue("true") @QueryParam("enable") boolean enable,
+        @DefaultValue("P100D") @QueryParam("ttl") String ttl,
+        @DefaultValue("67108864") @QueryParam("capacity") long capacity,
+        @DefaultValue("PT1H") @QueryParam("partition") String partition,
+        @DefaultValue("2") @QueryParam("replica") int replica) {
+        StorageRegionProperties storageRegionProperties = new StorageRegionProperties(
+            enable,
+            replica,
+            ttl,
+            capacity,
+            partition);
+        if (storageRegionManager.exists(name)) {
+            return Response.status(Status.CONFLICT)
+                           .entity(StringUtils.format("Storage Region[%s] has been existed", name))
+                           .build();
+        }
+
+        try {
+            StorageRegion storageRegion = storageRegionManager.createStorageRegion(
+                name,
+                storageRegionProperties);
+            rocksDBManager.createColumnFamilyWithTtl(name, (int) Duration
+                .parse(storageRegionProperties.getDataTtl()).getSeconds());
+            return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
+        } catch (Exception e) {
+            log.error(StringUtils.format("can not create storage region[%s]", name), e);
+            return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
+        }
+    }
 }
