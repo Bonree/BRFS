@@ -643,7 +643,7 @@ public class TaskDispatcher implements Closeable {
          * 2.该SN正在进行virtual serverID恢复，此时分为两种，1.移除的机器为正在进行virtual ID映射的机器，2.移除的机器为其他参与者的机器
          * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
          */
-        Map<String, Long> secondFreeMap = new HashMap<>();
+        Map<String, Integer> secondFreeMap = new HashMap<>();
         List<String> aliveSecondIDS = new ArrayList<>();
         partitionInfoManager.getDiskPartitionInfoFreeSize().forEach(
             (key, value) -> {
