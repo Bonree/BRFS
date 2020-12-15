@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
 public class NormalRouteV2 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V2;
     @JsonProperty("newSecondIDs")
-    private Map<String, Long> newSecondIDs;
+    private Map<String, Integer> newSecondIDs;
     @JsonProperty("secondFirstShip")
     private Map<String, String> secondToFirstShip;
     @JsonIgnoreProperties
@@ -33,7 +33,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
     public NormalRouteV2(@JsonProperty("changeID") String changeID,
                          @JsonProperty("storageIndex") int storageIndex,
                          @JsonProperty("secondID") String secondID,
-                         @JsonProperty("newSecondIDs") Map<String, Long> newSecondIDs,
+                         @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
                          @JsonProperty("secondFirstShip") Map<String, String> secondToFirstShip) {
         super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
@@ -60,12 +60,12 @@ public class NormalRouteV2 extends SuperNormalRoute {
     }
 
     @JsonProperty("newSecondIDs")
-    public Map<String, Long> getNewSecondIDs() {
+    public Map<String, Integer> getNewSecondIDs() {
         return newSecondIDs;
     }
 
     @JsonProperty("newSecondIDs")
-    public void setNewSecondIDs(Map<String, Long> newSecondIDs) {
+    public void setNewSecondIDs(Map<String, Integer> newSecondIDs) {
         this.newSecondIDs = newSecondIDs;
     }
 
@@ -75,7 +75,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
         // 1.找出参与选择的服务
         List<String> chosenService = filterService(services);
         // 2. 获取计算的权重
-        long weight = calcWeight(chosenService);
+        int weight = calcWeight(chosenService);
         // 3.根据权重计算权值
         int weightValue = hashFileName(fileUUIDCode, weight);
         // 4 根据权值确定数组的序号
@@ -85,7 +85,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
     }
 
     @Override
-    public Map<String, Long> getRoutes() {
+    public Map<String, Integer> getRoutes() {
         return this.newSecondIDs;
     }
 
@@ -117,7 +117,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
         if (weightValue == 0) {
             return 0;
         }
-        long sum = 0;
+        int sum = 0;
         int lastVaild = -1;
         String server = null;
         for (int index = 0; index < chosenServices.size(); index++) {
@@ -169,14 +169,14 @@ public class NormalRouteV2 extends SuperNormalRoute {
      *
      * @return
      */
-    private long calcWeight(Collection<String> services) {
+    private int calcWeight(Collection<String> services) {
         // 1.若services的为空则该权值计算无效返回-1
         if (services == null || services.isEmpty()) {
             return -1;
         }
         // 2. 累计权值
-        long weight = 0;
-        long tmp = -1;
+        int weight = 0;
+        int tmp = -1;
         for (String service : services) {
             if (this.newSecondIDs.get(service) != null) {
                 tmp = this.newSecondIDs.get(service);

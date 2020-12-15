@@ -21,7 +21,7 @@ public interface BalanceTaskGenerator {
                                       String virtualId,
                                       List<String> selectIDs,
                                       List<String> participators,
-                                      Map<String, Long> newSecondIds,
+                                      Map<String, Integer> newSecondIds,
                                       String virtualTarget,
                                       String version,
                                       long delayTime);
@@ -39,7 +39,7 @@ public interface BalanceTaskGenerator {
                                       String secondServerID,
                                       List<String> selectIDs,
                                       List<String> participators,
-                                      Map<String, Long> newSecondIds,
+                                      Map<String, Integer> newSecondIds,
                                       Map<String, String> secondFirstShip,
                                       String version, long delayTime);
 

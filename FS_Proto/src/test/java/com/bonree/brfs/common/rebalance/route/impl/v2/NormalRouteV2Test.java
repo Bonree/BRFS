@@ -58,9 +58,9 @@ public class NormalRouteV2Test {
         String changeId = "123456";
         String secondServer = "10";
         int storageId = 0;
-        Map<String, Long> serverMap = new HashMap<>();
+        Map<String, Integer> serverMap = new HashMap<>();
         Map<String, String> ship = new HashMap<>();
-        for (long index = 11; index < 14; index++) {
+        for (int index = 11; index < 14; index++) {
             serverMap.put(index + "", index % 5);
             ship.put(index + "", index + "");
         }
@@ -421,10 +421,10 @@ public class NormalRouteV2Test {
         String changeId = "1";
         int storageIndex = 0;
         String secondId = "22";
-        Map<String, Long> sizeMap = new HashMap<>();
-        sizeMap.put("20", 1L);
-        sizeMap.put("21", 1L);
-        sizeMap.put("23", 1L);
+        Map<String, Integer> sizeMap = new HashMap<>();
+        sizeMap.put("20", 1);
+        sizeMap.put("21", 1);
+        sizeMap.put("23", 1);
         Map<String, String> map = new HashMap<>();
         map.put("20", "1");
         map.put("21", "1");
@@ -449,11 +449,11 @@ public class NormalRouteV2Test {
         String changeId = "1";
         int storageIndex = 0;
         String secondId = "20";
-        Map<String, Long> sizeMap = new HashMap<>();
-        sizeMap.put("22", 1L);
-        sizeMap.put("23", 1L);
-        sizeMap.put("24", 1L);
-        sizeMap.put("25", 1L);
+        Map<String, Integer> sizeMap = new HashMap<>();
+        sizeMap.put("22", 1);
+        sizeMap.put("23", 1);
+        sizeMap.put("24", 1);
+        sizeMap.put("25", 1);
         Map<String, String> map = new HashMap<>();
         map.put("22", "1");
         map.put("23", "1");
