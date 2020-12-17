@@ -41,6 +41,9 @@ public class RocksDBConfigs {
         ConfigUnit.ofString("rocksdb.restore.temporary.path",
                             System.getProperty(SystemProperties.PROP_BRFS_HOME) + "/rocksdb_temporary");
 
+    public static final ConfigUnit<Integer> ROCKSDB_SYNCER_NUM =
+        ConfigUnit.ofInt("rocksdb.syncer.num", Runtime.getRuntime().availableProcessors() * 2);
+
     /**
      * @description: RocksDB数据过期时间配置，默认100天
      */

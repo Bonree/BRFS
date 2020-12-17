@@ -135,6 +135,8 @@ regionnode.httpserver.host = localhost
 # rocksdb.rate.bytes.per.second = 10240
 # 使用2M的预读
 # rocksdb.compaction.readhead.size = 2048
+# rocksdb服务端线程数
+# rocksdb.syncer.num = 12
 
 # 保存节点的本地数据的目录(默认是项目根目录下的data目录)
 #local.data.path = data

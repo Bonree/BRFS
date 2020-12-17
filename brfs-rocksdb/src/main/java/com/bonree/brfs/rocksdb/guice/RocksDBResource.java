@@ -9,6 +9,8 @@ import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.impl.RocksDBDataUnit;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Throwables;
@@ -47,10 +49,11 @@ public class RocksDBResource {
 
     private RocksDBManager rocksDBManager;
     private RocksDBConfig rocksDBConfig;
+    private int syncerNum = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_SYNCER_NUM);
     private TimeWatcher watcher = new TimeWatcher();
     private ExecutorService workers = new ThreadPoolExecutor(
-        Runtime.getRuntime().availableProcessors() * 2,
-        Runtime.getRuntime().availableProcessors() * 2,
+        syncerNum,
+        syncerNum,
         0L,
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(10000),
@@ -63,6 +66,7 @@ public class RocksDBResource {
                            RocksDBManager rocksDBManager) {
         this.rocksDBConfig = rocksDBConfig;
         this.rocksDBManager = rocksDBManager;
+        System.out.println("---------------------" + syncerNum);
     }
 
     @GET
