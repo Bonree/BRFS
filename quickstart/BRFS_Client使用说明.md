@@ -84,7 +84,7 @@ BRFS客户端中的接口分为4类接口：
    StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception;
    ```
 
-   ​	srName规范按照T_产品名称_...定义，不符合格式要求不予创建
+   ​	srName规范按照: ```T_产品名称_业务名称```定义，不符合格式要求不予创建
 
    CreateStorageRegionRequest`通过`CreateStorageRegionRequestBuilder`进行构建，可以设置如下属性：
 
@@ -107,8 +107,8 @@ BRFS客户端中的接口分为4类接口：
    - Enabled
 
      StorageRegion是否可用。被禁用的StorageRegion不能写入数据。
-     
-     
+
+
 
 2. 更新StorageRegion
 
@@ -116,7 +116,7 @@ BRFS客户端中的接口分为4类接口：
    boolean updateStorageRegion(String srName, UpdateStorageRegionRequest request) throws Exception;
    ```
 
-   
+
 
 3. 删除StorageRegion
 
@@ -126,7 +126,7 @@ BRFS客户端中的接口分为4类接口：
 
    StorageRegion在被删除前必须设置Enabled属性为false。
 
-   
+
 
 4. 获取StorageRegion信息
 
@@ -134,7 +134,7 @@ BRFS客户端中的接口分为4类接口：
    StorageRegionInfo getStorageRegionInfo(String srName) throws Exception;
    ```
 
-   
+
 
 5. 判断StorageRegion是否存在
 
@@ -142,7 +142,7 @@ BRFS客户端中的接口分为4类接口：
    boolean doesStorageRegionExists(String srName) throws Exception;
    ```
 
-   
+
 
 6. 获取StorageRegion列表
 
@@ -169,14 +169,14 @@ BRFS客户端中的接口分为4类接口：
    PutObjectResult putObject(String srName, byte[] bytes) throws Exception;
    PutObjectResult putObject(String srName, File file) throws Exception;
    PutObjectResult putObject(String srName, InputStream input) throws Exception;
-   
+
    //通过BRFSPath设置自定义文件名的写入接口
    PutObjectResult putObject(String srName, BRFSPath objectPath, byte[] bytes) throws Exception;
    PutObjectResult putObject(String srName, BRFSPath objectPath, File file) throws Exception;
    PutObjectResult putObject(String srName, BRFSPath objectPath, InputStream input) throws Exception;
    ```
 
-   
+
 
 2. 批量写入接口
 
@@ -203,7 +203,7 @@ BRFS客户端中的接口分为4类接口：
 
    `GetObjectRequest`中可以设置FID，也可以设置自定义文件路径。
 
-   
+
 
 2. 获取用户自定目录下的所有文件数据
 
@@ -225,7 +225,7 @@ BRFS客户端中的接口分为4类接口：
 
    目前只提供了判断自定义文件路径是否存在的接口。
 
-   
+
 
 2. 删除文件
 
@@ -234,7 +234,7 @@ BRFS客户端中的接口分为4类接口：
    void deleteObjects(String srName, long startTime, long endTime) throws Exception;
    ```
 
-   
+
 
 ## 客户端的第三方依赖包版本
 
