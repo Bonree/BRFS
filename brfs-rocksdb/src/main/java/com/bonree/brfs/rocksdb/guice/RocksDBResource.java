@@ -66,7 +66,6 @@ public class RocksDBResource {
                            RocksDBManager rocksDBManager) {
         this.rocksDBConfig = rocksDBConfig;
         this.rocksDBManager = rocksDBManager;
-        System.out.println("---------------------" + syncerNum);
     }
 
     @GET
