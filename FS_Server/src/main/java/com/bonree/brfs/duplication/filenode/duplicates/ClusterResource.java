@@ -91,7 +91,7 @@ public class ClusterResource implements Closeable {
             String str = JsonUtils.toJsonString(resource);
             if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(type)
                 || PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(type)) {
-                LOG.info("add a resource [{}] to cache", resource.getHost());
+                LOG.debug("add a resource [{}] to cache", resource.getHost());
                 clusterResources.put(resource.getServerId(), resource);
             } else if (PathChildrenCacheEvent.Type.CHILD_REMOVED == type) {
                 LOG.info("remove a resource[{}] from cache", resource.getHost());
