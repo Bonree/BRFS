@@ -19,6 +19,12 @@ if [ x$BRFS_HOME = "x" ]; then
 
   echo $BRFS_HOME
 fi
+#程序日志输出路径
+LOG_DIR=$BRFS_HOME/logs
+if [ ! -d "$LOG_DIR" ]
+then
+  mkdir $LOG_DIR
+fi
 
 LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
 GUI_DIR="${DRUID_GUI_DIR:=${BRFS_HOME}/gui}"
@@ -90,12 +96,6 @@ CONFIG_FILE=${CONFIG_DIR}/server.properties
 
 #日志配置文件
 LOG_CONFIG=${CONFIG_DIR}/logback.xml
-#程序日志输出路径
-LOG_DIR=$BRFS_HOME/logs
-if [ ! -d "$LOG_DIR" ]
-then
-  mkdir $LOG_DIR
-fi
 
 #Server ID配置路径
 SERVER_ID_PATH=$BRFS_HOME/ids
