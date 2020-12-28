@@ -107,7 +107,13 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 
         try {
-            BufferHolder holder = bufferCache.get(filePath);
+            File file = new File(filePath);
+            BufferHolder holder;
+            if (file.lastModified() <= System.currentTimeMillis() - 60 * 60 * 1000) {
+                holder = bufferCache.get(filePath);
+            } else {
+                holder = new BufferHolder(Files.map(file, MapMode.READ_ONLY));
+            }
             holder.increment();
             MappedByteBuffer fileBuffer = holder.buffer();
 
