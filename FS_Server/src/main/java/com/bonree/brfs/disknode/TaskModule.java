@@ -25,6 +25,7 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.tasks.maintain.FileBlockMaintainer;
 import com.bonree.brfs.tasks.maintain.ResourceMaintainer;
+import com.bonree.brfs.tasks.maintain.TrashMaintainer;
 import com.bonree.brfs.tasks.manager.TaskOpertionManager;
 import com.bonree.brfs.tasks.manager.TaskReleaseManager;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
@@ -63,6 +64,7 @@ public class TaskModule implements Module {
         binder.bind(TaskOpertionManager.class).in(ManageLifecycle.class);
         binder.bind(DefaultSchedulersManager.class).in(ManageLifecycle.class);
         binder.bind(ResourceMaintainer.class).in(ManageLifecycle.class);
+        binder.bind(TrashMaintainer.class).in(ManageLifecycle.class);
 
         LifecycleModule.register(binder, CycleRebalanceTaskMonitor.class);
         LifecycleModule.register(binder, FileBlockMaintainer.class);
@@ -70,6 +72,7 @@ public class TaskModule implements Module {
         LifecycleModule.register(binder, TaskOpertionManager.class);
         LifecycleModule.register(binder, DefaultSchedulersManager.class);
         LifecycleModule.register(binder, ResourceMaintainer.class);
+        LifecycleModule.register(binder, TrashMaintainer.class);
     }
 
     @Provides
