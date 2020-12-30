@@ -53,6 +53,12 @@ public class TaskConfig {
     @JsonProperty("second.register.interval.millisecond")
     private int secondIdRegisterIntervalMill = 1000;
 
+    @JsonProperty("trash.can.scan.interval.minute")
+    private int trashCanScanIntervalMinute = 1440;
+
+    @JsonProperty("trash.can.start.delay.minute")
+    private int trashCanDelayMinute = 10;
+
     public void printDetail(Logger logger) {
         logger.info("config item: task.{}, value: {}", "switch.set", taskSwitch);
         logger.info("config item: task.{}, value: {}", "system.delete.pool.size", sysDeleteSize);
@@ -75,10 +81,6 @@ public class TaskConfig {
         return taskSwitch;
     }
 
-    public void setTaskSwitch(List<String> taskSwitch) {
-        this.taskSwitch = taskSwitch;
-    }
-
     @JsonIgnore
     public Collection<TaskType> getTaskTypeSwitch() {
         if (this.taskSwitch == null) {
@@ -98,104 +100,60 @@ public class TaskConfig {
         return sysDeleteSize;
     }
 
-    public void setSysDeleteSize(int sysDeleteSize) {
-        this.sysDeleteSize = sysDeleteSize;
-    }
-
     public int getUserDeleteSize() {
         return userDeleteSize;
-    }
-
-    public void setUserDeleteSize(int userDeleteSize) {
-        this.userDeleteSize = userDeleteSize;
     }
 
     public int getSysCheckSize() {
         return sysCheckSize;
     }
 
-    public void setSysCheckSize(int sysCheckSize) {
-        this.sysCheckSize = sysCheckSize;
-    }
-
     public int getSysCopySize() {
         return sysCopySize;
-    }
-
-    public void setSysCopySize(int sysCopySize) {
-        this.sysCopySize = sysCopySize;
     }
 
     public int getCommonDelayTimeSecond() {
         return commonDelayTimeSecond;
     }
 
-    public void setCommonDelayTimeSecond(int commonDelayTimeSecond) {
-        this.commonDelayTimeSecond = commonDelayTimeSecond;
-    }
-
     public int getCommonCreateIntervalSecond() {
         return commonCreateIntervalSecond;
-    }
-
-    public void setCommonCreateIntervalSecond(int commonCreateIntervalSecond) {
-        this.commonCreateIntervalSecond = commonCreateIntervalSecond;
     }
 
     public String getCycleCopyTimeStr() {
         return cycleCopyTimeStr;
     }
 
-    public void setCycleCopyTimeStr(String cycleCopyTimeStr) {
-        this.cycleCopyTimeStr = cycleCopyTimeStr;
-    }
-
     public int getCycleCopyRangeDay() {
         return cycleCopyRangeDay;
-    }
-
-    public void setCycleCopyRangeDay(int cycleCopyRangeDay) {
-        this.cycleCopyRangeDay = cycleCopyRangeDay;
     }
 
     public long getTtlSecond() {
         return ttlSecond;
     }
 
-    public void setTtlSecond(long ttlSecond) {
-        this.ttlSecond = ttlSecond;
-    }
-
     public String getFileBlockScanTime() {
         return fileBlockScanTime;
-    }
-
-    public void setFileBlockScanTime(String fileBlockScanTime) {
-        this.fileBlockScanTime = fileBlockScanTime;
     }
 
     public int getFileBlockScanIntervalMinute() {
         return fileBlockScanIntervalMinute;
     }
 
-    public void setFileBlockScanIntervalMinute(int fileBlockScanIntervalMinute) {
-        this.fileBlockScanIntervalMinute = fileBlockScanIntervalMinute;
-    }
-
     public int getCommonExecuteIntervalSecond() {
         return commonExecuteIntervalSecond;
-    }
-
-    public void setCommonExecuteIntervalSecond(int commonExecuteIntervalSecond) {
-        this.commonExecuteIntervalSecond = commonExecuteIntervalSecond;
     }
 
     public int getStartdelayMinute() {
         return startdelayMinute;
     }
 
-    public void setStartdelayMinute(int startdelayMinute) {
-        this.startdelayMinute = startdelayMinute;
+    public int getTrashCanScanIntervalMinute() {
+        return trashCanScanIntervalMinute;
+    }
+
+    public int getTrashCanDelayMinute() {
+        return trashCanDelayMinute;
     }
 
     /**
@@ -232,7 +190,4 @@ public class TaskConfig {
         return secondIdRegisterIntervalMill;
     }
 
-    public void setSecondIdRegisterIntervalMill(int secondIdRegisterIntervalMill) {
-        this.secondIdRegisterIntervalMill = secondIdRegisterIntervalMill;
-    }
 }

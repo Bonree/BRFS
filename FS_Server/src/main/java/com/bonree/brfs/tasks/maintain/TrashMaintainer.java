@@ -7,6 +7,7 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.StorageConfig;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.File;
 import java.io.IOException;
@@ -15,12 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,17 +34,17 @@ public class TrashMaintainer implements LifeCycle {
 
     private static final Logger log = LoggerFactory.getLogger(TrashMaintainer.class);
 
-    private StorageConfig storageConfig;
     private String trashPathString;
     private String pattern = "^\\d{13}$";
     private final ScheduledExecutorService trashExec;
+    private TaskConfig taskConfig;
 
     @Inject
-    public TrashMaintainer(StorageConfig storageConfig) {
-        this.storageConfig = storageConfig;
+    public TrashMaintainer(StorageConfig storageConfig, TaskConfig taskConfig) {
         this.trashPathString = storageConfig.getTrashDir();
+        this.taskConfig = taskConfig;
         this.trashExec = Executors
-            .newSingleThreadScheduledExecutor(makeThreadFactory("TrashMaintainer", 1));
+            .newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
     }
 
     @LifecycleStart
@@ -75,7 +73,7 @@ public class TrashMaintainer implements LifeCycle {
                         continue;
                     }
                     // 检查目录，获取创建时间，如果时间大于设置的垃圾清理时间，则删除文件，
-                    int createTime = Integer.parseInt(deleteTimeDir.getName());
+                    long createTime = Long.parseLong(deleteTimeDir.getName());
                     try {
                         if ((currentTime - createTime) >= Configs.getConfiguration().getConfig(
                             DataNodeConfigs.CLEAN_TRASH_INTERVAL) * 24 * 60 * 60 * 1000) {
@@ -87,7 +85,7 @@ public class TrashMaintainer implements LifeCycle {
                     }
                 }
             }
-        }, 1, 1440, TimeUnit.MINUTES);
+        }, taskConfig.getTrashCanDelayMinute(), taskConfig.getTrashCanScanIntervalMinute(), TimeUnit.MINUTES);
 
     }
 
@@ -134,7 +132,9 @@ public class TrashMaintainer implements LifeCycle {
                     metaDataFile.writeBytes(deleteFile.getAbsolutePath() + "\n");
                 }
             }
-            metaDataFile.close();
+            if (metaDataFile != null) {
+                metaDataFile.close();
+            }
             return true;
         } catch (IOException e) {
             log.error("Failed to move to trash because of [{}]", e);
@@ -145,16 +145,5 @@ public class TrashMaintainer implements LifeCycle {
             }
             return false;
         }
-    }
-
-    private static ThreadFactory makeThreadFactory(@NotNull String nameFormat, @Nullable Integer priority) {
-        final ThreadFactoryBuilder builder = new ThreadFactoryBuilder()
-            .setDaemon(true)
-            .setNameFormat(nameFormat);
-        if (priority != null) {
-            builder.setPriority(priority);
-        }
-
-        return builder.build();
     }
 }
