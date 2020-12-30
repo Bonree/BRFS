@@ -87,7 +87,7 @@ public class TrashMaintainer implements LifeCycle {
                     }
                 }
             }
-        }, 1, 1, TimeUnit.MINUTES);
+        }, 1, 1440, TimeUnit.MINUTES);
 
     }
 
