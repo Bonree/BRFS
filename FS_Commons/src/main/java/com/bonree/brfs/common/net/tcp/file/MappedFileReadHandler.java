@@ -43,41 +43,41 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     private final LoadingCache<String, BufferHolder> bufferCache =
         CacheBuilder.newBuilder()
-            .expireAfterAccess(3, TimeUnit.MINUTES)
-            .refreshAfterWrite(5, TimeUnit.SECONDS)
-            .removalListener((RemovalListener<String, BufferHolder>) notification -> {
-                BufferHolder holder = notification.getValue();
-                if (holder.isReloaded()) {
-                    return;
-                }
+                    .expireAfterAccess(3, TimeUnit.MINUTES)
+                    .refreshAfterWrite(5, TimeUnit.SECONDS)
+                    .removalListener((RemovalListener<String, BufferHolder>) notification -> {
+                        BufferHolder holder = notification.getValue();
+                        if (holder.isReloaded()) {
+                            return;
+                        }
 
-                log.info("remove file mapping of [{}] from cache", notification.getKey());
-                holder.close();
-            })
-            .build(new CacheLoader<String, BufferHolder>() {
+                        log.info("remove file mapping of [{}] from cache", notification.getKey());
+                        holder.close();
+                    })
+                    .build(new CacheLoader<String, BufferHolder>() {
 
-                @Override
-                public BufferHolder load(String filePath) throws Exception {
-                    log.info("loading file[{}] to memory...", filePath);
-                    return new BufferHolder(Files.map(new File(filePath), MapMode.READ_ONLY));
-                }
+                        @Override
+                        public BufferHolder load(String filePath) throws Exception {
+                            log.info("loading file[{}] to memory...", filePath);
+                            return new BufferHolder(Files.map(new File(filePath), MapMode.READ_ONLY));
+                        }
 
-                @Override
-                public ListenableFuture<BufferHolder> reload(String filePath, BufferHolder oldValue) throws Exception {
-                    File file = new File(filePath);
-                    if (oldValue.buffer().capacity() == file.length()) {
-                        oldValue.reload();
-                        return Futures.immediateFuture(oldValue);
-                    }
+                        @Override
+                        public ListenableFuture<BufferHolder> reload(String filePath, BufferHolder oldValue) throws Exception {
+                            File file = new File(filePath);
+                            if (oldValue.buffer().capacity() == file.length()) {
+                                oldValue.reload();
+                                return Futures.immediateFuture(oldValue);
+                            }
 
-                    log.info("reloading file[{}], old length[{}], new length[{}]",
-                             filePath,
-                             oldValue.buffer().capacity(),
-                             file.length());
+                            log.info("reloading file[{}], old length[{}], new length[{}]",
+                                     filePath,
+                                     oldValue.buffer().capacity(),
+                                     file.length());
 
-                    return Futures.immediateFuture(new BufferHolder(Files.map(file, MapMode.READ_ONLY)));
-                }
-            });
+                            return Futures.immediateFuture(new BufferHolder(Files.map(file, MapMode.READ_ONLY)));
+                        }
+                    });
 
     private final LoadingCache<TimePair, String> timeCache;
 
@@ -108,14 +108,15 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
         try {
             File file = new File(filePath);
-            BufferHolder holder;
-            if (file.lastModified() <= System.currentTimeMillis() - 60 * 60 * 1000) {
-                holder = bufferCache.get(filePath);
+            BufferHolder holder = null;
+            MappedByteBuffer fileBuffer;
+            if (System.currentTimeMillis() - file.lastModified() <= 3600000) {
+                fileBuffer = Files.map(file, MapMode.READ_ONLY);
             } else {
-                holder = new BufferHolder(Files.map(file, MapMode.READ_ONLY));
+                holder = bufferCache.get(filePath);
+                holder.increment();
+                fileBuffer = holder.buffer();
             }
-            holder.increment();
-            MappedByteBuffer fileBuffer = holder.buffer();
 
             long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) :
                 readObject.getOffset();
@@ -142,13 +143,15 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
                                                     Unpooled.wrappedBuffer(Ints.toByteArray(readableLength)),
                                                     Unpooled.wrappedBuffer(contentBuffer.slice()));
 
+            BufferHolder finalHolder = holder;
             ctx.writeAndFlush(result)
-                .addListener((ChannelFutureListener) future -> {
-                    readMetric.setElapsedTime(timeWatcher.getElapsedTime());
-                    deliver.sendReaderMetric(readMetric.toMap());
-
-                    holder.decrement();
-                })
+               .addListener((ChannelFutureListener) future -> {
+                   readMetric.setElapsedTime(timeWatcher.getElapsedTime());
+                   deliver.sendReaderMetric(readMetric.toMap());
+                   if (finalHolder != null) {
+                       finalHolder.decrement();
+                   }
+               })
                 .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         } catch (ExecutionException e) {
             log.error("can not open file channel for {}", filePath, e);
