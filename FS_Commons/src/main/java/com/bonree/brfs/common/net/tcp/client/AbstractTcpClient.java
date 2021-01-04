@@ -49,21 +49,26 @@ public abstract class AbstractTcpClient<S, R> implements TcpClient<S, R> {
 
     @Override
     public void sendMessage(S msg, ResponseHandler<R> handler) {
-        Preconditions.checkNotNull(msg);
-        Preconditions.checkNotNull(handler);
+        try {
+            Preconditions.checkNotNull(msg);
+            Preconditions.checkNotNull(handler);
 
-        final int token = tokenMaker.getAndIncrement() & Integer.MAX_VALUE;
-        LOG.debug("send message with token [{}]", token);
-        handlers.put(token, handler);
-        channel.writeAndFlush(new TokenMessage<>(token, msg))
-            .addListener((ChannelFutureListener) future -> {
-                if (!future.isSuccess()) {
-                    handlers.remove(token);
-                    executor.execute(() -> handler.error(new Exception("send message of token[" + token + "] error")));
+            final int token = tokenMaker.getAndIncrement() & Integer.MAX_VALUE;
+            LOG.debug("send message with token [{}]", token);
+            handlers.put(token, handler);
+            channel.writeAndFlush(new TokenMessage<>(token, msg))
+                   .addListener((ChannelFutureListener) future -> {
+                       if (!future.isSuccess()) {
+                           handlers.remove(token);
+                           executor.execute(() -> handler.error(new Exception("send message of token[" + token + "] error")));
 
-                    channel.close();
-                }
-            });
+                           channel.close();
+                       }
+                   });
+        } catch (Throwable e) {
+            LOG.error("error when send message [{}]", msg);
+            handler.error(e);
+        }
     }
 
     protected ResponseHandler<R> takeHandler(int token) {

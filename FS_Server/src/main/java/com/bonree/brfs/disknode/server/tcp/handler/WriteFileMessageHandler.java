@@ -94,7 +94,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
                 LOG.debug("write file[{}] in result[{}, {}]", writer.getPath(), result.getOffset(), result.getSize());
                 writer.write(contentData);
 
-                writerManager.flushIfNeeded(writer.getPath());
+                binding.first().flush();
                 results[i] = result;
             }
 

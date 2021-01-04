@@ -110,6 +110,7 @@ public class DiskWriter implements Closeable {
 
                 WriteResult[] results = null;
                 TimeWatcher timeWatcher = new TimeWatcher();
+                long start = System.currentTimeMillis();
                 try {
                     results = conn.getClient().writeDatas(pathMaker.buildPath(file.node(), node), dataList);
                 } catch (FileAlreadyClosedException fvee) {
@@ -117,8 +118,9 @@ public class DiskWriter implements Closeable {
                 } catch (IOException e) {
                     LOG.error("write file[{}] to disk error!", file.node().getName());
                 }
-
+                LOG.info("write [{}]to disk cost [{}]ms", file.node().getName(), System.currentTimeMillis() - start);
                 writeMetric.setElapsedTime(timeWatcher.getElapsedTime());
+
 
                 if (results != null) {
                     for (int i = 0; i < dataOuts.length; i++) {

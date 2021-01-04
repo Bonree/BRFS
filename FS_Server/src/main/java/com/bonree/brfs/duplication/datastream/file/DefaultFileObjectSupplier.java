@@ -286,6 +286,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
         @Override
         public FileObject call() throws Exception {
             while (true) {
+                log.info("start to fetch fileNode");
                 recycleFileObjects();
 
                 Iterator<FileObject> iter = idleFileList.iterator();
@@ -306,7 +307,6 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                         fileCloser.close(file, true);
                     }
                 }
-
                 List<FileObject> usableBusyFileList = new ArrayList<>();
                 for (FileObject file : busyFileList) {
                     if (file.free() >= dataSize) {
@@ -317,7 +317,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                     checkSize(dataSize, file);
                 }
 
-                log.debug("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(),
+                log.info("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(),
                           exceptionFileList.size());
                 if (totalSize() < cleanLimit || (totalSize() < forceCleanLimit && usableBusyFileList.isEmpty())) {
                     FileObject file = fileFactory.createFile(storageRegionRef.get());
@@ -338,7 +338,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                     return file;
                 }
 
-                log.debug("available busy file count => {}", usableBusyFileList.size());
+                log.info("available busy file count => {}", usableBusyFileList.size());
                 synchronized (waitObj) {
                     if (recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
                         waitObj.wait(1000);
