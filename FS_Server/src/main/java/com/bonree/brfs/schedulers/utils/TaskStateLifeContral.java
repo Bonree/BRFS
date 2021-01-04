@@ -431,7 +431,7 @@ public class TaskStateLifeContral {
                 continue;
             }
             if (codeAndCount.getFirst() == TaskState.FINISH.code() || codeAndCount.getFirst() == TaskState.RUN.code()
-                || codeAndCount.getFirst() == TaskState.RERUN.code()) {
+                || codeAndCount.getFirst() == TaskState.RERUN.code() || codeAndCount.getFirst() == TaskState.FAILED.code()) {
                 continue;
             }
             if (codeAndCount.getFirst() == TaskState.INIT.code()) {
