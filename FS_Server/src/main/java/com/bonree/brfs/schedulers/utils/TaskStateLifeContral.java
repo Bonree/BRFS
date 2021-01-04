@@ -61,8 +61,17 @@ public class TaskStateLifeContral {
             contentNodeInfo.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
         }
         contentNodeInfo.setTaskStopTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
-        TaskState status =
-            taskResult == null ? TaskState.EXCEPTION : taskResult.isSuccess() ? TaskState.FINISH : TaskState.EXCEPTION;
+        TaskState status = null;
+        if (taskResult == null) {
+            status = TaskState.EXCEPTION;
+        } else if (taskResult.isSuccess()) {
+            status = TaskState.FINISH;
+        } else if (contentNodeInfo.getRetryCount() > 3) {
+            // 如果重试超过次数限制，任务标记为Failed;
+            status = TaskState.FAILED;
+        } else {
+            status = TaskState.EXCEPTION;
+        }
         contentNodeInfo.setTaskState(status.code());
         release.updateServerTaskContentNode(serverId, taskname, taskType, contentNodeInfo);
         LOG.info("Complete server task :{} - {} - {} - {}", taskType, taskname, serverId,
@@ -75,6 +84,8 @@ public class TaskStateLifeContral {
         LOG.debug("complete c List {}", serverStatus);
         int cstat;
         boolean isException = false;
+        boolean isSuccess = false;
+        boolean isFailed = false;
         int finishCount = 0;
         int size = serverStatus.size();
         for (Pair<String, Integer> pair : serverStatus) {
@@ -83,6 +94,10 @@ public class TaskStateLifeContral {
                 isException = true;
                 finishCount += 1;
             } else if (TaskState.FINISH.code() == cstat) {
+                isSuccess = true;
+                finishCount += 1;
+            } else if (TaskState.FAILED.code() == cstat) {
+                isFailed = true;
                 finishCount += 1;
             }
         }
@@ -97,8 +112,10 @@ public class TaskStateLifeContral {
         }
         if (isException) {
             task.setTaskState(TaskState.EXCEPTION.code());
-        } else {
+        } else if (isSuccess) {
             task.setTaskState(TaskState.FINISH.code());
+        } else if (isFailed) {
+            task.setTaskState(TaskState.FAILED.code());
         }
         release.updateTaskContentNode(task, taskType, taskname);
         LOG.info("complete task :{} - {} - {}", taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
@@ -419,7 +436,9 @@ public class TaskStateLifeContral {
             }
             if (codeAndCount.getFirst() == TaskState.INIT.code()) {
                 return task;
-            } else if (codeAndCount.getFirst() == TaskState.EXCEPTION.code() && limtCount > 0) {
+            }
+            if (codeAndCount.getFirst() == TaskState.EXCEPTION.code()) {
+                // 重试次数小于limitCount
                 if (codeAndCount.getSecond() > limtCount) {
                     etasks.add(task);
                 } else {

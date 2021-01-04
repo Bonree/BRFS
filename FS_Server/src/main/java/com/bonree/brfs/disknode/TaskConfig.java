@@ -75,6 +75,8 @@ public class TaskConfig {
         logger.info("config item: task.{}, value: {}", "file.block.scan.interval.minute", fileBlockScanIntervalMinute);
         logger.info("config item: task.{}, value: {}", "second.register.interval.millisecond", secondIdRegisterIntervalMill);
         logger.info("config item: task.{}, value: {}", "file.block.start.delay.minute", startdelayMinute);
+        logger.info("config item: task.{}, value: {}", "trash.can.start.delay.minute", trashCanDelayMinute);
+        logger.info("config item: task.{}, value: {}", "trash.can.scan.interval.minute", trashCanScanIntervalMinute);
     }
 
     public List<String> getTaskSwitch() {
