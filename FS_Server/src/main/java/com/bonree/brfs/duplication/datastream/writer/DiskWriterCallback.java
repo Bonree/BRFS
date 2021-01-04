@@ -55,13 +55,13 @@ public class DiskWriterCallback {
             DataOut[] otherDataOut = results.get(i);
             for (int j = 0; j < maxResult.length; j++) {
                 if (otherDataOut[j] == null) {
-                    LOG.error("Error to write data in[{}, {}]", i, j);
+                    LOG.error("Error to write data in[{}, {}] of file [{}]", i, j, file.node().getName());
                     writeError = true;
                     continue;
                 }
 
                 if (maxResult[j] == null) {
-                    LOG.error("Error to write data in[{}, {}]", 0, j);
+                    LOG.error("Error to write data in[{}, {}] of file [{}]", 0, j, file.node().getName());
                     maxResult[j] = otherDataOut[j];
                     writeError = true;
                     continue;
@@ -89,7 +89,7 @@ public class DiskWriterCallback {
             maxValidIndex = i;
         }
 
-        LOG.debug("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());
+        LOG.info("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());
         file.setLength(
             maxValidIndex < 0 ? file.length() : (maxResult[maxValidIndex].offset() + maxResult[maxValidIndex].length()));
         callback.writeCompleted(file, writeError, false);
