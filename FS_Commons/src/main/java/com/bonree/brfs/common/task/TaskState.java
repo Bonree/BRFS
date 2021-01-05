@@ -7,7 +7,8 @@ public enum TaskState {
     FINISH(3),
     EXCEPTION(4),
     PAUSE(5),
-    RERUN(6);
+    RERUN(6),
+    FAILED(7);
 
     private int stat;
 
@@ -32,6 +33,8 @@ public enum TaskState {
             return PAUSE;
         } else if (stat == 6) {
             return RERUN;
+        } else if (stat == 7) {
+            return FAILED;
         } else {
             return UNKNOW;
         }

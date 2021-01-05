@@ -37,27 +37,36 @@ public class TrashRecoveryResource {
 
     @GET
     @Path("fullRecovery/{srName}")
-    public void reoveryAllTrashFiles(String srName) {
-        String trashRootDir = storageConfig.getTrashDir();
+    public void reoveryAllTrashFiles(@PathParam("srName")String srName) {
         File snTrashDir = new File(trashRootDir, srName);
+        log.info("sn dir is [{}].", snTrashDir.getAbsolutePath());
+        if (!snTrashDir.exists() && snTrashDir.isFile()) {
+            log.warn("the storageRegionName [{}] is not exists, plesae check your input.", srName);
+            return;
+        }
         File[] deleteTimeDirs = snTrashDir.listFiles((FileFilter) DirectoryFileFilter.DIRECTORY);
         for (File dirNeedToRecovery : deleteTimeDirs) {
             File metadataFile = new File(dirNeedToRecovery, ".metadata");
+            log.info("metadataFile path is [{}]", metadataFile.getAbsolutePath());
             if (!metadataFile.exists()) {
                 log.warn("do not find .metadata file in path [{}]", dirNeedToRecovery.getAbsolutePath());
                 continue;
             }
-            readMetadataFile(dirNeedToRecovery, true, metadataFile);
+            reoveryFile(dirNeedToRecovery, true, metadataFile);
         }
     }
 
     @GET
-    @Path("fullRecovery/{srName}")
-    public void reoveryTrashFilesWithATimeStamp(@PathParam("srName")String srName,
-                                                @QueryParam("timeStamp")long timeStamp) {
+    @Path("singleDirRecovery/{srName}")
+    public void reoveryTrashFilesWithATimeStamp(@PathParam("srName") String srName,
+                                                @QueryParam("timeStamp") long timeStamp) {
         File snTrashDir = new File(trashRootDir, srName);
+        if (!snTrashDir.exists() && snTrashDir.isFile()) {
+            log.warn("the storageRegionName [{}] is not exists, plesae check your input.", srName);
+            return;
+        }
         ArrayList<File> deleteTimeDirs = Lists.newArrayList(snTrashDir.listFiles((FileFilter) DirectoryFileFilter.DIRECTORY));
-        File dirNeedToRecovery = new File(snTrashDir,timeStamp + "");
+        File dirNeedToRecovery = new File(snTrashDir, timeStamp + "");
         if (!deleteTimeDirs.contains(dirNeedToRecovery)) {
             log.warn("trash dir do not contain the dir of timestamp [{}]", timeStamp);
             return;
@@ -67,21 +76,24 @@ public class TrashRecoveryResource {
             log.warn("do not find .metadata file in path [{}]", dirNeedToRecovery.getAbsolutePath());
             return;
         }
-        readMetadataFile(dirNeedToRecovery, true, metadataFile);
+        reoveryFile(dirNeedToRecovery, true, metadataFile);
     }
 
     @GET
-    @Path("singleDirRecovery/{srName}")
-    public void reoveryTrashFilesWithATimeInterval(@PathParam("srName")String srName,
-                                                   @QueryParam("lowTimeBoundary")long lowTimeBoundary,
-                                                   @QueryParam("highTimeBoundary")long highTimeBoundary) {
-        String trashRootDir = storageConfig.getTrashDir();
+    @Path("intervalDirRecovery/{srName}")
+    public void reoveryTrashFilesWithATimeInterval(@PathParam("srName") String srName,
+                                                   @QueryParam("lowTimeBoundary") long lowTimeBoundary,
+                                                   @QueryParam("highTimeBoundary") long highTimeBoundary) {
         File snTrashDir = new File(trashRootDir, srName);
+        if (!snTrashDir.exists() && snTrashDir.isFile()) {
+            log.warn("the storageRegionName [{}] is not exists, plesae check your input.", srName);
+            return;
+        }
         File[] deleteTimeDirs = snTrashDir.listFiles((FileFilter) DirectoryFileFilter.DIRECTORY);
         List<File> dirNeedToRecoverys = new ArrayList<>();
         for (File deleteTimeDir : deleteTimeDirs) {
             long deleteTime = Long.parseLong(deleteTimeDir.getName());
-            if (deleteTime >= lowTimeBoundary  && deleteTime <= highTimeBoundary) {
+            if (deleteTime >= lowTimeBoundary && deleteTime <= highTimeBoundary) {
                 dirNeedToRecoverys.add(deleteTimeDir);
             }
         }
@@ -91,11 +103,11 @@ public class TrashRecoveryResource {
                 log.warn("do not find .metadata file in path [{}]", dirNeedToRecovery.getAbsolutePath());
                 continue;
             }
-            readMetadataFile(dirNeedToRecovery, true, metadataFile);
+            reoveryFile(dirNeedToRecovery, true, metadataFile);
         }
     }
 
-    private void readMetadataFile(File dirNeedToRecovery, boolean deleteSuccessFlag, File metadataFile) {
+    private void reoveryFile(File dirNeedToRecovery, boolean deleteSuccessFlag, File metadataFile) {
         try (RandomAccessFile randomFile = new RandomAccessFile(metadataFile, "r")) {
             long length = 1L;
             while (randomFile.length() > length) {
@@ -118,5 +130,4 @@ public class TrashRecoveryResource {
             dirNeedToRecovery.delete();
         }
     }
-
 }

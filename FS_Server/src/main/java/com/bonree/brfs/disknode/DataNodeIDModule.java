@@ -52,6 +52,7 @@ public class DataNodeIDModule implements Module {
         // 加载配置
         JsonConfigProvider.bind(binder, "partition", PartitionConfig.class);
         jaxrs(binder).resource(NodeStatResource.class);
+        jaxrs(binder).resource(TrashRecoveryResource.class);
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class).in(Singleton.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class).in(Singleton.class);
         binder.bind(IDSManager.class).in(Singleton.class);
