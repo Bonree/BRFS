@@ -6,6 +6,7 @@ import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.disknode.trash.TrashMaintainer;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
@@ -63,6 +64,7 @@ public class TaskModule implements Module {
         binder.bind(TaskOpertionManager.class).in(ManageLifecycle.class);
         binder.bind(DefaultSchedulersManager.class).in(ManageLifecycle.class);
         binder.bind(ResourceMaintainer.class).in(ManageLifecycle.class);
+        binder.bind(TrashMaintainer.class).in(ManageLifecycle.class);
 
         LifecycleModule.register(binder, CycleRebalanceTaskMonitor.class);
         LifecycleModule.register(binder, FileBlockMaintainer.class);
@@ -70,6 +72,7 @@ public class TaskModule implements Module {
         LifecycleModule.register(binder, TaskOpertionManager.class);
         LifecycleModule.register(binder, DefaultSchedulersManager.class);
         LifecycleModule.register(binder, ResourceMaintainer.class);
+        LifecycleModule.register(binder, TrashMaintainer.class);
     }
 
     @Provides

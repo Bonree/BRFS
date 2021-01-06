@@ -10,6 +10,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.disknode.trash.recovery.RecoveryFileFromTrashManager;
 import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
@@ -52,6 +53,7 @@ public class DataNodeIDModule implements Module {
         // 加载配置
         JsonConfigProvider.bind(binder, "partition", PartitionConfig.class);
         jaxrs(binder).resource(NodeStatResource.class);
+        jaxrs(binder).resource(TrashRecoveryResource.class);
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class).in(Singleton.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class).in(Singleton.class);
         binder.bind(IDSManager.class).in(Singleton.class);
@@ -66,6 +68,7 @@ public class DataNodeIDModule implements Module {
         binder.bind(SimpleSecondMaintainer.class).in(ManageLifecycle.class);
         binder.bind(DiskPartitionChangeTaskGenerator.class).in(ManageLifecycle.class);
         binder.bind(RouteParserCache.class).in(ManageLifecycle.class);
+        binder.bind(RecoveryFileFromTrashManager.class).in(ManageLifecycle.class);
 
         LifecycleModule.register(binder, DiskPartitionInfoManager.class);
         LifecycleModule.register(binder, SimpleSecondMaintainer.class);

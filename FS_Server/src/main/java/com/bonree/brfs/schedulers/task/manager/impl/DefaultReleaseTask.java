@@ -353,23 +353,22 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         long currentTime = System.currentTimeMillis();
         for (String taskName : taskQueues) {
             TaskModel taskModel = getTaskContentNodeInfo(taskType, taskName, taskQueue);
-            if (TaskState.FINISH.code() != taskModel.getTaskState()) {
-                continue;
-            }
-            long createTime = TimeUtils.getMiles(taskModel.getCreateTime(), TimeUtils.TIME_MILES_FORMATE);
-            if (currentTime - createTime > time) {
-                continue;
-            }
-            if (taskModel == null) {
-                deleteTask(taskName, taskType, taskQueue);
+            if (TaskState.FINISH.code() == taskModel.getTaskState() || TaskState.FAILED.code() == taskModel.getTaskState()) {
+                long createTime = TimeUtils.getMiles(taskModel.getCreateTime(), TimeUtils.TIME_MILES_FORMATE);
+                if (currentTime - createTime > time) {
+                    continue;
+                }
+                if (taskModel == null) {
+                    deleteTask(taskName, taskType, taskQueue);
+                    i++;
+                    continue;
+                }
+                String source = ZKPaths.makePath(taskQueue, taskType, taskName);
+                String dent = ZKPaths.makePath(historyQueue, taskType, taskName);
+                mvData(source, dent, true);
+                LOG.info("[{}] task {} is history", taskType, taskName);
                 i++;
-                continue;
             }
-            String source = ZKPaths.makePath(taskQueue, taskType, taskName);
-            String dent = ZKPaths.makePath(historyQueue, taskType, taskName);
-            mvData(source, dent, true);
-            LOG.info("[{}] task {} is history", taskType, taskName);
-            i++;
         }
         return i;
     }

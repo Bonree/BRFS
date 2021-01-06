@@ -65,6 +65,12 @@ public final class DataNodeConfigs {
     public static final ConfigUnit<Boolean> CONFIG_READ_BY_ZEROCOPY =
         ConfigUnit.ofBoolean("datanode.read.by.zerocopy", false);
 
+    public static final ConfigUnit<Integer> CHECK_FILE_ISEMPTY_TIMEDELAY =
+        ConfigUnit.ofInt("datanode.check.filedir.isempty.timedelay", 60 * 60);
+
+    public static final ConfigUnit<Integer> CLEAN_TRASH_INTERVAL =
+        ConfigUnit.ofInt("datanode.clean.trash.interval", 15);
+
     private DataNodeConfigs() {
     }
 }

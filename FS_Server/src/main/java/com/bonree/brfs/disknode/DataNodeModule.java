@@ -22,6 +22,7 @@ import com.bonree.brfs.common.jackson.JsonMapper;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
@@ -38,6 +39,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.disknode.check.DefaultCheckerWhenInitDataNode;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
@@ -102,10 +104,12 @@ public class DataNodeModule implements Module {
         binder.requestStaticInjection(CuratorCacheFactory.class);
 
         binder.bind(Deliver.class).toInstance(Deliver.NOOP);
+        binder.bind(DefaultCheckerWhenInitDataNode.class).in(ManageLifecycle.class);
 
         jaxrs(binder).resource(JsonMapper.class);
         binder.bind(ReadStatCollector.class).toInstance(new ReadStatCollector());
         jaxrs(binder).resource(StatResource.class);
+        LifecycleModule.register(binder, DefaultCheckerWhenInitDataNode.class);
         LifecycleModule.register(binder, Service.class);
         LifecycleModule.register(binder, RebalanceManager.class);
         LifecycleModule.register(binder, TcpServer.class, DataWrite.class);
