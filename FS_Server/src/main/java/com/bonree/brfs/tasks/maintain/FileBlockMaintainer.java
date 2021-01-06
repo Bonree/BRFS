@@ -97,8 +97,8 @@ public class FileBlockMaintainer implements LifeCycle {
         int delayTime = getDelayTime(this.scanTime);
         FileBlockWorker worker = new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG);
         // 延迟1分钟启动确保路由规则加载完成
-        pool.scheduleAtFixedRate(worker, 1, 5, TimeUnit.MINUTES);
-        //pool.schedule(worker, this.startDelay, TimeUnit.MINUTES);
+        pool.scheduleAtFixedRate(worker, delayTime, intervalTime, TimeUnit.MINUTES);
+        pool.schedule(worker, this.startDelay, TimeUnit.MINUTES);
         LOG.info("block server start {} interval :{} minute", this.scanTime, this.intervalTime);
     }
 
