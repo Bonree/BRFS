@@ -9,6 +9,7 @@ import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.disknode.TaskConfig;
+import com.bonree.brfs.disknode.trash.TrashMaintainer;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
@@ -17,7 +18,6 @@ import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.schedulers.utils.InvaildFileBlockFilter;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +97,8 @@ public class FileBlockMaintainer implements LifeCycle {
         int delayTime = getDelayTime(this.scanTime);
         FileBlockWorker worker = new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG);
         // 延迟1分钟启动确保路由规则加载完成
-        pool.scheduleAtFixedRate(worker, delayTime, intervalTime, TimeUnit.MINUTES);
-        pool.schedule(worker, this.startDelay, TimeUnit.MINUTES);
+        pool.scheduleAtFixedRate(worker, 1, 5, TimeUnit.MINUTES);
+        //pool.schedule(worker, this.startDelay, TimeUnit.MINUTES);
         LOG.info("block server start {} interval :{} minute", this.scanTime, this.intervalTime);
     }
 
@@ -321,6 +320,9 @@ public class FileBlockMaintainer implements LifeCycle {
                     return new File(dataDir + File.separator + f.toString());
                 }).collect(Collectors.toList());
             Map<String, List<File>> filesMap = new HashMap<>();
+            if (files.isEmpty() || files == null) {
+                return null;
+            }
             filesMap.put(storageRegion.getName(), files);
             return filesMap;
         }

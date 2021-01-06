@@ -1,4 +1,4 @@
-package com.bonree.brfs.tasks.maintain;
+package com.bonree.brfs.disknode.trash;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -126,10 +127,17 @@ public class TrashMaintainer implements LifeCycle {
                 }
                 metaDataFile = new RandomAccessFile(metaData, "rw");
                 for (File deleteFile : deleteFiles) {
+                    String uniqueId = UUID.randomUUID().toString();
                     log.info("Moved: '" + deleteFile.getAbsolutePath() + "' to trash at: " + trashTimeDir);
-                    FileUtils.moveToDirectory(deleteFile, trashTimeDir, true);
+                    if (deleteFile.isFile()) {
+                        FileUtils.moveFile(deleteFile, new File(trashTimeDir, uniqueId + deleteFile.getName()));
+                    } else {
+                        FileUtils.moveToDirectory(deleteFile, trashTimeDir, false);
+                        File deleteFileInTrashCan = new File(trashTimeDir, deleteFile.getName());
+                        deleteFileInTrashCan.renameTo(new File(trashTimeDir, deleteFileInTrashCan.getName()));
+                    }
                     metaDataFile.seek(metaDataFile.length());
-                    metaDataFile.writeBytes(deleteFile.getAbsolutePath() + "\n");
+                    metaDataFile.writeBytes(uniqueId + deleteFile.getAbsolutePath() + "\n");
                 }
             }
             if (metaDataFile != null) {

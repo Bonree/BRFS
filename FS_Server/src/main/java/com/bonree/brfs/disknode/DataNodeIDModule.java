@@ -10,6 +10,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.disknode.trash.recovery.RecoveryFileFromTrashManager;
 import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
@@ -67,6 +68,7 @@ public class DataNodeIDModule implements Module {
         binder.bind(SimpleSecondMaintainer.class).in(ManageLifecycle.class);
         binder.bind(DiskPartitionChangeTaskGenerator.class).in(ManageLifecycle.class);
         binder.bind(RouteParserCache.class).in(ManageLifecycle.class);
+        binder.bind(RecoveryFileFromTrashManager.class).in(ManageLifecycle.class);
 
         LifecycleModule.register(binder, DiskPartitionInfoManager.class);
         LifecycleModule.register(binder, SimpleSecondMaintainer.class);
