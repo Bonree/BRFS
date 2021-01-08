@@ -62,7 +62,7 @@ public class SigarPartitionGather implements PartitionGather {
                 FileSystemUsage fsusage = sigar.getFileSystemUsage(fs.getDirName());
                 set.add(this.convertor.convertToPartitionStat(fs, fsusage));
             } catch (Exception e) {
-                log.error("dev [{}], dir [{}], sysTypeName [{}] gather resource error.",
+                log.warn("dev [{}], dir [{}], sysTypeName [{}] gather resource error.",
                           fs.getDevName(),
                           fs.getDirName(),
                           fs.getSysTypeName());
