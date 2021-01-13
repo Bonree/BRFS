@@ -237,3 +237,11 @@ datanode.service.host = 192.168.150.103
 # 用于gui采集数据的服务端口
 # datanode.httpserver.port = 18002
 
+# 用于检查新建集群的文件路径是否为空（通过判断集群的znode创建时间与当前启动时间比较，如果比这个配置的时间小，则认为是新的集群，单位s）
+# datanode.check.filedir.isempty.timedelay = 3600
+
+# 垃圾桶清理周期（单位天）
+# datanode.clean.trash.interval = 15
+
+#垃圾桶目录
+datanode.trash.dir = /data/br/brfs/.trash

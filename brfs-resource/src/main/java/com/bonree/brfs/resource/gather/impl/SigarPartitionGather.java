@@ -11,8 +11,13 @@ import org.hyperic.sigar.FileSystem;
 import org.hyperic.sigar.FileSystemMap;
 import org.hyperic.sigar.FileSystemUsage;
 import org.hyperic.sigar.Sigar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SigarPartitionGather implements PartitionGather {
+
+    private static final Logger log = LoggerFactory.getLogger(SigarPartitionGather.class);
+
     private Sigar sigar = null;
     private DiskConvertor convertor;
 
@@ -53,8 +58,15 @@ public class SigarPartitionGather implements PartitionGather {
         Collection<DiskPartitionStat> set = new HashSet<>();
         FileSystem[] fsArray = sigar.getFileSystemList();
         for (FileSystem fs : fsArray) {
-            FileSystemUsage fsusage = sigar.getFileSystemUsage(fs.getDirName());
-            set.add(this.convertor.convertToPartitionStat(fs, fsusage));
+            try {
+                FileSystemUsage fsusage = sigar.getFileSystemUsage(fs.getDirName());
+                set.add(this.convertor.convertToPartitionStat(fs, fsusage));
+            } catch (Exception e) {
+                log.warn("dev [{}], dir [{}], sysTypeName [{}] gather resource error.",
+                          fs.getDevName(),
+                          fs.getDirName(),
+                          fs.getSysTypeName());
+            }
         }
         return set;
     }
