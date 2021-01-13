@@ -1,5 +1,11 @@
 package com.bonree.brfs.disknode.trash.recovery;
 
+import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
+import com.bonree.brfs.common.http.HttpServerConfig;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.StorageConfig;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -14,6 +20,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.slf4j.Logger;
@@ -33,12 +42,23 @@ public class RecoveryFileFromTrashManager {
     private static String trashRootDir;
     private AtomicBoolean isExecute = new AtomicBoolean(false);
     private Future<?> future;
+    private ServiceManager serviceManager;
+    private HttpServerConfig config;
+    private static OkHttpClient httpClient = new OkHttpClient.Builder()
+        .addNetworkInterceptor(
+            chain -> chain.proceed(chain.request().newBuilder().addHeader("Expect", "100-continue").build()))
+        .socketFactory(new SocketChannelSocketFactory())
+        .build();
 
     @Inject
-    public RecoveryFileFromTrashManager(StorageConfig storageConfig) {
+    public RecoveryFileFromTrashManager(StorageConfig storageConfig,
+                                        ServiceManager serviceManager,
+                                        HttpServerConfig config) {
         trashRootDir = storageConfig.getTrashDir();
         this.trashRecoveryExec = Executors
-            .newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
+            .newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("RecoveryFileFromTrashManager").build());
+        this.serviceManager = serviceManager;
+        this.config = config;
     }
 
     public void recovery(Runnable runnable, TrashRecoveryCallBack callBack) {
@@ -59,7 +79,7 @@ public class RecoveryFileFromTrashManager {
 
             File snTrashDir = new File(trashRootDir, srName);
             log.info("sn dir is [{}].", snTrashDir.getAbsolutePath());
-            if (!snTrashDir.exists() && snTrashDir.isFile()) {
+            if (!snTrashDir.exists() || snTrashDir.isFile()) {
                 log.warn("the storageRegionName [{}] is not exists.", srName);
                 callBack.error(new Exception(srName + " is not exists."));
                 return;
@@ -188,6 +208,50 @@ public class RecoveryFileFromTrashManager {
             dirNeedToRecovery.delete();
         } else {
             callBack.error(new Exception("recovery file failed, please try again later"));
+        }
+    }
+
+    public void recoveryFileForAllNode() {
+        List<Service> datanodes = serviceManager
+            .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        String uri = "";
+        for (Service datanode : datanodes) {
+            uri = "http://" + datanode.getHost() + ":" + config.getPort();
+            Request httpRequest = new Request.Builder()
+                .url(HttpUrl.get(uri)
+                            .newBuilder()
+                            .encodedPath("/trash/fullRecovery")
+                            .build())
+                .get()
+                .build();
+
+            try {
+                httpClient.newCall(httpRequest).execute();
+            } catch (IOException e) {
+                log.error("exception happend when request for [{}] because of error [{}]", uri, e);
+            }
+        }
+    }
+
+    public void recoveyFileForAllNodeBySrName(String srName) {
+        List<Service> datanodes = serviceManager
+            .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        String uri = "";
+        for (Service datanode : datanodes) {
+            uri = "http://" + datanode.getHost() + ":" + config.getPort();
+            Request httpRequest = new Request.Builder()
+                .url(HttpUrl.get(uri)
+                            .newBuilder()
+                            .encodedPath("/trash/fullRecovery")
+                            .addEncodedPathSegment(srName)
+                            .build())
+                .get()
+                .build();
+            try {
+                httpClient.newCall(httpRequest).execute();
+            } catch (IOException e) {
+                log.error("exception happend when request for [{}] because of error [{}]", uri, e);
+            }
         }
     }
 

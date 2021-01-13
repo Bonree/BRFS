@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 @ManageLifecycle
 public class DefaultCheckerWhenInitDataNode {
     private static final Logger log = LoggerFactory.getLogger(DefaultCheckerWhenInitDataNode.class);
+    private static final String SKIP_CHECK_KEY = "skip.check.fileDir";
+    private static final String SKIP = "skip";
     private StorageConfig storageConfig;
     private ClusterConfig clusterConfig;
     private CuratorFramework client;
@@ -53,6 +55,11 @@ public class DefaultCheckerWhenInitDataNode {
             stat = client.checkExists().forPath(clusterPath);
         } catch (Exception e) {
             log.error("get znode info for zkPath [{}] failed, giving up check file directory", clusterPath);
+            return;
+        }
+        String properties = System.getProperty(SKIP_CHECK_KEY) == null ? "" : System.getProperty(SKIP_CHECK_KEY).toLowerCase();
+        if (properties.equals(SKIP)) {
+            log.info("skip check fileDir is empty or not");
             return;
         }
         if (stat == null) {

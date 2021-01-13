@@ -43,6 +43,18 @@ public class TrashRecoveryResource {
     }
 
     @GET
+    @Path("allRecovery")
+    public void allDatanodeRecovery() {
+        recoveryTrashManager.recoveryFileForAllNode();
+    }
+
+    @GET
+    @Path("allRecovery/{srName}")
+    public void allDatanodeRecovery(@PathParam("srName") String srName) {
+        recoveryTrashManager.recoveyFileForAllNodeBySrName(srName);
+    }
+
+    @GET
     @Path("fullRecovery")
     public void reoveryAllTrash(@Suspended AsyncResponse response) {
         List<StorageRegion> storageRegionList = srManager.getStorageRegionList();
