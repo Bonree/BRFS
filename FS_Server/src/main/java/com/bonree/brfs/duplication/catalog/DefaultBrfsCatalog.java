@@ -3,9 +3,13 @@ package com.bonree.brfs.duplication.catalog;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.utils.Bytes;
+import com.bonree.brfs.common.write.data.FidDecoder;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -32,6 +36,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
     private static final String pattern = "^(/+(\\.*[\\u4e00-\\u9fa5_a-zA-Z0-9，\\w,\\-]+\\.*)+)+$";
     private static Pattern p = Pattern.compile(pattern);
+    private StorageRegionManager storageRegionManager;
     private LoadingCache<PathKey, Boolean> pathCache = CacheBuilder.newBuilder()
                                                                    .concurrencyLevel(Runtime.getRuntime().availableProcessors())
                                                                    .maximumSize(200)
@@ -65,6 +70,24 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                                                                        }
                                                                    });
 
+    private LoadingCache<String, Long> ttlCache = CacheBuilder.newBuilder()
+                                                                   .concurrencyLevel(Runtime.getRuntime().availableProcessors())
+                                                                   .maximumSize(200)
+                                                                   .initialCapacity(10)
+                                                                   .expireAfterAccess(30, TimeUnit.SECONDS)
+                                                                   .build(new CacheLoader<String, Long>() {
+                                                                       @SuppressWarnings("resource")
+                                                                       @ParametersAreNonnullByDefault
+                                                                       @Override
+                                                                       public Long load(String srName) {
+                                                                           StorageRegion storageRegion =
+                                                                               storageRegionManager
+                                                                                   .findStorageRegionByName(srName);
+                                                                           String dataTtl = storageRegion.getDataTtl();
+                                                                           return Duration.parse(dataTtl).getSeconds() * 1000;
+                                                                       }
+                                                                   });
+
     /**
      * 把path转换为可以写入rocksdb的byte数组
      *
@@ -85,8 +108,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     }
 
     @Inject
-    public DefaultBrfsCatalog(RocksDBManager rocksDBManager) {
+    public DefaultBrfsCatalog(RocksDBManager rocksDBManager, StorageRegionManager storageRegionManager) {
         this.rocksDBManager = rocksDBManager;
+        this.storageRegionManager = storageRegionManager;
     }
 
     @Override
@@ -208,6 +232,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             treeMap.put(new String(bytes), map.get(bytes));
         }
         map.clear();
+        String tmpFid;
         for (String key : treeMap.keySet()) {
             //去掉自己
             if (new String(prefixQueryKey).equals(key)) {
@@ -229,10 +254,18 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             //if (count++ < startPos) {
             //    continue;
             //}
-            if (new String(value).equals("0")) {
+            tmpFid = new String(value);
+            if ("0".equals(tmpFid)) {
                 inodes.add(new Inode(nodeName, null, 0));
             } else {
-                inodes.add(new Inode(nodeName, new String(value), 1));
+                try {
+                    if (FidDecoder.build(tmpFid).getTime() < System.currentTimeMillis() - ttlCache.get(srName)) {
+                        continue;
+                    }
+                } catch (Exception e) {
+                    LOG.error("error when get ttl of fid[{]]", tmpFid);
+                }
+                inodes.add(new Inode(nodeName, tmpFid, 1));
             }
         }
 
