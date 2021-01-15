@@ -88,13 +88,14 @@ public class TrashRecoveryResource {
         TrashRecoveryCallBack callBack = getCallBack(srName, response);
         recoveryTrashManager.recovery(() -> recoveryTrashManager.reoveryTrashFilesWithTimeInterval(srName,
                                                                                                    lowTimeBoundary,
-                                                                                                   lowTimeBoundary,
+                                                                                                   highTimeBoundary,
                                                                                                    callBack), callBack);
     }
 
     private TrashRecoveryCallBack getCallBack(String srName,
                                                 AsyncResponse response) {
         if (!srManager.exists(srName)) {
+            log.info("storage [{}] is not exists.", srName);
             throw new WebApplicationException("storage:" + srName + "is not exist!", HttpStatus.CODE_STORAGE_NOT_EXIST);
         }
 
