@@ -84,7 +84,6 @@ public class TaskStateLifeContral {
         LOG.debug("complete c List {}", serverStatus);
         int cstat;
         boolean isException = false;
-        boolean isSuccess = false;
         boolean isFailed = false;
         int finishCount = 0;
         int size = serverStatus.size();
@@ -93,14 +92,14 @@ public class TaskStateLifeContral {
             if (TaskState.EXCEPTION.code() == cstat) {
                 isException = true;
                 finishCount += 1;
-            } else if (TaskState.FINISH.code() == cstat) {
-                isSuccess = true;
-                finishCount += 1;
             } else if (TaskState.FAILED.code() == cstat) {
                 isFailed = true;
                 finishCount += 1;
+            } else if (TaskState.FINISH.code() == cstat) {
+                finishCount += 1;
             }
         }
+
         if (finishCount != size) {
             return;
         }
@@ -112,10 +111,10 @@ public class TaskStateLifeContral {
         }
         if (isException) {
             task.setTaskState(TaskState.EXCEPTION.code());
-        } else if (isSuccess) {
-            task.setTaskState(TaskState.FINISH.code());
         } else if (isFailed) {
             task.setTaskState(TaskState.FAILED.code());
+        } else {
+            task.setTaskState(TaskState.FINISH.code());
         }
         release.updateTaskContentNode(task, taskType, taskname);
         LOG.info("complete task :{} - {} - {}", taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
