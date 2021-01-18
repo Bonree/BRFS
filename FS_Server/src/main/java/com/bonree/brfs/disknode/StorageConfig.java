@@ -23,7 +23,7 @@ public class StorageConfig {
     private List<String> storageDirs = ImmutableList.of("data");
 
     @JsonProperty("trash.dir")
-    private String trashDir = "/data/brfs/.trash";
+    private String trashDir = "/data/br/brfs/trash";
 
     public List<String> getStorageDirs() {
         return storageDirs;

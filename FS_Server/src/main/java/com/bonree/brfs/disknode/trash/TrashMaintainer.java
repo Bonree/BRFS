@@ -77,7 +77,7 @@ public class TrashMaintainer implements LifeCycle {
                     long createTime = Long.parseLong(deleteTimeDir.getName());
                     try {
                         if ((currentTime - createTime) >= Configs.getConfiguration().getConfig(
-                            DataNodeConfigs.CLEAN_TRASH_INTERVAL) * 60 * 1000) {
+                            DataNodeConfigs.CLEAN_TRASH_INTERVAL) * 60 * 1000 * 60 * 24) {
                             log.info("Remove file [{}] completely, delete this file from trash.", srDir.getName());
                             FileUtils.deleteDirectory(deleteTimeDir);
                         }
