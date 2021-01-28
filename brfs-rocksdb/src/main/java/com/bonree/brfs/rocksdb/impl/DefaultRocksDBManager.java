@@ -22,25 +22,32 @@ import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.rmi.dgc.DGC;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;
@@ -99,6 +106,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     private int dataSynchronizeCountOnce;
+    private boolean deleteIfStale;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
@@ -115,6 +123,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private BlockingQueue<RocksDBDataUnit> rocksdbQueue = new ArrayBlockingQueue<>(1000);
     private ScheduledExecutorService
         queueChecker = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
+    private KVCleaner cleanerWithTTL;
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -125,9 +134,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
         this.srManager = srManager;
         this.regionGroupName = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
         this.dataSynchronizeCountOnce = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DATA_SYNCHRONIZE_COUNT_ONCE);
+        this.deleteIfStale = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DELETE_IF_STALE);
         this.regionNodeConnectionPool = regionNodeConnectionPool;
         this.columnFamilyInfoManager = new ColumnFamilyInfoManager(this.client);
-
+        if (deleteIfStale) {
+            this.cleanerWithTTL = new KVCleaner();
+            this.cleanerWithTTL.setRunning(true);
+            this.cleanerWithTTL.start();
+        }
         dbOptions = new DBOptions();
         readOptions = new ReadOptions();
         writeOptionsSync = new WriteOptions();
@@ -327,7 +341,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey, int start, int count) {
+    public Map<byte[], byte[]> readByPrefix(String columnFamily,
+                                            byte[] prefixKey,
+                                            int start,
+                                            int count,
+                                            Predicate<byte[]> filter) {
         if (null == columnFamily || columnFamily.isEmpty() || null == prefixKey || count == 0) {
             LOG.warn("read by prefix column family is empty or prefixKey is null!");
             return null;
@@ -338,12 +356,18 @@ public class DefaultRocksDBManager implements RocksDBManager {
         try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
             String prefix = new String(prefixKey);
             String curKey = "";
+            boolean isStale;
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 curKey = new String(iterator.key());
                 if (curKey.startsWith(prefix)) {
                     // 大于起始位置时才put
                     if (counter >= start) {
-                        result.put(iterator.key(), iterator.value());
+                        isStale = filter.test(iterator.value());
+                        if (!isStale) {
+                            result.put(iterator.key(), iterator.value());
+                        } else if (deleteIfStale) {
+                            this.cleanerWithTTL.clean(iterator.key());
+                        }
                     }
                     // 满员后返回
                     if (result.size() >= count) {
@@ -410,6 +434,51 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     }
                 }
             }
+        }
+    }
+
+    private class KVCleaner {
+        private BlockingDeque<byte[]> keyQueue = new LinkedBlockingDeque<>();
+        private ExecutorService keyHandler = Executors.newSingleThreadExecutor();
+        private volatile boolean isRunning = false;
+
+        public void clean(byte[] key) {
+            if (!keyQueue.offer(key)) {
+                LOG.warn("cannot offer the key[{}] into KQueue", new String(key));
+            }
+        }
+
+        public boolean isRunning() {
+            return isRunning;
+        }
+
+        public void setRunning(boolean running) {
+            isRunning = running;
+        }
+
+        void start() {
+            keyHandler.submit(() -> {
+                while (isRunning) {
+                    byte[] key = null;
+                    try {
+                        key = keyQueue.take();
+                    } catch (InterruptedException e) {
+                        LOG.warn("KVCleaner is interrupted because of", e);
+                    }
+                    if (null != key) {
+                        try {
+                            db.delete(key);
+                        } catch (RocksDBException e) {
+                            LOG.warn("KVCleaner: delete key [{}] failed!", new String(key));
+                        }
+                    }
+                }
+            });
+        }
+
+        void stop() {
+            setRunning(false);
+            this.keyHandler.shutdown();
         }
     }
 
@@ -658,6 +727,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
+        this.cleanerWithTTL.stop();
         this.produceExec.shutdown();
         this.queueChecker.shutdown();
         LOG.info("rocksdb manager stop");

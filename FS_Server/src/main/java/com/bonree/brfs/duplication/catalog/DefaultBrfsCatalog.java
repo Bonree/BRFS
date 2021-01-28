@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Inject;
@@ -222,7 +224,39 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             path = "";
         }
         prefixQueryKey = Bytes.byteMerge(path.getBytes(), "//".getBytes());
-        Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey, startPos, pageSize);
+        long ttl = -1;
+        try {
+            ttl = ttlCache.get(srName);
+        } catch (ExecutionException e) {
+            LOG.error("error when get ttl of sr[{}]", srName, e);
+        }
+        final long ttlOfOneCF = ttl;
+        final long oldestTimeLine = System.currentTimeMillis() - ttlOfOneCF;
+        Predicate<byte[]> filter = (value) -> {
+            if (ttlOfOneCF <= 0) {
+                return false;
+            }
+            boolean isStale = false;
+            String tmpFid = new String(value);
+            if ("-1".equals(tmpFid)) {
+                isStale = false;
+            } else {
+                try {
+                    if (FidDecoder.build(tmpFid).getTime() < oldestTimeLine) {
+                        isStale = true;
+                    }
+                } catch (Exception e) {
+                    isStale = false;
+                    LOG.error("error when get ttl of fid[{]]", tmpFid, e);
+                }
+            }
+            return isStale;
+        };
+        Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName,
+                                                              prefixQueryKey,
+                                                              startPos,
+                                                              pageSize,
+                                                              filter);
         if (map == null) {
             LOG.error("dir [{}] is not found.", path);
             throw new NotFoundException();
@@ -271,6 +305,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
         return inodes;
     }
+
 
     @Override
     public boolean isFileNode(String srName, String path) {

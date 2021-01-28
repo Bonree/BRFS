@@ -5,6 +5,7 @@ import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class NonRocksDBManager implements RocksDBManager {
 
@@ -24,7 +25,11 @@ public class NonRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey, int start, int count) {
+    public Map<byte[], byte[]> readByPrefix(String columnFamily,
+                                            byte[] prefixKey,
+                                            int start,
+                                            int count,
+                                            Predicate<byte[]> filter) {
         return new HashMap<>();
     }
 

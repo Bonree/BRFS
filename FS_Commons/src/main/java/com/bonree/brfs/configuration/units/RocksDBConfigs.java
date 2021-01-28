@@ -98,4 +98,7 @@ public class RocksDBConfigs {
     public static final ConfigUnit<Long> ROCKSDB_COMPACTION_READHEAD_SIZE =
         ConfigUnit.ofLong("rocksdb.compaction.readhead.size", 2048L);
 
+    public static final ConfigUnit<Boolean> ROCKSDB_DELETE_IF_STALE =
+        ConfigUnit.ofBoolean("rocksdb.delete.if.stale", false);
+
 }
