@@ -238,7 +238,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             }
             boolean isStale = false;
             String tmpFid = new String(value);
-            if ("-1".equals(tmpFid)) {
+            if (tmpFid.equals("") || "0".equals(tmpFid)) {
                 isStale = false;
             } else {
                 try {
@@ -292,13 +292,6 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             if ("0".equals(tmpFid)) {
                 inodes.add(new Inode(nodeName, null, 0));
             } else {
-                try {
-                    if (FidDecoder.build(tmpFid).getTime() < System.currentTimeMillis() - ttlCache.get(srName)) {
-                        continue;
-                    }
-                } catch (Exception e) {
-                    LOG.error("error when get ttl of fid[{]]", tmpFid);
-                }
                 inodes.add(new Inode(nodeName, tmpFid, 1));
             }
         }

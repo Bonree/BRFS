@@ -118,7 +118,7 @@ public class DiskWriter implements Closeable {
                 } catch (IOException e) {
                     LOG.error("write file[{}] to disk error!", file.node().getName());
                 }
-                LOG.info("write [{}]to disk cost [{}]ms", file.node().getName(), System.currentTimeMillis() - start);
+                LOG.debug("write [{}]to disk cost [{}]ms", file.node().getName(), System.currentTimeMillis() - start);
                 writeMetric.setElapsedTime(timeWatcher.getElapsedTime());
 
 

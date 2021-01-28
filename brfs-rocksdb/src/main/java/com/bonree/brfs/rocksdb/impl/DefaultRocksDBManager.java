@@ -727,7 +727,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
-        this.cleanerWithTTL.stop();
+        if (this.cleanerWithTTL != null) {
+            this.cleanerWithTTL.stop();
+        }
         this.produceExec.shutdown();
         this.queueChecker.shutdown();
         LOG.info("rocksdb manager stop");
