@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -43,22 +44,22 @@ public class RecoveryFileFromTrashManager {
     private AtomicBoolean isExecute = new AtomicBoolean(false);
     private Future<?> future;
     private ServiceManager serviceManager;
-    private HttpServerConfig config;
     private static OkHttpClient httpClient = new OkHttpClient.Builder()
         .addNetworkInterceptor(
             chain -> chain.proceed(chain.request().newBuilder().addHeader("Expect", "100-continue").build()))
         .socketFactory(new SocketChannelSocketFactory())
         .build();
+    private final Properties properties;
 
     @Inject
     public RecoveryFileFromTrashManager(StorageConfig storageConfig,
                                         ServiceManager serviceManager,
-                                        HttpServerConfig config) {
+                                        Properties properties) {
         trashRootDir = storageConfig.getTrashDir();
         this.trashRecoveryExec = Executors
             .newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("RecoveryFileFromTrashManager").build());
         this.serviceManager = serviceManager;
-        this.config = config;
+        this.properties = properties;
     }
 
     public void recovery(Runnable runnable, TrashRecoveryCallBack callBack) {
@@ -215,8 +216,11 @@ public class RecoveryFileFromTrashManager {
         List<Service> datanodes = serviceManager
             .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         String uri = "";
+        if (properties.getProperty("datanode.httpserver.port") == null ) {
+            return;
+        }
         for (Service datanode : datanodes) {
-            uri = "http://" + datanode.getHost() + ":" + config.getPort();
+            uri = "http://" + datanode.getHost() + ":" + properties.getProperty("datanode.httpserver.port");
             Request httpRequest = new Request.Builder()
                 .url(HttpUrl.get(uri)
                             .newBuilder()
@@ -237,8 +241,11 @@ public class RecoveryFileFromTrashManager {
         List<Service> datanodes = serviceManager
             .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         String uri = "";
+        if (properties.getProperty("datanode.httpserver.port") == null ) {
+            return;
+        }
         for (Service datanode : datanodes) {
-            uri = "http://" + datanode.getHost() + ":" + config.getPort();
+            uri = "http://" + datanode.getHost() + ":" + properties.getProperty("datanode.httpserver.port");
             Request httpRequest = new Request.Builder()
                 .url(HttpUrl.get(uri)
                             .newBuilder()

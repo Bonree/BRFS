@@ -51,7 +51,7 @@ public class ClusterResource implements Closeable {
      * @return
      */
     public Collection<ResourceModel> getClusterResources() {
-        Collection<ResourceModel>  result = new ArrayList<>();
+        Collection<ResourceModel> result = new ArrayList<>();
         for (ResourceModel value : clusterResources.values()) {
             result.add(value);
         }
@@ -89,9 +89,10 @@ public class ClusterResource implements Closeable {
                 return;
             }
             String str = JsonUtils.toJsonString(resource);
-            if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(type)
-                || PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(type)) {
-                LOG.debug("add a resource [{}] to cache", resource.getHost());
+            if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(type)) {
+                LOG.info("add a resource [{}] to cache", resource.getHost());
+                clusterResources.put(resource.getServerId(), resource);
+            } else if (PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(type)) {
                 clusterResources.put(resource.getServerId(), resource);
             } else if (PathChildrenCacheEvent.Type.CHILD_REMOVED == type) {
                 LOG.info("remove a resource[{}] from cache", resource.getHost());

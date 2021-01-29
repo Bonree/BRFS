@@ -56,7 +56,7 @@ public class ResourceMaintainer implements LifeCycle {
         tasks.stream().forEach(x -> {
             x.setStatus(TaskState.RUN);
             long delay = 60 - System.currentTimeMillis() / 1000 % 60;
-            pool.scheduleAtFixedRate(x, delay, x.getIntervalSecond(), TimeUnit.SECONDS);
+            pool.scheduleAtFixedRate(x, 0, x.getIntervalSecond(), TimeUnit.SECONDS);
         });
         LOG.info("resource pool start");
 

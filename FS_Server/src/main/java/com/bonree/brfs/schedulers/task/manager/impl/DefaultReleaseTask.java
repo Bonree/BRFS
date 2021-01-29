@@ -303,7 +303,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                 }
                 String createTime = taskModel.getCreateTime();
                 long ctime = StringUtils.isEmpty(createTime) ? 0 : TimeUtils.getMiles(createTime, TimeUtils.TIME_MILES_FORMATE);
-                if (ctime > deleteTime) {
+                if (System.currentTimeMillis() - ctime < deleteTime) {
                     continue;
                 }
                 if (deleteTask(taskName, taskType, taskQueuePath)) {
