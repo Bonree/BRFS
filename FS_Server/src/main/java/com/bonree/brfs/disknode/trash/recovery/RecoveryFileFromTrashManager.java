@@ -216,7 +216,7 @@ public class RecoveryFileFromTrashManager {
         List<Service> datanodes = serviceManager
             .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         String uri = "";
-        if (properties.getProperty("datanode.httpserver.port") == null ) {
+        if (properties.getProperty("datanode.httpserver.port") == null) {
             return;
         }
         for (Service datanode : datanodes) {
@@ -241,7 +241,7 @@ public class RecoveryFileFromTrashManager {
         List<Service> datanodes = serviceManager
             .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         String uri = "";
-        if (properties.getProperty("datanode.httpserver.port") == null ) {
+        if (properties.getProperty("datanode.httpserver.port") == null) {
             return;
         }
         for (Service datanode : datanodes) {

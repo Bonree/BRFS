@@ -22,6 +22,7 @@ import com.bonree.brfs.client.data.read.StringSubFidParser;
 import com.bonree.brfs.client.data.read.SubFidParser;
 import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
 import com.bonree.brfs.client.discovery.CachedDiscovery;
+import com.bonree.brfs.client.discovery.DefaultNodeSelector;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.HttpDiscovery;
 import com.bonree.brfs.client.discovery.NodeSelector;
@@ -43,6 +44,7 @@ import okhttp3.Response;
 
 public class BRFSClientBuilder {
     private ClientConfiguration configuration;
+    private NodeSelector nodeSelector;
 
     public BRFSClientBuilder config(ClientConfiguration config) {
         this.configuration = config;
@@ -51,6 +53,11 @@ public class BRFSClientBuilder {
 
     public BRFS build(URI[] regionNodes) {
         return build("anonym", "", regionNodes);
+    }
+
+    public BRFSClientBuilder setNodeSelector(NodeSelector nodeSelector) {
+        this.nodeSelector = nodeSelector;
+        return this;
     }
 
     /**
@@ -91,9 +98,10 @@ public class BRFSClientBuilder {
             Executors.newSingleThreadExecutor(new DaemonThreadFactory("brfs-discovery-%s")),
             configuration.getDiscoveryExpiredDuration(),
             configuration.getDiscoreryRefreshDuration());
-
-        NodeSelector nodeSelector = new NodeSelector(discovery, new ShiftRanker<>());
-        closer.register(nodeSelector);
+        if (null == nodeSelector) {
+            this.nodeSelector = new DefaultNodeSelector(discovery, new ShiftRanker<>());
+        }
+        closer.register(this.nodeSelector);
 
         RouterClient routerClient = new HttpRouterClient(httpClient, nodeSelector, codec);
 
