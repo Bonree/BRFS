@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.catalog;
 
+import com.bonree.brfs.common.proto.FileDataProtos;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.utils.Bytes;
@@ -242,7 +243,8 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
                 isStale = false;
             } else {
                 try {
-                    if (FidDecoder.build(tmpFid).getTime() < oldestTimeLine) {
+                    FileDataProtos.Fid fid = FidDecoder.build(tmpFid);
+                    if (fid.getTime() + fid.getDuration() < oldestTimeLine) {
                         isStale = true;
                     }
                 } catch (Exception e) {
